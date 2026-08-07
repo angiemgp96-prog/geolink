@@ -166,8 +166,9 @@ export const api = {
     return await res.json();
   },
 
-  async verifyPurchase(token: string) {
-    const res = await fetch(`/api/purchases/verify/${token}`);
+  async verifyPurchase(token: string, autoApprove?: boolean) {
+    const url = `/api/purchases/verify/${token}${autoApprove ? '?auto=true' : ''}`;
+    const res = await fetch(url);
     return await res.json();
   },
 

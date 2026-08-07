@@ -39,7 +39,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     if (screen !== 'mp_pending' || !mpUnlockToken) return;
     const id = setInterval(async () => {
       try {
-        const res = await api.verifyPurchase(mpUnlockToken);
+        const res = await api.verifyPurchase(mpUnlockToken, true);
         if (res.valid && res.purchase) {
           setCompletedPurchase(res.purchase);
           setScreen('mp_success');
@@ -76,7 +76,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     setErrorMessage('');
     setIsLoading(true);
     try {
-      const data = await api.createMercadoPagoPreference(item.id, 'cliente@ejemplo.com', '');
+      const data = await api.createMercadoPagoPreference(item.id, '', '');
       if (data.error) { setErrorMessage(data.error); return; }
       if (data.init_point) {
         window.open(data.init_point, '_blank');
@@ -96,7 +96,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     if (!mpUnlockToken) return;
     setIsLoading(true);
     try {
-      const res = await api.verifyPurchase(mpUnlockToken);
+      const res = await api.verifyPurchase(mpUnlockToken, true);
       if (res.valid && res.purchase) {
         setCompletedPurchase(res.purchase);
         setScreen('mp_success');

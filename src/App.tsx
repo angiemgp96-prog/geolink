@@ -93,6 +93,23 @@ export default function App() {
 
       const loc = await api.getVisitorLocation();
       setVisitorLocation(loc);
+
+      // Check for returning Mercado Pago payment redirect parameters
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token') || params.get('unlock');
+      const isPaymentReturn = params.get('payment') === 'success' || params.get('collection_status') === 'approved' || params.get('status') === 'approved';
+
+      if (token && isPaymentReturn) {
+        try {
+          const verifyRes = await api.verifyPurchase(token, true);
+          if (verifyRes.valid && verifyRes.purchase) {
+            const foundMedia = mediaItems.find(m => m.id === verifyRes.purchase.mediaId);
+            if (foundMedia) {
+              setSelectedMediaForPurchase(foundMedia);
+            }
+          }
+        } catch {}
+      }
     } catch (e) {
       console.warn('Init error, using defaults:', e);
     }

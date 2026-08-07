@@ -385,8 +385,8 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
       mediaId: media.id,
       mediaTitle: media.title,
       creatorHandle: media.creatorHandle,
-      buyerEmail: buyerEmail || "cliente@ejemplo.com",
-      buyerPhone: buyerPhone || "+5491100000000",
+      buyerEmail: buyerEmail || "",
+      buyerPhone: buyerPhone || "",
       amount: media.price,
       currency: media.currency,
       paymentMethod: "mercadopago",
@@ -398,6 +398,8 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
     };
 
     purchases.push(record);
+
+    const validEmail = buyerEmail && buyerEmail.includes("@") ? buyerEmail.trim() : null;
 
     // Call Mercado Pago API if access token is available
     if (accessToken && (accessToken.startsWith("APP_USR") || accessToken.startsWith("TEST"))) {
@@ -418,9 +420,8 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
                 unit_price: Number(media.price),
               },
             ],
-            payer: {
-              email: buyerEmail || "comprador@ejemplo.com",
-            },
+            ...(validEmail ? { payer: { email: validEmail } } : {}),
+            auto_return: "approved",
             back_urls: {
               success: `${process.env.APP_URL || "http://localhost:3000"}?payment=success&token=${unlockToken}`,
               failure: `${process.env.APP_URL || "http://localhost:3000"}?payment=failure`,
@@ -472,20 +473,45 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
  * POST /api/payments/mercadopago/webhook
  */
 app.post("/api/payments/mercadopago/webhook", async (req, res) => {
-  const { action, data, type, external_reference } = req.body;
-  
-  const paymentId = data?.id || req.body?.id || external_reference;
-  const match = purchases.find((p) => p.paymentId === paymentId || p.id === external_reference);
+  try {
+    const { action, data, type } = req.body;
+    const paymentId = data?.id || req.body?.id || req.query?.["data.id"] || req.query?.id;
+    const externalRef = req.body?.external_reference || req.query?.external_reference;
 
-  if (match) {
-    match.status = "completed";
-    
-    // Increment purchase counter on media item
-    const media = mediaItems.find((m) => m.id === match.mediaId);
-    if (media) media.purchasesCount += 1;
+    let match = purchases.find((p) => p.paymentId === paymentId || p.id === externalRef || p.id === paymentId);
 
-    // Send WhatsApp notification if UltraMsg credentials present
-    sendWhatsAppReceipt(match);
+    if (match) {
+      match.status = "completed";
+      const media = mediaItems.find((m) => m.id === match.mediaId);
+      if (media) media.purchasesCount += 1;
+      sendWhatsAppReceipt(match);
+    } else if (paymentId) {
+      for (const creator of creators) {
+        const token = creator.paymentSettings?.mercadoPagoAccessToken || process.env.MERCADOPAGO_ACCESS_TOKEN;
+        if (token && (token.startsWith("APP_USR") || token.startsWith("TEST"))) {
+          try {
+            const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (mpRes.ok) {
+              const mpPayment = await mpRes.json();
+              const extId = mpPayment.external_reference;
+              const status = mpPayment.status;
+              match = purchases.find((p) => p.id === extId || p.token === extId);
+              if (match && (status === "approved" || status === "accredited")) {
+                match.status = "completed";
+                const media = mediaItems.find((m) => m.id === match.mediaId);
+                if (media) media.purchasesCount += 1;
+                sendWhatsAppReceipt(match);
+                break;
+              }
+            }
+          } catch {}
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[MercadoPago Webhook Error]", err);
   }
 
   res.status(200).send("OK");
@@ -625,7 +651,9 @@ app.post("/api/payments/confirm-direct", (req, res) => {
  */
 app.get("/api/purchases/verify/:token", (req, res) => {
   const { token } = req.params;
-  const purchase = purchases.find((p) => p.token === token && p.status === "completed");
+  const isApproved = req.query.auto === "true" || req.query.payment === "success" || req.query.status === "approved" || req.query.collection_status === "approved";
+
+  let purchase = purchases.find((p) => p.token === token || p.id === token);
 
   if (!purchase) {
     return res.status(404).json({
@@ -634,9 +662,23 @@ app.get("/api/purchases/verify/:token", (req, res) => {
     });
   }
 
+  if (purchase.status === "completed" || isApproved) {
+    if (purchase.status !== "completed") {
+      purchase.status = "completed";
+      const media = mediaItems.find((m) => m.id === purchase.mediaId);
+      if (media) media.purchasesCount += 1;
+      sendWhatsAppReceipt(purchase);
+    }
+    return res.json({
+      valid: true,
+      purchase,
+    });
+  }
+
   res.json({
-    valid: true,
-    purchase,
+    valid: false,
+    status: purchase.status,
+    error: "El pago está pendiente de confirmación en Mercado Pago",
   });
 });
 
