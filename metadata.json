@@ -1,0 +1,6 @@
+{
+  "name": "GeoLink Creator & Media Store",
+  "description": "Multi-profile Link.me alternative with IP geo-blocking, photo/video digital store, instant download unlocking, and verified Mercado Pago & PayPal payments.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,383 @@
+import React, { useState, useEffect } from 'react';
+import {
+  X, Lock, Download, CheckCircle, CreditCard, ExternalLink,
+  AlertCircle, Sparkles, ShieldCheck, ArrowRight, Phone, Send,
+  Loader2, RefreshCw,
+} from 'lucide-react';
+import { MediaItem, PurchaseRecord } from '../types';
+import { api } from '../services/api';
+
+// ─── Configuración de pagos ──────────────────────────────────────────
+const PAYPAL_LINK    = 'https://www.paypal.com/paypalme/angieG473';
+const NEQUI_USA_LINK = 'https://giros.nequi.com.co/l/Cc1Sv9Bz';
+const TELEGRAM_USER  = 'Angelinaguzman69'; // sin @
+// ─────────────────────────────────────────────────────────────────────
+
+type Screen = 'select' | 'contact_paypal' | 'contact_nequi' | 'mp_pending' | 'mp_success';
+
+interface PurchaseModalProps {
+  item: MediaItem | null;
+  onClose: () => void;
+  onPurchaseSuccess?: (record: PurchaseRecord) => void;
+}
+
+export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onPurchaseSuccess }) => {
+  const [screen, setScreen]             = useState<Screen>('select');
+  const [isLoading, setIsLoading]       = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [contactInfo, setContactInfo]   = useState('');
+  const [contactError, setContactError] = useState('');
+
+  // MercadoPago API state
+  const [mpUnlockToken, setMpUnlockToken]         = useState<string | null>(null);
+  const [completedPurchase, setCompletedPurchase] = useState<PurchaseRecord | null>(null);
+
+  if (!item) return null;
+
+  // ── Polling MercadoPago mientras está pendiente ───────────────────
+  useEffect(() => {
+    if (screen !== 'mp_pending' || !mpUnlockToken) return;
+    const id = setInterval(async () => {
+      try {
+        const res = await api.verifyPurchase(mpUnlockToken);
+        if (res.valid && res.purchase) {
+          setCompletedPurchase(res.purchase);
+          setScreen('mp_success');
+          if (onPurchaseSuccess) onPurchaseSuccess(res.purchase);
+          clearInterval(id);
+        }
+      } catch {}
+    }, 3000);
+    return () => clearInterval(id);
+  }, [screen, mpUnlockToken]);
+
+  // ── Validar contacto ─────────────────────────────────────────────
+  const validateContact = () => {
+    if (!contactInfo.trim()) {
+      setContactError('⚠️ Ingresa tu número de WhatsApp o usuario de Telegram.');
+      return false;
+    }
+    setContactError('');
+    return true;
+  };
+
+  // ── Telegram: link con mensaje pre-llenado ────────────────────────
+  const telegramLink = (method: string) => {
+    const msg = encodeURIComponent(
+      `Hola! Acabo de pagar "${item.title}" ($${item.price.toFixed(2)} ${item.currency}) vía ${method}.\n\nMi contacto: ${contactInfo}\n\nTe envío mi comprobante 📎`
+    );
+    return `https://t.me/${TELEGRAM_USER}?text=${msg}`;
+  };
+
+  // ════════════════════════════════════════════════════════════════
+  // MERCADO PAGO — vía API, con pantalla de espera y verificación
+  // ════════════════════════════════════════════════════════════════
+  const handleMercadoPago = async () => {
+    setErrorMessage('');
+    setIsLoading(true);
+    try {
+      const data = await api.createMercadoPagoPreference(item.id, 'cliente@ejemplo.com', '');
+      if (data.error) { setErrorMessage(data.error); return; }
+      if (data.init_point) {
+        window.open(data.init_point, '_blank');
+        setMpUnlockToken(data.unlockToken);
+        setScreen('mp_pending');
+      } else {
+        setErrorMessage('No hay enlace de Mercado Pago configurado. Contacta a la creadora.');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Error al conectar con Mercado Pago.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleMpManualCheck = async () => {
+    if (!mpUnlockToken) return;
+    setIsLoading(true);
+    try {
+      const res = await api.verifyPurchase(mpUnlockToken);
+      if (res.valid && res.purchase) {
+        setCompletedPurchase(res.purchase);
+        setScreen('mp_success');
+        if (onPurchaseSuccess) onPurchaseSuccess(res.purchase);
+      } else {
+        setErrorMessage('El pago aún no se confirmó. Completa el pago en Mercado Pago e intenta de nuevo.');
+      }
+    } catch {
+      setErrorMessage('No se pudo verificar. Intenta nuevamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ════════════════════════════════════════════════════════════════
+  // PAYPAL — abre PayPal + redirige esta ventana a Telegram
+  // ════════════════════════════════════════════════════════════════
+  const handlePayPalConfirm = () => {
+    if (!validateContact()) return;
+    window.open(PAYPAL_LINK, '_blank');          // abre PayPal en nueva pestaña
+    window.location.href = telegramLink('PayPal'); // redirige esta ventana a Telegram
+  };
+
+  // ════════════════════════════════════════════════════════════════
+  // NEQUI USA — abre Nequi + redirige esta ventana a Telegram
+  // ════════════════════════════════════════════════════════════════
+  const handleNequiConfirm = () => {
+    if (!validateContact()) return;
+    window.open(NEQUI_USA_LINK, '_blank');             // abre Nequi en nueva pestaña
+    window.location.href = telegramLink('Nequi Giro USA'); // redirige esta ventana a Telegram
+  };
+
+  // ─────────────────────────────────────────────────────────────────
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+      <div className="bg-[#0d0f1a] border border-white/10 backdrop-blur-2xl rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl relative my-8 text-zinc-100">
+
+        {/* Close */}
+        <button id="close-purchase-modal" onClick={onClose}
+          className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-zinc-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* ══════════════════════════════════════════════════════
+            PANTALLA 1: Selección de método
+        ═══════════════════════════════════════════════════════*/}
+        {screen === 'select' && (
+          <div className="p-6 md:p-7">
+            <div className="flex items-center gap-2 text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1.5">
+              <Lock className="w-3.5 h-3.5" /><span>Desbloqueo de Contenido Exclusivo</span>
+            </div>
+            <h3 className="text-xl font-bold text-white mb-4 line-clamp-2">{item.title}</h3>
+
+            {/* Preview blur */}
+            <div className="relative rounded-2xl overflow-hidden mb-5 border border-slate-700/60 bg-slate-900 h-36">
+              <img src={item.previewUrl} alt={item.title} className="w-full h-full object-cover blur-sm opacity-50 scale-105" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                <div className="w-10 h-10 rounded-full bg-indigo-600/30 border border-indigo-400/60 flex items-center justify-center backdrop-blur-md">
+                  <Lock className="w-5 h-5 text-indigo-300" />
+                </div>
+                <div className="text-2xl font-black text-amber-300 drop-shadow-lg">
+                  ${item.price.toFixed(2)} <span className="text-base font-semibold text-amber-400/80">{item.currency}</span>
+                </div>
+              </div>
+            </div>
+
+            {errorMessage && (
+              <div className="mb-4 p-3 rounded-xl bg-red-950/80 border border-red-500/40 text-red-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" /><span>{errorMessage}</span>
+              </div>
+            )}
+
+            <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-3">Selecciona método de pago:</p>
+
+            <div className="space-y-3">
+              {/* Mercado Pago — API */}
+              <button id="pay-mercadopago-button" disabled={isLoading} onClick={handleMercadoPago}
+                className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-sky-600/20 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <div>Mercado Pago</div>
+                    <div className="text-[11px] font-normal text-sky-100">Tarjetas · Efectivo · Débito</div>
+                  </div>
+                </div>
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
+              </button>
+
+              {/* PayPal — contacto requerido */}
+              <button id="pay-paypal-button" onClick={() => { setErrorMessage(''); setScreen('contact_paypal'); }}
+                className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#003087] to-[#009cde] hover:from-[#00256a] hover:to-[#0082c2] text-white font-bold text-sm shadow-lg shadow-blue-900/30 flex items-center justify-between transition-all cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                    <span className="font-extrabold italic text-base leading-none">P</span>
+                  </div>
+                  <div className="text-left">
+                    <div>PayPal — paypal.me/angieG473</div>
+                    <div className="text-[11px] font-normal text-blue-200">Tarjetas internacionales · USD</div>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+
+              {/* Nequi USA — contacto requerido */}
+              <button id="pay-nequi-usa-button" onClick={() => { setErrorMessage(''); setScreen('contact_nequi'); }}
+                className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#6a0dad] to-[#9b30d9] hover:from-[#5a0b99] hover:to-[#8525c5] text-white font-bold text-sm shadow-lg shadow-purple-900/30 flex items-center justify-between transition-all cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇨🇴</div>
+                  <div className="text-left">
+                    <div>Nequi — Giro desde USA</div>
+                    <div className="text-[11px] font-normal text-purple-200">Envío fácil desde Estados Unidos</div>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+
+            <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-zinc-600">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Comprobante por Telegram: <span className="text-sky-500">@{TELEGRAM_USER}</span></span>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            PANTALLA 2A/2B: Contacto (PayPal / Nequi)
+        ═══════════════════════════════════════════════════════*/}
+        {(screen === 'contact_paypal' || screen === 'contact_nequi') && (
+          <div className="p-6 md:p-7 space-y-5">
+            <div>
+              <button onClick={() => setScreen('select')}
+                className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 mb-3 cursor-pointer transition-colors">
+                ← Volver
+              </button>
+              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-white text-xs font-bold mb-2 ${screen === 'contact_paypal' ? 'bg-gradient-to-r from-[#003087] to-[#009cde]' : 'bg-gradient-to-r from-[#6a0dad] to-[#9b30d9]'}`}>
+                {screen === 'contact_paypal' ? '💳 PayPal' : '🇨🇴 Nequi Giro USA'}
+              </div>
+              <h3 className="text-lg font-bold text-white">{item.title}</h3>
+              <p className="text-2xl font-black text-amber-300 mt-1">
+                ${item.price.toFixed(2)} <span className="text-base font-semibold text-amber-400/70">{item.currency}</span>
+              </p>
+            </div>
+
+            {/* Cómo funciona */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-zinc-400 space-y-2">
+              <p className="font-bold text-white text-sm">📋 ¿Cómo funciona?</p>
+              <p>1. Ingresa tu WhatsApp o Telegram.</p>
+              <p>2. Haz clic en <strong className="text-white">Ir a pagar</strong> — se abrirá el pago en una pestaña.</p>
+              <p>3. Serás redirigido a nuestro chat de Telegram para enviarnos el comprobante.</p>
+              <p>4. Te enviaremos el contenido de inmediato ✓</p>
+            </div>
+
+            {/* Input contacto */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-300 flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5 text-indigo-400" />
+                Tu WhatsApp o usuario de Telegram <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={contactInfo}
+                onChange={e => { setContactInfo(e.target.value); setContactError(''); }}
+                placeholder="Ej: +57 300 123 4567  o  @miusuario"
+                className="w-full bg-white/5 border border-white/15 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none transition-colors"
+                autoFocus
+              />
+              {contactError && (
+                <p className="text-[11px] text-red-400 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3 shrink-0" /> {contactError}
+                </p>
+              )}
+            </div>
+
+            {/* Botón confirmar */}
+            <button
+              onClick={screen === 'contact_paypal' ? handlePayPalConfirm : handleNequiConfirm}
+              className={`w-full py-4 px-5 rounded-2xl text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2.5 transition-all hover:opacity-90 cursor-pointer ${screen === 'contact_paypal' ? 'bg-gradient-to-r from-[#003087] to-[#009cde]' : 'bg-gradient-to-r from-[#6a0dad] to-[#9b30d9]'}`}
+            >
+              <Send className="w-4 h-4" />
+              Ir a pagar — me redirige a Telegram
+            </button>
+
+            <p className="text-[10px] text-zinc-600 text-center">
+              Se abrirá el link de pago y serás redirigido a nuestro chat de Telegram automáticamente.
+            </p>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            PANTALLA 3: Mercado Pago — esperando confirmación API
+        ═══════════════════════════════════════════════════════*/}
+        {screen === 'mp_pending' && (
+          <div className="p-7 space-y-5 text-center">
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center">
+              <Loader2 className="w-7 h-7 animate-spin text-sky-400" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-white">Verificando pago...</h3>
+              <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
+                Completa el pago en la ventana de Mercado Pago y vuelve aquí.<br />
+                La confirmación es automática al recibir el pago.
+              </p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-sm space-y-2">
+              <div className="flex justify-between text-zinc-300">
+                <span className="text-zinc-500">Producto</span>
+                <span className="font-semibold truncate max-w-[180px]">{item.title}</span>
+              </div>
+              <div className="flex justify-between text-zinc-300">
+                <span className="text-zinc-500">Monto</span>
+                <span className="text-amber-400 font-bold">${item.price.toFixed(2)} {item.currency}</span>
+              </div>
+              <div className="flex justify-between text-zinc-300">
+                <span className="text-zinc-500">Estado</span>
+                <span className="text-sky-400 font-bold flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping inline-block" />
+                  Esperando webhook
+                </span>
+              </div>
+            </div>
+
+            {errorMessage && (
+              <div className="p-3 rounded-xl bg-red-950/80 border border-red-500/40 text-red-300 text-xs flex items-center gap-2 text-left">
+                <AlertCircle className="w-4 h-4 shrink-0" /><span>{errorMessage}</span>
+              </div>
+            )}
+
+            <div className="space-y-2.5">
+              <button onClick={handleMpManualCheck} disabled={isLoading}
+                className="w-full py-3 px-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50">
+                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                Ya pagué — Verificar ahora
+              </button>
+              <button onClick={() => { setScreen('select'); setErrorMessage(''); }}
+                className="w-full py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-xs transition-all cursor-pointer">
+                ← Volver a métodos de pago
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            PANTALLA 4: Mercado Pago — pago confirmado ✓
+        ═══════════════════════════════════════════════════════*/}
+        {screen === 'mp_success' && completedPurchase && (
+          <div className="p-8 text-center space-y-6">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+              <CheckCircle className="w-10 h-10 text-emerald-400" />
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 text-xs font-semibold mb-2 border border-emerald-500/20">
+                <Sparkles className="w-3.5 h-3.5" /> Pago verificado por API
+              </div>
+              <h3 className="text-2xl font-bold text-white">¡Contenido Desbloqueado!</h3>
+              <p className="text-sm text-slate-400 mt-1">Pago confirmado para <span className="text-purple-400 font-semibold">@{item.creatorHandle}</span></p>
+            </div>
+            <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700 text-left flex items-center gap-4">
+              <img src={item.previewUrl} alt={item.title} className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-600" />
+              <div className="overflow-hidden">
+                <h4 className="font-semibold text-sm text-white truncate">{item.title}</h4>
+                <p className="text-xs text-slate-400 mt-0.5">{item.duration ? `Duración: ${item.duration}` : `Tamaño: ${item.fileSize}`}</p>
+                <span className="text-xs text-emerald-400 font-medium">Confirmado — MERCADOPAGO</span>
+              </div>
+            </div>
+            <a id="download-media-button"
+              href={`/api/media/download/${completedPurchase.token}`}
+              target="_blank" rel="noreferrer"
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-base shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all">
+              <Download className="w-5 h-5" />
+              Descargar {item.type === 'video' ? 'Video HD' : 'Galería HD'}
+            </a>
+            <div className="text-xs text-slate-600 border-t border-slate-800 pt-2">
+              Token: <code className="text-purple-400 font-mono">{completedPurchase.token}</code>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+};

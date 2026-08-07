@@ -1,0 +1,25 @@
+import { CountryOption } from '../types';
+
+export const COUNTRIES_LIST: CountryOption[] = [
+  { code: 'AR', name: 'Argentina', flag: '🇦🇷' },
+  { code: 'ES', name: 'España', flag: '🇪🇸' },
+  { code: 'MX', name: 'México', flag: '🇲🇽' },
+  { code: 'CO', name: 'Colombia', flag: '🇨🇴' },
+  { code: 'CL', name: 'Chile', flag: '🇨🇱' },
+  { code: 'PE', name: 'Perú', flag: '🇵🇪' },
+  { code: 'US', name: 'Estados Unidos', flag: '🇺🇸' },
+  { code: 'BR', name: 'Brasil', flag: '🇧🇷' },
+  { code: 'UY', name: 'Uruguay', flag: '🇺🇾' },
+  { code: 'EC', name: 'Ecuador', flag: '🇪🇨' },
+  { code: 'VE', name: 'Venezuela', flag: '🇻🇪' },
+  { code: 'BO', name: 'Bolivia', flag: '🇧🇴' },
+  { code: 'PY', name: 'Paraguay', flag: '🇵🇾' },
+  { code: 'CR', name: 'Costa Rica', flag: '🇨🇷' },
+  { code: 'PA', name: 'Panamá', flag: '🇵🇦' },
+  { code: 'DO', name: 'República Dominicana', flag: '🇩🇴' },
+  { code: 'GB', name: 'Reino Unido', flag: '🇬🇧' },
+  { code: 'DE', name: 'Alemania', flag: '🇩🇪' },
+  { code: 'FR', name: 'Francia', flag: '🇫🇷' },
+  { code: 'IT', name: 'Italia', flag: '🇮🇹' },
+  { code: 'CA', name: 'Canadá', flag: '🇨🇦' },
+];
