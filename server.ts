@@ -385,9 +385,11 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
     const creator = creators.find((c) => c.handle.toLowerCase() === media.creatorHandle.toLowerCase())
       || INITIAL_CREATORS.find((c) => c.handle.toLowerCase() === media.creatorHandle.toLowerCase());
 
-    const accessToken = creator?.paymentSettings?.mercadoPagoAccessToken?.trim() 
-      || process.env.MERCADOPAGO_ACCESS_TOKEN?.trim()
-      || 'APP_USR-7257482411293311-080712-ada9bb187061cb3d57c277c19d3916bc-3553496952';
+    // Usar Token de Mercado Pago real del usuario (evitar placeholders o tokens viejos con xxxxxx)
+    let accessToken = creator?.paymentSettings?.mercadoPagoAccessToken?.trim();
+    if (!accessToken || accessToken.includes("xxxxxx") || accessToken.length < 15) {
+      accessToken = 'APP_USR-7257482411293311-080712-ada9bb187061cb3d57c277c19d3916bc-3553496952';
+    }
 
     const purchaseId = `mp_purch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const unlockToken = `unlock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -415,75 +417,55 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
 
     const validEmail = buyerEmail && buyerEmail.trim().includes("@") ? buyerEmail.trim() : null;
 
-    // 1. Attempt official MercadoPago Preference API if AccessToken is present (and not placeholder)
-    if (accessToken && accessToken.length > 5 && !accessToken.includes("xxxxxx")) {
-      try {
-        const mpResponse = await fetch("https://api.mercadopago.com/checkout/preferences", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({
-            items: [
-              {
-                id: media.id,
-                title: media.title,
-                quantity: 1,
-                currency_id: media.currency === "ARS" ? "ARS" : "USD",
-                unit_price: Number(media.price),
-              },
-            ],
-            ...(validEmail ? { payer: { email: validEmail } } : {}),
-            auto_return: "approved",
-            back_urls: {
-              success: `${process.env.APP_URL || "http://localhost:3000"}?payment=success&token=${unlockToken}`,
-              failure: `${process.env.APP_URL || "http://localhost:3000"}?payment=failure`,
-              pending: `${process.env.APP_URL || "http://localhost:3000"}?payment=pending`,
+    // 1. Generar la preferencia oficial vía la API de Mercado Pago
+    try {
+      const mpResponse = await fetch("https://api.mercadopago.com/checkout/preferences", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          items: [
+            {
+              id: media.id,
+              title: media.title,
+              quantity: 1,
+              currency_id: media.currency === "ARS" ? "ARS" : "USD",
+              unit_price: Number(media.price),
             },
-            notification_url: `${process.env.APP_URL || "http://localhost:3000"}/api/payments/mercadopago/webhook`,
-            external_reference: purchaseId,
-          }),
-        });
-
-        if (mpResponse.ok) {
-          const mpData = await mpResponse.json();
-          return res.json({
-            init_point: mpData.init_point || mpData.sandbox_init_point,
-            preferenceId: mpData.id,
-            purchaseId,
-            unlockToken,
-          });
-        } else {
-          const errText = await mpResponse.text();
-          console.error("[MercadoPago API Preference Error]:", errText);
-        }
-      } catch (err) {
-        console.error("Error conectando con API de MercadoPago:", err);
-      }
-    }
-
-    // 2. Fallback to custom MercadoPago link or alias configured in profile
-    const customLinks = creator?.paymentSettings?.customPaymentLinks || [];
-    const customLink = customLinks.find((l) => l.url.includes("mp") || l.url.includes("mercadopago") || l.name.toLowerCase().includes("mercado"))?.url
-      || customLinks[0]?.url;
-
-    if (customLink) {
-      let fullUrl = customLink.trim();
-      if (!fullUrl.startsWith("http://") && !fullUrl.startsWith("https://")) {
-        fullUrl = `https://${fullUrl}`;
-      }
-      return res.json({
-        init_point: fullUrl,
-        preferenceId: purchaseId,
-        purchaseId,
-        unlockToken,
+          ],
+          ...(validEmail ? { payer: { email: validEmail } } : {}),
+          auto_return: "approved",
+          back_urls: {
+            success: `${process.env.APP_URL || "http://localhost:3000"}?payment=success&token=${unlockToken}`,
+            failure: `${process.env.APP_URL || "http://localhost:3000"}?payment=failure`,
+            pending: `${process.env.APP_URL || "http://localhost:3000"}?payment=pending`,
+          },
+          notification_url: `${process.env.APP_URL || "http://localhost:3000"}/api/payments/mercadopago/webhook`,
+          external_reference: purchaseId,
+        }),
       });
-    }
 
-    return res.status(400).json({
-      error: "La creadora aún no ha ingresado sus credenciales de Mercado Pago (Access Token APP_USR-...) ni su enlace de pago en el Panel de Control (Pestaña Pagos API)."
-    });
+      if (mpResponse.ok) {
+        const mpData = await mpResponse.json();
+        return res.json({
+          init_point: mpData.init_point || mpData.sandbox_init_point,
+          preferenceId: mpData.id,
+          purchaseId,
+          unlockToken,
+        });
+      } else {
+        const errJson = await mpResponse.json().catch(() => ({}));
+        console.error("[MercadoPago API Error]:", errJson);
+        return res.status(400).json({
+          error: `Error de API MercadoPago: ${errJson.message || errJson.error || "Credencial inválida"}`
+        });
+      }
+    } catch (err: any) {
+      console.error("Error conectando con API MercadoPago:", err);
+      return res.status(500).json({ error: "No se pudo conectar con la API de Mercado Pago." });
+    }
   } catch (err: any) {
     res.status(500).json({ error: err.message || "Error procesando Mercado Pago" });
   }
