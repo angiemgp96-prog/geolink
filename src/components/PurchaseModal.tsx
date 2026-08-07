@@ -13,7 +13,7 @@ const NEQUI_USA_LINK = 'https://giros.nequi.com.co/l/Cc1Sv9Bz';
 const TELEGRAM_USER  = 'Angelinaguzman69'; // sin @
 // ─────────────────────────────────────────────────────────────────────
 
-type Screen = 'select' | 'contact_paypal' | 'contact_nequi' | 'mp_pending' | 'mp_success';
+type Screen = 'select' | 'contact_paypal' | 'contact_nequi' | 'contact_mp' | 'mp_pending' | 'mp_success';
 
 interface PurchaseModalProps {
   item: MediaItem | null;
@@ -27,6 +27,8 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   const [errorMessage, setErrorMessage] = useState('');
   const [contactInfo, setContactInfo]   = useState('');
   const [contactError, setContactError] = useState('');
+  const [buyerEmailInput, setBuyerEmailInput] = useState('');
+  const [buyerEmailError, setBuyerEmailError] = useState('');
 
   // MercadoPago API state
   const [mpUnlockToken, setMpUnlockToken]         = useState<string | null>(null);
@@ -70,13 +72,18 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   };
 
   // ════════════════════════════════════════════════════════════════
-  // MERCADO PAGO — vía API, con pantalla de espera y verificación
+  // MERCADO PAGO — vía API con email real del comprador
   // ════════════════════════════════════════════════════════════════
-  const handleMercadoPago = async () => {
+  const handleMercadoPagoConfirm = async () => {
+    if (!buyerEmailInput.trim() || !buyerEmailInput.includes('@')) {
+      setBuyerEmailError('⚠️ Ingresa un correo electrónico válido.');
+      return;
+    }
+    setBuyerEmailError('');
     setErrorMessage('');
     setIsLoading(true);
     try {
-      const data = await api.createMercadoPagoPreference(item.id, '', '');
+      const data = await api.createMercadoPagoPreference(item.id, buyerEmailInput.trim(), '');
       if (data.error) { setErrorMessage(data.error); return; }
       if (data.init_point) {
         window.open(data.init_point, '_blank');
@@ -173,7 +180,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
 
             <div className="space-y-3">
               {/* Mercado Pago — API */}
-              <button id="pay-mercadopago-button" disabled={isLoading} onClick={handleMercadoPago}
+              <button id="pay-mercadopago-button" disabled={isLoading} onClick={() => { setErrorMessage(''); setScreen('contact_mp'); }}
                 className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-sky-600/20 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
@@ -284,6 +291,63 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
             <p className="text-[10px] text-zinc-600 text-center">
               Se abrirá el link de pago y serás redirigido a nuestro chat de Telegram automáticamente.
             </p>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            PANTALLA 2C: Contacto Email para Mercado Pago
+        ═══════════════════════════════════════════════════════*/}
+        {screen === 'contact_mp' && (
+          <div className="p-6 md:p-7 space-y-5">
+            <div>
+              <button onClick={() => setScreen('select')}
+                className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 mb-3 cursor-pointer transition-colors">
+                ← Volver
+              </button>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-sky-600 to-cyan-600 text-white text-xs font-bold mb-2">
+                <CreditCard className="w-3.5 h-3.5" /> Mercado Pago API
+              </div>
+              <h3 className="text-lg font-bold text-white">{item.title}</h3>
+              <p className="text-2xl font-black text-amber-300 mt-1">
+                ${item.price.toFixed(2)} <span className="text-base font-semibold text-amber-400/70">{item.currency}</span>
+              </p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-zinc-400 space-y-2">
+              <p className="font-bold text-white text-sm">🔒 Pago Seguro con Acreditación Automática</p>
+              <p>1. Ingresa tu correo electrónico personal.</p>
+              <p>2. Al pagar en Mercado Pago, nuestro servidor consultará directamente a la API de Mercado Pago para verificar la acreditación.</p>
+              <p>3. Tan pronto se refleje el pago, tu contenido se desbloqueará de inmediato.</p>
+            </div>
+
+            {/* Input Email */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-300 flex items-center gap-1.5">
+                Tu correo electrónico personal <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="email"
+                value={buyerEmailInput}
+                onChange={e => { setBuyerEmailInput(e.target.value); setBuyerEmailError(''); }}
+                placeholder="ejemplo: tu_correo@gmail.com"
+                className="w-full bg-white/5 border border-white/15 focus:border-sky-500 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none transition-colors"
+                autoFocus
+              />
+              {buyerEmailError && (
+                <p className="text-[11px] text-red-400 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3 shrink-0" /> {buyerEmailError}
+                </p>
+              )}
+            </div>
+
+            <button
+              onClick={handleMercadoPagoConfirm}
+              disabled={isLoading}
+              className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2.5 transition-all cursor-pointer disabled:opacity-50"
+            >
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
+              Ir a pagar con Mercado Pago
+            </button>
           </div>
         )}
 

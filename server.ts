@@ -373,7 +373,7 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
     }
 
     const creator = creators.find((c) => c.handle.toLowerCase() === media.creatorHandle.toLowerCase());
-    const accessToken = creator?.paymentSettings?.mercadoPagoAccessToken || process.env.MERCADOPAGO_ACCESS_TOKEN;
+    const accessToken = creator?.paymentSettings?.mercadoPagoAccessToken?.trim() || process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
 
     const purchaseId = `mp_purch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const unlockToken = `unlock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -399,10 +399,10 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
 
     purchases.push(record);
 
-    const validEmail = buyerEmail && buyerEmail.includes("@") ? buyerEmail.trim() : null;
+    const validEmail = buyerEmail && buyerEmail.trim().includes("@") ? buyerEmail.trim() : null;
 
-    // Call Mercado Pago API if access token is available
-    if (accessToken && (accessToken.startsWith("APP_USR") || accessToken.startsWith("TEST"))) {
+    // Call Mercado Pago API if access token is configured
+    if (accessToken && accessToken.length > 5) {
       try {
         const mpResponse = await fetch("https://api.mercadopago.com/checkout/preferences", {
           method: "POST",
@@ -440,6 +440,9 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
             purchaseId,
             unlockToken,
           });
+        } else {
+          const errText = await mpResponse.text();
+          console.error("Error respuesta MercadoPago preference:", errText);
         }
       } catch (err) {
         console.error("Error MercadoPago API call:", err);
@@ -461,7 +464,7 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
     }
 
     return res.status(400).json({
-      error: "La creadora aún no ha configurado sus credenciales o enlace oficial de Mercado Pago en su Panel de Control (Pestaña Pagos)."
+      error: "La creadora aún no ha configurado sus credenciales de Mercado Pago en su Panel de Control (Pestaña Pagos API)."
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message || "Error procesando Mercado Pago" });
@@ -649,7 +652,7 @@ app.post("/api/payments/confirm-direct", (req, res) => {
  * GET /api/purchases/verify/:token
  * Verifies purchase token and returns download access info
  */
-app.get("/api/purchases/verify/:token", (req, res) => {
+app.get("/api/purchases/verify/:token", async (req, res) => {
   const { token } = req.params;
   const isApproved = req.query.auto === "true" || req.query.payment === "success" || req.query.status === "approved" || req.query.collection_status === "approved";
 
@@ -660,6 +663,33 @@ app.get("/api/purchases/verify/:token", (req, res) => {
       valid: false,
       error: "Token de descarga inválido o pago pendiente de confirmación",
     });
+  }
+
+  // Query Mercado Pago API directly for this specific purchase if not yet marked completed
+  if (purchase.status !== "completed" && purchase.paymentMethod === "mercadopago") {
+    const creator = creators.find((c) => c.handle.toLowerCase() === purchase.creatorHandle.toLowerCase());
+    const accessToken = creator?.paymentSettings?.mercadoPagoAccessToken?.trim() || process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
+
+    if (accessToken && accessToken.length > 5) {
+      try {
+        const mpSearchRes = await fetch(`https://api.mercadopago.com/v1/payments/search?external_reference=${encodeURIComponent(purchase.id)}`, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        if (mpSearchRes.ok) {
+          const searchData = await mpSearchRes.json();
+          const approvedPayment = searchData.results?.find((p: any) => p.status === "approved" || p.status === "accredited");
+          if (approvedPayment) {
+            purchase.status = "completed";
+            purchase.paymentId = approvedPayment.id;
+            const media = mediaItems.find((m) => m.id === purchase.mediaId);
+            if (media) media.purchasesCount += 1;
+            sendWhatsAppReceipt(purchase);
+          }
+        }
+      } catch (err) {
+        console.error("Error consultando API MercadoPago directamente:", err);
+      }
+    }
   }
 
   if (purchase.status === "completed" || isApproved) {
@@ -678,7 +708,7 @@ app.get("/api/purchases/verify/:token", (req, res) => {
   res.json({
     valid: false,
     status: purchase.status,
-    error: "El pago está pendiente de confirmación en Mercado Pago",
+    error: "El pago está pendiente de acreditación en Mercado Pago",
   });
 });
 
