@@ -441,6 +441,30 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Duración (ej. 10:00 min):</label>
+                  <input
+                    id="new-media-duration-input"
+                    type="text"
+                    placeholder="ej. 10:00 min"
+                    value={newMedia.duration || ''}
+                    onChange={(e) => setNewMedia({ ...newMedia, duration: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Tamaño / Peso del Archivo:</label>
+                  <input
+                    id="new-media-filesize-input"
+                    type="text"
+                    placeholder="ej. 350 MB o 15 Fotos HD"
+                    value={newMedia.fileSize || ''}
+                    onChange={(e) => setNewMedia({ ...newMedia, fileSize: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
+                  />
+                </div>
               </div>
 
               <div>
@@ -551,6 +575,30 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                     type="text"
                     value={editingMedia.downloadUrl}
                     onChange={(e) => setEditingMedia({ ...editingMedia, downloadUrl: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Duración (ej. 10:00 min):</label>
+                  <input
+                    id="edit-media-duration-input"
+                    type="text"
+                    placeholder="ej. 10:00 min"
+                    value={editingMedia.duration || ''}
+                    onChange={(e) => setEditingMedia({ ...editingMedia, duration: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Tamaño / Peso del Archivo:</label>
+                  <input
+                    id="edit-media-filesize-input"
+                    type="text"
+                    placeholder="ej. 350 MB o 15 Fotos HD"
+                    value={editingMedia.fileSize || ''}
+                    onChange={(e) => setEditingMedia({ ...editingMedia, fileSize: e.target.value })}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
                   />
                 </div>
