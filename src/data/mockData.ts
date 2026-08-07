@@ -22,13 +22,12 @@ export const INITIAL_CREATORS: CreatorProfile[] = [
       { id: 'l4', title: 'TikTok Oficial 🎵', url: 'https://tiktok.com', icon: 'Video', active: true, clicks: 2150 },
     ],
     paymentSettings: {
-      mercadoPagoAccessToken: 'TEST-33928172635-082212-xxxxxx-xxxxxx',
-      mercadoPagoPublicKey: 'TEST-00918237-xxxx',
+      mercadoPagoAccessToken: 'APP_USR-7257482411293311-080712-ada9bb187061cb3d57c277c19d3916bc-3553496952',
+      mercadoPagoPublicKey: '',
       payPalClientId: 'sb-client-id-angelina-sandbox',
       payPalClientSecret: 'sb-secret-angelina',
       payPalMode: 'sandbox',
       customPaymentLinks: [
-        { id: 'c1', name: 'Transferencia Alias MP', url: 'angelina69.mp', currency: 'ARS' },
         { id: 'c2', name: 'Payoneer Direct', url: 'https://payoneer.com/angelina69', currency: 'USD' }
       ]
     }

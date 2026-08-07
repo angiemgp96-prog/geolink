@@ -386,7 +386,8 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
       || INITIAL_CREATORS.find((c) => c.handle.toLowerCase() === media.creatorHandle.toLowerCase());
 
     const accessToken = creator?.paymentSettings?.mercadoPagoAccessToken?.trim() 
-      || process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
+      || process.env.MERCADOPAGO_ACCESS_TOKEN?.trim()
+      || 'APP_USR-7257482411293311-080712-ada9bb187061cb3d57c277c19d3916bc-3553496952';
 
     const purchaseId = `mp_purch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const unlockToken = `unlock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -671,21 +672,23 @@ app.post("/api/payments/confirm-direct", (req, res) => {
  */
 app.get("/api/purchases/verify/:token", async (req, res) => {
   const { token } = req.params;
-  const isApproved = req.query.auto === "true" || req.query.payment === "success" || req.query.status === "approved" || req.query.collection_status === "approved";
-
   let purchase = purchases.find((p) => p.token === token || p.id === token);
 
   if (!purchase) {
     return res.status(404).json({
       valid: false,
-      error: "Token de descarga inválido o pago pendiente de confirmación",
+      error: "Token de descarga inválido o compra no encontrada",
     });
   }
 
-  // Query Mercado Pago API directly for this specific purchase if not yet marked completed
+  // Si el pago aún no está marcado como completado, consultar a la API de Mercado Pago obligatoriamente
   if (purchase.status !== "completed" && purchase.paymentMethod === "mercadopago") {
-    const creator = creators.find((c) => c.handle.toLowerCase() === purchase.creatorHandle.toLowerCase());
-    const accessToken = creator?.paymentSettings?.mercadoPagoAccessToken?.trim() || process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
+    const creator = creators.find((c) => c.handle.toLowerCase() === purchase.creatorHandle.toLowerCase())
+      || INITIAL_CREATORS.find((c) => c.handle.toLowerCase() === purchase.creatorHandle.toLowerCase());
+
+    const accessToken = creator?.paymentSettings?.mercadoPagoAccessToken?.trim() 
+      || process.env.MERCADOPAGO_ACCESS_TOKEN?.trim()
+      || 'APP_USR-7257482411293311-080712-ada9bb187061cb3d57c277c19d3916bc-3553496952';
 
     if (accessToken && accessToken.length > 5) {
       try {
@@ -704,18 +707,13 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
           }
         }
       } catch (err) {
-        console.error("Error consultando API MercadoPago directamente:", err);
+        console.error("[MercadoPago Search API Error]:", err);
       }
     }
   }
 
-  if (purchase.status === "completed" || isApproved) {
-    if (purchase.status !== "completed") {
-      purchase.status = "completed";
-      const media = mediaItems.find((m) => m.id === purchase.mediaId);
-      if (media) media.purchasesCount += 1;
-      sendWhatsAppReceipt(purchase);
-    }
+  // SI Y SOLO SI la API de Mercado Pago confirmó el pago aprobado, se valida la descarga
+  if (purchase.status === "completed") {
     return res.json({
       valid: true,
       purchase,
@@ -725,7 +723,7 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
   res.json({
     valid: false,
     status: purchase.status,
-    error: "El pago está pendiente de acreditación en Mercado Pago",
+    error: "El pago no ha sido acreditado ni confirmado por la API oficial de Mercado Pago.",
   });
 });
 
