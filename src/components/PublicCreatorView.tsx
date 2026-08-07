@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Lock, CheckCircle2, Instagram, Youtube, Video, Dumbbell, MessageCircle, ExternalLink, Sparkles, Image as ImageIcon, Film, Layers, ShoppingBag } from 'lucide-react';
+import { Play, Lock, CheckCircle2, Instagram, Youtube, Video, Dumbbell, MessageCircle, ExternalLink, Sparkles, Image as ImageIcon, Film, Layers, ShoppingBag, Send } from 'lucide-react';
 import { CreatorProfile, MediaItem, CustomLink } from '../types';
 
 interface PublicCreatorViewProps {
@@ -79,21 +79,19 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             {creator.bio}
           </p>
 
-          {/* Direct WhatsApp VIP Button */}
-          {creator.whatsappNumber && (
-            <div className="pt-2">
-              <a
-                id="whatsapp-vip-direct-button"
-                href={`https://wa.me/${creator.whatsappNumber.replace(/[^0-9]/g, '')}?text=Hola%20${encodeURIComponent(creator.name)},%20te%20escribo%20desde%20tu%20perfil%20Link.me!`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 font-semibold text-xs transition-all shadow-sm"
-              >
-                <MessageCircle className="w-4 h-4 text-green-400" />
-                <span>Contacto Directo WhatsApp VIP</span>
-              </a>
-            </div>
-          )}
+          {/* Direct Telegram VIP Button */}
+          <div className="pt-2">
+            <a
+              id="telegram-vip-direct-button"
+              href="https://t.me/Angelinaguzman69"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/20 font-semibold text-xs transition-all shadow-sm"
+            >
+              <Send className="w-4 h-4 text-sky-400" />
+              <span>Contacto Directo Telegram VIP</span>
+            </a>
+          </div>
 
           {/* Custom Links (Link.me Section) */}
           <div className="space-y-3 pt-4">

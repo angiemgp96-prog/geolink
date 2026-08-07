@@ -26,6 +26,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
 
   // New Media Item Form State
   const [isAddingMedia, setIsAddingMedia] = useState(false);
+  const [editingMedia, setEditingMedia] = useState<MediaItem | null>(null);
   const [newMedia, setNewMedia] = useState<Partial<MediaItem>>({
     title: '',
     description: '',
@@ -114,6 +115,14 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
       await api.deleteMediaItem(id);
       onRefreshData();
     }
+  };
+
+  // Update existing media item
+  const handleUpdateMediaItem = async () => {
+    if (!editingMedia || !editingMedia.title || !editingMedia.price) return;
+    await api.saveMediaItem(editingMedia);
+    setEditingMedia(null);
+    onRefreshData();
   };
 
   // Add Custom Link
@@ -464,6 +473,119 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
             </div>
           )}
 
+          {/* Edit Media Item Form */}
+          {editingMedia && (
+            <div className="bg-slate-900 border border-indigo-500/40 rounded-3xl p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-base text-indigo-300">Editar Producto Digital</h4>
+                <span className="text-xs text-slate-400 font-mono">ID: {editingMedia.id}</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Título del Contenido:</label>
+                  <input
+                    id="edit-media-title-input"
+                    type="text"
+                    value={editingMedia.title}
+                    onChange={(e) => setEditingMedia({ ...editingMedia, title: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Tipo de Contenido:</label>
+                  <select
+                    id="edit-media-type-select"
+                    value={editingMedia.type}
+                    onChange={(e) => setEditingMedia({ ...editingMedia, type: e.target.value as any })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
+                  >
+                    <option value="video">🎥 Video Full HD / 4K</option>
+                    <option value="photo">📸 Sesión / Set de Fotos</option>
+                    <option value="bundle">📦 Pack Especial VIP</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Precio:</label>
+                  <input
+                    id="edit-media-price-input"
+                    type="number"
+                    step="0.5"
+                    value={editingMedia.price}
+                    onChange={(e) => setEditingMedia({ ...editingMedia, price: parseFloat(e.target.value) || 0 })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Moneda:</label>
+                  <select
+                    id="edit-media-currency-select"
+                    value={editingMedia.currency}
+                    onChange={(e) => setEditingMedia({ ...editingMedia, currency: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
+                  >
+                    <option value="USD">USD ($ Dólares)</option>
+                    <option value="ARS">ARS ($ Pesos Argentinos)</option>
+                    <option value="EUR">EUR (€ Euros)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">URL de Vista Previa (Blur/Portada):</label>
+                  <input
+                    id="edit-media-preview-url-input"
+                    type="text"
+                    value={editingMedia.previewUrl}
+                    onChange={(e) => setEditingMedia({ ...editingMedia, previewUrl: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">URL de Descarga Directa (Archivo Real):</label>
+                  <input
+                    id="edit-media-download-url-input"
+                    type="text"
+                    value={editingMedia.downloadUrl}
+                    onChange={(e) => setEditingMedia({ ...editingMedia, downloadUrl: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-slate-300 mb-1">Descripción corta:</label>
+                <textarea
+                  id="edit-media-desc-input"
+                  rows={2}
+                  value={editingMedia.description}
+                  onChange={(e) => setEditingMedia({ ...editingMedia, description: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  id="cancel-edit-media-button"
+                  onClick={() => setEditingMedia(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  id="save-edit-media-button"
+                  onClick={handleUpdateMediaItem}
+                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs cursor-pointer"
+                >
+                  Guardar Cambios en Supabase & Tienda
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* List of Store Items */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {mediaItems.map((item) => (
@@ -482,14 +604,24 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                     Compras acumuladas: <span className="text-emerald-400">{item.purchasesCount}</span>
                   </p>
                 </div>
-                <button
-                  id={`delete-media-${item.id}`}
-                  onClick={() => handleDeleteMedia(item.id)}
-                  className="p-2 bg-red-950/60 text-red-400 border border-red-500/30 rounded-xl hover:bg-red-900 transition-colors"
-                  title="Eliminar contenido"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    id={`edit-media-${item.id}`}
+                    onClick={() => setEditingMedia({ ...item })}
+                    className="p-2 bg-purple-950/60 text-purple-400 border border-purple-500/30 rounded-xl hover:bg-purple-900 transition-colors"
+                    title="Editar contenido"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button
+                    id={`delete-media-${item.id}`}
+                    onClick={() => handleDeleteMedia(item.id)}
+                    className="p-2 bg-red-950/60 text-red-400 border border-red-500/30 rounded-xl hover:bg-red-900 transition-colors"
+                    title="Eliminar contenido"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
