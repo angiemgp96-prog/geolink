@@ -26,6 +26,10 @@ let purchases: PurchaseRecord[] = [];
 
 // Data Mappers: Supabase <-> TypeScript
 function fromSupabaseCreator(row: any): CreatorProfile {
+  const initial = INITIAL_CREATORS.find((c) => c.handle.toLowerCase() === row.handle?.toLowerCase());
+  const initialSettings = initial?.paymentSettings || {};
+  const dbSettings = row.payment_settings || row.data?.paymentSettings || {};
+
   return {
     id: row.id,
     handle: row.handle,
@@ -34,13 +38,19 @@ function fromSupabaseCreator(row: any): CreatorProfile {
     bio: row.bio || '',
     avatar: row.avatar || '',
     banner: row.banner || '',
-    themeColor: row.data?.themeColor || 'from-pink-600 via-purple-600 to-indigo-700',
-    badge: row.badge || 'TOP CREATOR',
-    blockedCountries: Array.isArray(row.blocked_countries) ? row.blocked_countries : (row.data?.blockedCountries || []),
-    blockedMessage: row.blocked_message || row.data?.blockedMessage || 'Contenido no disponible en tu región.',
-    whatsappNumber: row.whatsapp_number || row.data?.whatsappNumber || '',
-    links: Array.isArray(row.links) ? row.links : (row.data?.links || []),
-    paymentSettings: row.payment_settings || row.data?.paymentSettings || {},
+    themeColor: row.data?.themeColor || initial?.themeColor || 'from-pink-600 via-purple-600 to-indigo-700',
+    badge: row.badge || initial?.badge || 'TOP CREATOR',
+    blockedCountries: Array.isArray(row.blocked_countries) ? row.blocked_countries : (row.data?.blockedCountries || initial?.blockedCountries || []),
+    blockedMessage: row.blocked_message || row.data?.blockedMessage || initial?.blockedMessage || 'Contenido no disponible en tu región.',
+    whatsappNumber: row.whatsapp_number || row.data?.whatsappNumber || initial?.whatsappNumber || '',
+    links: (Array.isArray(row.links) && row.links.length > 0) ? row.links : (initial?.links || []),
+    paymentSettings: {
+      ...initialSettings,
+      ...dbSettings,
+      customPaymentLinks: (dbSettings.customPaymentLinks && dbSettings.customPaymentLinks.length > 0)
+        ? dbSettings.customPaymentLinks
+        : (initialSettings.customPaymentLinks || [])
+    },
     createdAt: row.created_at || new Date().toISOString()
   };
 }
@@ -372,8 +382,11 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
       return res.status(404).json({ error: "Contenido no encontrado" });
     }
 
-    const creator = creators.find((c) => c.handle.toLowerCase() === media.creatorHandle.toLowerCase());
-    const accessToken = creator?.paymentSettings?.mercadoPagoAccessToken?.trim() || process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
+    const creator = creators.find((c) => c.handle.toLowerCase() === media.creatorHandle.toLowerCase())
+      || INITIAL_CREATORS.find((c) => c.handle.toLowerCase() === media.creatorHandle.toLowerCase());
+
+    const accessToken = creator?.paymentSettings?.mercadoPagoAccessToken?.trim() 
+      || process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
 
     const purchaseId = `mp_purch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const unlockToken = `unlock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -401,8 +414,8 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
 
     const validEmail = buyerEmail && buyerEmail.trim().includes("@") ? buyerEmail.trim() : null;
 
-    // Call Mercado Pago API if access token is configured
-    if (accessToken && accessToken.length > 5) {
+    // 1. Attempt official MercadoPago Preference API if AccessToken is present (and not placeholder)
+    if (accessToken && accessToken.length > 5 && !accessToken.includes("xxxxxx")) {
       try {
         const mpResponse = await fetch("https://api.mercadopago.com/checkout/preferences", {
           method: "POST",
@@ -442,19 +455,23 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
           });
         } else {
           const errText = await mpResponse.text();
-          console.error("Error respuesta MercadoPago preference:", errText);
+          console.error("[MercadoPago API Preference Error]:", errText);
         }
       } catch (err) {
-        console.error("Error MercadoPago API call:", err);
+        console.error("Error conectando con API de MercadoPago:", err);
       }
     }
 
-    // Check if creator configured custom MercadoPago link or alias payment link in profile
-    const customLink = creator?.paymentSettings?.customPaymentLinks?.find((l) => l.url.includes("mp") || l.url.includes("mercadopago") || l.name.toLowerCase().includes("mercado"))?.url
-      || creator?.paymentSettings?.customPaymentLinks?.[0]?.url;
+    // 2. Fallback to custom MercadoPago link or alias configured in profile
+    const customLinks = creator?.paymentSettings?.customPaymentLinks || [];
+    const customLink = customLinks.find((l) => l.url.includes("mp") || l.url.includes("mercadopago") || l.name.toLowerCase().includes("mercado"))?.url
+      || customLinks[0]?.url;
 
     if (customLink) {
-      const fullUrl = customLink.startsWith("http") ? customLink : `https://${customLink}`;
+      let fullUrl = customLink.trim();
+      if (!fullUrl.startsWith("http://") && !fullUrl.startsWith("https://")) {
+        fullUrl = `https://${fullUrl}`;
+      }
       return res.json({
         init_point: fullUrl,
         preferenceId: purchaseId,
@@ -464,7 +481,7 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
     }
 
     return res.status(400).json({
-      error: "La creadora aún no ha configurado sus credenciales de Mercado Pago en su Panel de Control (Pestaña Pagos API)."
+      error: "La creadora aún no ha ingresado sus credenciales de Mercado Pago (Access Token APP_USR-...) ni su enlace de pago en el Panel de Control (Pestaña Pagos API)."
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message || "Error procesando Mercado Pago" });
