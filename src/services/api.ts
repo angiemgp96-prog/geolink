@@ -204,5 +204,21 @@ export const api = {
       body: JSON.stringify({ phone, mediaTitle, downloadToken })
     });
     return await res.json();
+  },
+
+  async getUnlockedItems(tokens?: string[]): Promise<{
+    clientIp: string;
+    unlockedMediaIds: string[];
+    unlockedTokensMap: Record<string, string>;
+    purchases: PurchaseRecord[];
+  }> {
+    try {
+      const tokensParam = tokens && tokens.length > 0 ? `?tokens=${encodeURIComponent(tokens.join(','))}` : '';
+      const res = await fetch(`/api/purchases/unlocked-items${tokensParam}`);
+      if (res.ok) return await res.json();
+    } catch (err) {
+      console.warn('Error fetching unlocked items:', err);
+    }
+    return { clientIp: '', unlockedMediaIds: [], unlockedTokensMap: {}, purchases: [] };
   }
 };

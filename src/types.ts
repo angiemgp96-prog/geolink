@@ -73,6 +73,7 @@ export interface PurchaseRecord {
   paymentMethod: 'mercadopago' | 'paypal' | 'link';
   paymentId: string;
   status: 'completed' | 'pending' | 'failed';
+  ipAddress?: string;
   createdAt: string;
   downloadCount: number;
   downloadUrl: string;

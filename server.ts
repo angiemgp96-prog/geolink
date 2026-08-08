@@ -122,6 +122,74 @@ function toSupabaseMedia(item: MediaItem): any {
   };
 }
 
+function fromSupabasePurchase(row: any): PurchaseRecord {
+  return {
+    id: row.id,
+    token: row.token,
+    mediaId: row.media_id,
+    mediaTitle: row.media_title || '',
+    creatorHandle: row.creator_handle || '',
+    buyerEmail: row.buyer_email || '',
+    buyerPhone: row.buyer_phone || '',
+    amount: Number(row.amount || 0),
+    currency: row.currency || 'USD',
+    paymentMethod: row.payment_method || 'link',
+    paymentId: row.payment_id || '',
+    status: row.status || 'pending',
+    ipAddress: row.ip_address || '',
+    createdAt: row.created_at || new Date().toISOString(),
+    downloadCount: row.download_count || 0,
+    downloadUrl: row.download_url || '',
+  };
+}
+
+function toSupabasePurchase(record: PurchaseRecord): any {
+  return {
+    id: record.id,
+    token: record.token,
+    media_id: record.mediaId,
+    media_title: record.mediaTitle,
+    creator_handle: record.creatorHandle,
+    buyer_email: record.buyerEmail,
+    buyer_phone: record.buyerPhone,
+    amount: record.amount,
+    currency: record.currency,
+    payment_method: record.paymentMethod,
+    payment_id: record.paymentId,
+    status: record.status,
+    ip_address: record.ipAddress || '',
+    download_count: record.downloadCount || 0,
+    download_url: record.downloadUrl,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+async function savePurchase(record: PurchaseRecord) {
+  const existingIdx = purchases.findIndex((p) => p.id === record.id || p.token === record.token);
+  if (existingIdx >= 0) {
+    purchases[existingIdx] = { ...purchases[existingIdx], ...record };
+  } else {
+    purchases.push(record);
+  }
+
+  try {
+    const payload = toSupabasePurchase(record);
+    const { error } = await supabase.from("purchases").upsert(payload);
+    if (error) {
+      console.warn("[Supabase Purchase Sync Error]", error);
+    } else {
+      console.log(`[Supabase DB] Purchase ${record.id} (${record.status}) saved for IP ${record.ipAddress}`);
+    }
+  } catch (err) {
+    console.warn("[Supabase Purchase Sync Warning]", err);
+  }
+}
+
+function getClientIp(req: express.Request): string {
+  const rawIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0] || req.socket.remoteAddress || "";
+  return rawIp.replace(/^::ffff:/, '').trim();
+}
+
 // Initial Sync from Supabase on Startup
 async function syncFromSupabase() {
   try {
@@ -135,6 +203,12 @@ async function syncFromSupabase() {
     if (!mErr && dbMedia && dbMedia.length > 0) {
       mediaItems = dbMedia.map(fromSupabaseMedia);
       console.log(`[Supabase DB] Loaded ${mediaItems.length} media store items.`);
+    }
+
+    const { data: dbPurchases, error: pErr } = await supabase.from("purchases").select("*");
+    if (!pErr && dbPurchases && dbPurchases.length > 0) {
+      purchases = dbPurchases.map(fromSupabasePurchase);
+      console.log(`[Supabase DB] Loaded ${purchases.length} purchase records.`);
     }
   } catch (err) {
     console.warn("[Supabase Sync Warning]", err);
@@ -408,12 +482,13 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
       paymentMethod: "mercadopago",
       paymentId: purchaseId,
       status: "pending",
+      ipAddress: getClientIp(req),
       createdAt: new Date().toISOString(),
       downloadCount: 0,
       downloadUrl: media.downloadUrl,
     };
 
-    purchases.push(record);
+    await savePurchase(record);
 
     const validEmail = buyerEmail && buyerEmail.trim().includes("@") ? buyerEmail.trim() : null;
 
@@ -496,6 +571,7 @@ app.post("/api/payments/mercadopago/webhook", async (req, res) => {
       match.status = "completed";
       const media = mediaItems.find((m) => m.id === match.mediaId);
       if (media) media.purchasesCount += 1;
+      await savePurchase(match);
       sendWhatsAppReceipt(match);
     } else if (paymentId) {
       for (const creator of creators) {
@@ -514,6 +590,7 @@ app.post("/api/payments/mercadopago/webhook", async (req, res) => {
                 match.status = "completed";
                 const media = mediaItems.find((m) => m.id === match.mediaId);
                 if (media) media.purchasesCount += 1;
+                await savePurchase(match);
                 sendWhatsAppReceipt(match);
                 break;
               }
@@ -596,12 +673,13 @@ app.post("/api/payments/paypal/create-order", async (req, res) => {
       paymentMethod: "paypal",
       paymentId: purchaseId,
       status: "pending",
+      ipAddress: getClientIp(req),
       createdAt: new Date().toISOString(),
       downloadCount: 0,
       downloadUrl: media.downloadUrl,
     };
 
-    purchases.push(record);
+    await savePurchase(record);
 
     // Fetch OAuth Access Token from PayPal Live API
     const accessToken = await getPayPalAccessToken(clientId, clientSecret);
@@ -641,6 +719,7 @@ app.post("/api/payments/paypal/create-order", async (req, res) => {
           const approveLink = paypalOrder.links?.find((l: any) => l.rel === "approve")?.href;
 
           record.paymentId = paypalOrder.id;
+          await savePurchase(record);
 
           return res.json({
             orderId: paypalOrder.id,
@@ -682,7 +761,14 @@ app.post("/api/payments/paypal/create-order", async (req, res) => {
 app.post("/api/payments/paypal/capture-order", async (req, res) => {
   try {
     const { orderId, unlockToken } = req.body;
-    const record = purchases.find((p) => p.token === unlockToken || p.id === orderId || p.paymentId === orderId);
+    let record = purchases.find((p) => p.token === unlockToken || p.id === orderId || p.paymentId === orderId);
+
+    if (!record && (unlockToken || orderId)) {
+      try {
+        const { data } = await supabase.from("purchases").select("*").or(`token.eq.${unlockToken || ''},id.eq.${orderId || ''},payment_id.eq.${orderId || ''}`).single();
+        if (data) record = fromSupabasePurchase(data);
+      } catch {}
+    }
 
     if (!record) {
       return res.status(404).json({ error: "Orden de pago no encontrada" });
@@ -690,6 +776,7 @@ app.post("/api/payments/paypal/capture-order", async (req, res) => {
 
     // If purchase is already completed
     if (record.status === "completed") {
+      await savePurchase(record);
       return res.json({
         success: true,
         valid: true,
@@ -726,6 +813,7 @@ app.post("/api/payments/paypal/capture-order", async (req, res) => {
             record.status = "completed";
             const media = mediaItems.find((m) => m.id === record.mediaId);
             if (media) media.purchasesCount += 1;
+            await savePurchase(record);
             sendWhatsAppReceipt(record);
 
             return res.json({
@@ -747,6 +835,7 @@ app.post("/api/payments/paypal/capture-order", async (req, res) => {
               record.status = "completed";
               const media = mediaItems.find((m) => m.id === record.mediaId);
               if (media) media.purchasesCount += 1;
+              await savePurchase(record);
               sendWhatsAppReceipt(record);
 
               return res.json({
@@ -778,7 +867,7 @@ app.post("/api/payments/paypal/capture-order", async (req, res) => {
  * Confirm Custom Payment Link / Direct Verification
  * POST /api/payments/confirm-direct
  */
-app.post("/api/payments/confirm-direct", (req, res) => {
+app.post("/api/payments/confirm-direct", async (req, res) => {
   const { mediaId, paymentMethod, referenceNumber, buyerEmail, buyerPhone } = req.body;
   const media = mediaItems.find((m) => m.id === mediaId);
 
@@ -800,12 +889,13 @@ app.post("/api/payments/confirm-direct", (req, res) => {
     paymentMethod: paymentMethod || "link",
     paymentId: referenceNumber || purchaseId,
     status: "completed",
+    ipAddress: getClientIp(req),
     createdAt: new Date().toISOString(),
     downloadCount: 0,
     downloadUrl: media.downloadUrl,
   };
 
-  purchases.push(record);
+  await savePurchase(record);
   media.purchasesCount += 1;
 
   sendWhatsAppReceipt(record);
@@ -824,6 +914,13 @@ app.post("/api/payments/confirm-direct", (req, res) => {
 app.get("/api/purchases/verify/:token", async (req, res) => {
   const { token } = req.params;
   let purchase = purchases.find((p) => p.token === token || p.id === token);
+
+  if (!purchase && token) {
+    try {
+      const { data } = await supabase.from("purchases").select("*").or(`token.eq.${token},id.eq.${token}`).single();
+      if (data) purchase = fromSupabasePurchase(data);
+    } catch {}
+  }
 
   if (!purchase) {
     return res.status(404).json({
@@ -854,6 +951,7 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
             purchase.paymentId = approvedPayment.id;
             const media = mediaItems.find((m) => m.id === purchase.mediaId);
             if (media) media.purchasesCount += 1;
+            await savePurchase(purchase);
             sendWhatsAppReceipt(purchase);
           }
         }
@@ -863,8 +961,9 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
     }
   }
 
-  // SI Y SOLO SI la API de Mercado Pago confirmó el pago aprobado, se valida la descarga
+  // SI Y SOLO SI la API confirmó el pago aprobado, se valida la descarga
   if (purchase.status === "completed") {
+    await savePurchase(purchase);
     return res.json({
       valid: true,
       purchase,
@@ -874,8 +973,68 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
   res.json({
     valid: false,
     status: purchase.status,
-    error: "El pago no ha sido acreditado ni confirmado por la API oficial de Mercado Pago.",
+    error: "El pago no ha sido acreditado ni confirmado por la API oficial.",
   });
+});
+
+/**
+ * GET /api/purchases/unlocked-items
+ * Query Supabase & memory for completed purchases by visitor IP or passed tokens
+ */
+app.get("/api/purchases/unlocked-items", async (req, res) => {
+  try {
+    const clientIp = getClientIp(req);
+    const tokensParam = (req.query.tokens as string || "").split(",").filter(Boolean);
+
+    let dbMatches: PurchaseRecord[] = [];
+
+    // 1. Fetch completed purchases from Supabase
+    try {
+      const { data: dbData, error } = await supabase.from("purchases").select("*").eq("status", "completed");
+      if (!error && dbData && dbData.length > 0) {
+        const mapped = dbData.map(fromSupabasePurchase);
+        dbMatches = mapped.filter(p => 
+          p.status === "completed" && (
+            (clientIp && p.ipAddress === clientIp) ||
+            (clientIp && p.ipAddress && clientIp.includes(p.ipAddress)) ||
+            tokensParam.includes(p.token) ||
+            tokensParam.includes(p.id)
+          )
+        );
+      }
+    } catch (dbErr) {
+      console.warn("[Supabase Unlocked Items Warning]", dbErr);
+    }
+
+    // 2. Also check in-memory purchases
+    const memMatches = purchases.filter(p => 
+      p.status === "completed" && (
+        (clientIp && p.ipAddress === clientIp) ||
+        tokensParam.includes(p.token) ||
+        tokensParam.includes(p.id)
+      )
+    );
+
+    // Combine without duplicates
+    const map = new Map<string, PurchaseRecord>();
+    [...dbMatches, ...memMatches].forEach(p => map.set(p.id, p));
+    const allMatches = Array.from(map.values());
+
+    const unlockedMediaIds = Array.from(new Set(allMatches.map(p => p.mediaId)));
+    const unlockedTokensMap: Record<string, string> = {};
+    allMatches.forEach(p => {
+      unlockedTokensMap[p.mediaId] = p.token;
+    });
+
+    res.json({
+      clientIp,
+      unlockedMediaIds,
+      unlockedTokensMap,
+      purchases: allMatches
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Error al verificar compras por IP" });
+  }
 });
 
 /**
@@ -883,20 +1042,31 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
  * SECURE DIGITAL DOWNLOAD ROUTE
  * Validates token and delivers/redirects to high quality photo or video file
  */
-app.get("/api/media/download/:token", (req, res) => {
+app.get("/api/media/download/:token", async (req, res) => {
   const { token } = req.params;
-  const purchase = purchases.find((p) => p.token === token && p.status === "completed");
+  let purchase = purchases.find((p) => (p.token === token || p.id === token) && p.status === "completed");
 
-  if (!purchase) {
+  if (!purchase && token) {
+    try {
+      const { data } = await supabase.from("purchases").select("*").or(`token.eq.${token},id.eq.${token}`).single();
+      if (data && data.status === "completed") {
+        purchase = fromSupabasePurchase(data);
+      }
+    } catch {}
+  }
+
+  if (!purchase || purchase.status !== "completed") {
     return res.status(403).send(`
-      <div style="font-family: system-ui, sans-serif; text-align: center; padding: 50px;">
-        <h2>⛔ Enlace de Descarga Invalido o Expire</h2>
-        <p>No se pudo verificar un pago completado para esta descarga.</p>
+      <div style="font-family: system-ui, sans-serif; text-align: center; padding: 50px; background: #030712; color: #fff; min-height: 100vh;">
+        <h2 style="color: #ef4444;">⛔ Enlace de Descarga Inválido o Pago No Confirmado</h2>
+        <p style="color: #9ca3af;">No se pudo verificar un pago completado para esta descarga.</p>
+        <a href="/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #4f46e5; color: white; border-radius: 8px; text-decoration: none;">Volver a la Tienda</a>
       </div>
     `);
   }
 
   purchase.downloadCount += 1;
+  await savePurchase(purchase);
 
   // Direct redirect or stream to high resolution media file URL
   res.redirect(purchase.downloadUrl);

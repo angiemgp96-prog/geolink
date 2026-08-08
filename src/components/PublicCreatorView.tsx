@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
-import { Play, Lock, CheckCircle2, Instagram, Youtube, Video, Dumbbell, MessageCircle, ExternalLink, Sparkles, Image as ImageIcon, Film, Layers, ShoppingBag, Send } from 'lucide-react';
+import { Play, Lock, CheckCircle2, Instagram, Youtube, Video, Dumbbell, MessageCircle, ExternalLink, Sparkles, Image as ImageIcon, Film, Layers, ShoppingBag, Send, Download } from 'lucide-react';
 import { CreatorProfile, MediaItem, CustomLink } from '../types';
 
 interface PublicCreatorViewProps {
   creator: CreatorProfile;
   mediaItems: MediaItem[];
+  unlockedMediaIds?: string[];
+  unlockedTokensMap?: Record<string, string>;
   onOpenPurchaseModal: (item: MediaItem) => void;
 }
 
 export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   creator,
   mediaItems,
+  unlockedMediaIds = [],
+  unlockedTokensMap = {},
   onOpenPurchaseModal,
 }) => {
   const [filterType, setFilterType] = useState<'all' | 'video' | 'photo' | 'bundle'>('all');
@@ -181,78 +185,110 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
           {/* Media Store Items Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredItems.map((item) => (
-              <div
-                key={item.id}
-                className="bg-white/5 backdrop-blur-md border border-white/10 hover:border-indigo-500/50 rounded-2xl overflow-hidden shadow-xl transition-all duration-300 flex flex-col group"
-              >
-                {/* Media Preview Card */}
-                <div className="relative h-56 bg-zinc-900/80 overflow-hidden">
-                  <img
-                    src={item.previewUrl}
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
-                  />
-                  
-                  {/* Lock Overlay */}
-                  <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center">
-                    <div className="w-12 h-12 rounded-full border border-white/20 bg-white/10 backdrop-blur-md flex items-center justify-center text-white shadow-2xl group-hover:scale-110 transition-transform">
-                      {item.type === 'video' ? (
-                        <Play className="w-6 h-6 text-white fill-white/30 ml-0.5" />
-                      ) : (
-                        <Lock className="w-5 h-5 text-white" />
-                      )}
+            {filteredItems.map((item) => {
+              const isUnlocked = unlockedMediaIds.includes(item.id);
+              const downloadToken = unlockedTokensMap[item.id];
+
+              return (
+                <div
+                  key={item.id}
+                  className={`bg-white/5 backdrop-blur-md border rounded-2xl overflow-hidden shadow-xl transition-all duration-300 flex flex-col group ${
+                    isUnlocked ? 'border-emerald-500/50 bg-emerald-950/10' : 'border-white/10 hover:border-indigo-500/50'
+                  }`}
+                >
+                  {/* Media Preview Card */}
+                  <div className="relative h-56 bg-zinc-900/80 overflow-hidden">
+                    <img
+                      src={item.previewUrl}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
+                    />
+                    
+                    {/* Lock or Unlocked Overlay */}
+                    {isUnlocked ? (
+                      <div className="absolute inset-0 bg-emerald-950/40 flex items-center justify-center">
+                        <div className="px-4 py-2 rounded-full border border-emerald-400/60 bg-emerald-600/40 backdrop-blur-md flex items-center gap-2 text-white font-extrabold text-xs shadow-2xl uppercase tracking-wider">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <span>Adquirido</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full border border-white/20 bg-white/10 backdrop-blur-md flex items-center justify-center text-white shadow-2xl group-hover:scale-110 transition-transform">
+                          {item.type === 'video' ? (
+                            <Play className="w-6 h-6 text-white fill-white/30 ml-0.5" />
+                          ) : (
+                            <Lock className="w-5 h-5 text-white" />
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Type Badge */}
+                    <div className="absolute top-3 left-3 bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full text-[11px] font-semibold text-white flex items-center gap-1.5">
+                      {item.type === 'video' && <Film className="w-3.5 h-3.5 text-indigo-400" />}
+                      {item.type === 'photo' && <ImageIcon className="w-3.5 h-3.5 text-indigo-300" />}
+                      {item.type === 'bundle' && <Layers className="w-3.5 h-3.5 text-amber-400" />}
+                      <span className="capitalize">{item.type}</span>
+                    </div>
+
+                    {/* Price Tag or Unlocked Tag */}
+                    <div className={`absolute bottom-3 right-3 text-white font-extrabold text-sm px-3.5 py-1.5 rounded-xl shadow-lg border ${
+                      isUnlocked ? 'bg-emerald-600 border-emerald-400/40' : 'bg-indigo-600 border-indigo-400/30'
+                    }`}>
+                      {isUnlocked ? '✅ Pagado' : `$${item.price.toFixed(2)} ${item.currency}`}
                     </div>
                   </div>
 
-                  {/* Type Badge */}
-                  <div className="absolute top-3 left-3 bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full text-[11px] font-semibold text-white flex items-center gap-1.5">
-                    {item.type === 'video' && <Film className="w-3.5 h-3.5 text-indigo-400" />}
-                    {item.type === 'photo' && <ImageIcon className="w-3.5 h-3.5 text-indigo-300" />}
-                    {item.type === 'bundle' && <Layers className="w-3.5 h-3.5 text-amber-400" />}
-                    <span className="capitalize">{item.type}</span>
+                  {/* Card Content & Action */}
+                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                    <div>
+                      <h3 className="font-bold text-base text-white group-hover:text-indigo-300 transition-colors line-clamp-2">
+                        {item.title}
+                      </h3>
+                      <p className="text-xs text-zinc-400 mt-1.5 line-clamp-2 leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-zinc-400">
+                      <span>
+                        {item.duration ? `⏳ ${item.duration}` : `📦 ${item.fileSize}`}
+                      </span>
+                      <span className="text-emerald-400 font-medium">
+                        🔥 {item.purchasesCount} Compras
+                      </span>
+                    </div>
+
+                    {/* Buy / Unlock OR Download Button */}
+                    {isUnlocked ? (
+                      <a
+                        id={`download-media-${item.id}`}
+                        href={downloadToken ? `/api/media/download/${downloadToken}` : item.downloadUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        download
+                        className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer border border-emerald-400/40"
+                      >
+                        <Download className="w-4 h-4 animate-bounce" />
+                        <span>Descargar</span>
+                      </a>
+                    ) : (
+                      <button
+                        id={`buy-media-${item.id}`}
+                        onClick={() => onOpenPurchaseModal(item)}
+                        className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                      >
+                        <Lock className="w-4 h-4" />
+                        <span>Desbloquear (${item.price.toFixed(2)})</span>
+                      </button>
+                    )}
+
                   </div>
 
-                  {/* Price Tag */}
-                  <div className="absolute bottom-3 right-3 bg-indigo-600 text-white font-extrabold text-sm px-3.5 py-1.5 rounded-xl shadow-lg border border-indigo-400/30">
-                    ${item.price.toFixed(2)} {item.currency}
-                  </div>
                 </div>
-
-                {/* Card Content & Action */}
-                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                  <div>
-                    <h3 className="font-bold text-base text-white group-hover:text-indigo-300 transition-colors line-clamp-2">
-                      {item.title}
-                    </h3>
-                    <p className="text-xs text-zinc-400 mt-1.5 line-clamp-2 leading-relaxed">
-                      {item.description}
-                    </p>
-                  </div>
-
-                  <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-zinc-400">
-                    <span>
-                      {item.duration ? `⏳ ${item.duration}` : `📦 ${item.fileSize}`}
-                    </span>
-                    <span className="text-emerald-400 font-medium">
-                      🔥 {item.purchasesCount} Compras
-                    </span>
-                  </div>
-
-                  {/* Buy / Unlock Button */}
-                  <button
-                    id={`buy-media-${item.id}`}
-                    onClick={() => onOpenPurchaseModal(item)}
-                    className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
-                  >
-                    <Lock className="w-4 h-4" />
-                    <span>Desbloquear (${item.price.toFixed(2)})</span>
-                  </button>
-
-                </div>
-
-              </div>
-            ))}
+              );
+            })}
           </div>
 
         </div>

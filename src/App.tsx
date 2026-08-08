@@ -42,6 +42,9 @@ export default function App() {
   const [selectedMediaForPurchase, setSelectedMediaForPurchase] = useState<MediaItem | null>(null);
   const [isNewCreatorModalOpen, setIsNewCreatorModalOpen] = useState<boolean>(false);
 
+  const [unlockedMediaIds, setUnlockedMediaIds] = useState<string[]>([]);
+  const [unlockedTokensMap, setUnlockedTokensMap] = useState<Record<string, string>>({});
+
   // Secret PIN 0777 Key Sequence Listener (Active only when typed dynamically)
   const [isBypassedWith0777, setIsBypassedWith0777] = useState<boolean>(false);
   const isBypassedRef = useRef<boolean>(false); // ref to avoid stale closure in checkGeoAccess
@@ -51,6 +54,32 @@ export default function App() {
   useEffect(() => {
     sessionStorage.removeItem('bypass_0777');
   }, []);
+
+  const checkUnlockedItems = async () => {
+    try {
+      const savedTokensRaw = localStorage.getItem('geolink_unlocked_tokens');
+      const savedTokens: string[] = savedTokensRaw ? JSON.parse(savedTokensRaw) : [];
+      const res = await api.getUnlockedItems(savedTokens);
+      setUnlockedMediaIds(res.unlockedMediaIds || []);
+      setUnlockedTokensMap(res.unlockedTokensMap || {});
+    } catch (e) {
+      console.warn('Error fetching unlocked items:', e);
+    }
+  };
+
+  const addUnlockedToken = (token: string) => {
+    try {
+      const savedTokensRaw = localStorage.getItem('geolink_unlocked_tokens');
+      const savedTokens: string[] = savedTokensRaw ? JSON.parse(savedTokensRaw) : [];
+      if (!savedTokens.includes(token)) {
+        savedTokens.push(token);
+        localStorage.setItem('geolink_unlocked_tokens', JSON.stringify(savedTokens));
+      }
+      checkUnlockedItems();
+    } catch (e) {
+      console.warn('Error saving unlocked token:', e);
+    }
+  };
 
   // Global keypress listener for typing '0777' anywhere on the page
   useEffect(() => {
@@ -79,6 +108,7 @@ export default function App() {
   // 1. Initial Data Fetching & GeoIP Lookup
   useEffect(() => {
     initAppData();
+    checkUnlockedItems();
   }, []);
 
   const initAppData = async () => {
@@ -104,6 +134,7 @@ export default function App() {
         try {
           const verifyRes = await api.verifyPurchase(token, true);
           if (verifyRes.valid && verifyRes.purchase) {
+            addUnlockedToken(token);
             const foundMedia = mediaItems.find(m => m.id === verifyRes.purchase.mediaId);
             if (foundMedia) {
               setSelectedMediaForPurchase(foundMedia);
@@ -114,6 +145,7 @@ export default function App() {
         try {
           const captureRes = await api.capturePayPalOrder('', token);
           if (captureRes.valid && captureRes.purchase) {
+            addUnlockedToken(token);
             const foundMedia = mediaItems.find(m => m.id === captureRes.purchase.mediaId);
             if (foundMedia) {
               setSelectedMediaForPurchase(foundMedia);
@@ -227,6 +259,8 @@ export default function App() {
             <PublicCreatorView
               creator={currentCreator}
               mediaItems={mediaItems}
+              unlockedMediaIds={unlockedMediaIds}
+              unlockedTokensMap={unlockedTokensMap}
               onOpenPurchaseModal={(item) => setSelectedMediaForPurchase(item)}
             />
           )
@@ -246,7 +280,12 @@ export default function App() {
         <PurchaseModal
           item={selectedMediaForPurchase}
           onClose={() => setSelectedMediaForPurchase(null)}
-          onPurchaseSuccess={() => handleRefreshData()}
+          onPurchaseSuccess={(record) => {
+            if (record && record.token) {
+              addUnlockedToken(record.token);
+            }
+            handleRefreshData();
+          }}
         />
       )}
 
