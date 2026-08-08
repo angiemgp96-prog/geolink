@@ -94,16 +94,27 @@ export default function App() {
       const loc = await api.getVisitorLocation();
       setVisitorLocation(loc);
 
-      // Check for returning Mercado Pago payment redirect parameters
+      // Check for returning payment redirect parameters (Mercado Pago or PayPal)
       const params = new URLSearchParams(window.location.search);
       const token = params.get('token') || params.get('unlock');
-      const isPaymentReturn = params.get('payment') === 'success' || params.get('collection_status') === 'approved' || params.get('status') === 'approved';
+      const isMpReturn = params.get('payment') === 'success' || params.get('collection_status') === 'approved' || params.get('status') === 'approved';
+      const isPpReturn = params.get('payment') === 'paypal_success';
 
-      if (token && isPaymentReturn) {
+      if (token && isMpReturn) {
         try {
           const verifyRes = await api.verifyPurchase(token, true);
           if (verifyRes.valid && verifyRes.purchase) {
             const foundMedia = mediaItems.find(m => m.id === verifyRes.purchase.mediaId);
+            if (foundMedia) {
+              setSelectedMediaForPurchase(foundMedia);
+            }
+          }
+        } catch {}
+      } else if (token && isPpReturn) {
+        try {
+          const captureRes = await api.capturePayPalOrder('', token);
+          if (captureRes.valid && captureRes.purchase) {
+            const foundMedia = mediaItems.find(m => m.id === captureRes.purchase.mediaId);
             if (foundMedia) {
               setSelectedMediaForPurchase(foundMedia);
             }

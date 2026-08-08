@@ -530,12 +530,37 @@ app.post("/api/payments/mercadopago/webhook", async (req, res) => {
 });
 
 /**
- * PayPal API Create & Capture Order
+ * Helper: Obtener Access Token de PayPal REST API Live
+ */
+async function getPayPalAccessToken(clientId: string, clientSecret: string): Promise<string | null> {
+  try {
+    const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+    const response = await fetch("https://api-m.paypal.com/v1/oauth2/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${auth}`,
+      },
+      body: "grant_type=client_credentials",
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.access_token;
+    } else {
+      const errText = await response.text();
+      console.error("[PayPal OAuth Error]:", errText);
+    }
+  } catch (err) {
+    console.error("[PayPal OAuth Fetch Error]:", err);
+  }
+  return null;
+}
+
+/**
+ * PayPal API Create Order (Official PayPal Live REST API)
  * POST /api/payments/paypal/create-order
  */
-// Hardcoded PayPal.me fallback (used when creator has no custom link configured)
-const HARDCODED_PAYPAL_URL = "https://www.paypal.com/paypalme/angieG473";
-
 app.post("/api/payments/paypal/create-order", async (req, res) => {
   try {
     const { mediaId, buyerEmail, buyerPhone } = req.body;
@@ -543,24 +568,33 @@ app.post("/api/payments/paypal/create-order", async (req, res) => {
 
     if (!media) return res.status(404).json({ error: "Contenido no encontrado" });
 
-    const creator = creators.find((c) => c.handle.toLowerCase() === media.creatorHandle.toLowerCase());
-    const paypalLink = creator?.paymentSettings?.customPaymentLinks?.find((l) => l.url.includes("paypal") || l.name.toLowerCase().includes("paypal"))?.url;
+    const creator = creators.find((c) => c.handle.toLowerCase() === media.creatorHandle.toLowerCase())
+      || INITIAL_CREATORS.find((c) => c.handle.toLowerCase() === media.creatorHandle.toLowerCase());
 
-    const orderId = `PAYPAL_ORD_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const clientId = creator?.paymentSettings?.payPalClientId?.trim() 
+      || 'BAA8Frtu5JFlsHO30PzjEf0J23mdxSEfhSCZbeZrGfcskv7jBXDkYQR5U4Tv3sUApF5z64ONWtUdGfwf44';
+    const clientSecret = creator?.paymentSettings?.payPalClientSecret?.trim() 
+      || 'EBQBiVbmbih6qKanhmwkI0RwbiHWKolXovHRMu2DSGcigFTkwHS5J5AafOqMMXJO46goCK2sWZjQNFDw';
+
+    const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'https';
+    const host = req.headers.host || 'geolink-3tze.onrender.com';
+    const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
+
+    const purchaseId = `pp_purch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const unlockToken = `unlock_pp_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
     const record: PurchaseRecord = {
-      id: orderId,
+      id: purchaseId,
       token: unlockToken,
       mediaId: media.id,
       mediaTitle: media.title,
       creatorHandle: media.creatorHandle,
-      buyerEmail: buyerEmail || "paypal_buyer@example.com",
-      buyerPhone: buyerPhone || "+1555019283",
+      buyerEmail: buyerEmail || "",
+      buyerPhone: buyerPhone || "",
       amount: media.price,
       currency: "USD",
       paymentMethod: "paypal",
-      paymentId: orderId,
+      paymentId: purchaseId,
       status: "pending",
       createdAt: new Date().toISOString(),
       downloadCount: 0,
@@ -569,49 +603,175 @@ app.post("/api/payments/paypal/create-order", async (req, res) => {
 
     purchases.push(record);
 
-    // Use creator's custom PayPal link or fall back to hardcoded paypal.me link
-    const resolvedPaypalUrl = paypalLink
-      ? (paypalLink.startsWith("http") ? paypalLink : `https://${paypalLink}`)
-      : HARDCODED_PAYPAL_URL;
+    // Fetch OAuth Access Token from PayPal Live API
+    const accessToken = await getPayPalAccessToken(clientId, clientSecret);
+
+    if (accessToken) {
+      try {
+        const orderResponse = await fetch("https://api-m.paypal.com/v2/checkout/orders", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            intent: "CAPTURE",
+            purchase_units: [
+              {
+                reference_id: purchaseId,
+                description: media.title,
+                amount: {
+                  currency_code: "USD",
+                  value: Number(media.price).toFixed(2),
+                },
+              },
+            ],
+            application_context: {
+              brand_name: creator?.name || "Geolink Store",
+              landing_page: "LOGIN",
+              user_action: "PAY_NOW",
+              return_url: `${baseUrl}?payment=paypal_success&token=${unlockToken}`,
+              cancel_url: `${baseUrl}?payment=paypal_cancel`,
+            },
+          }),
+        });
+
+        if (orderResponse.ok) {
+          const paypalOrder = await orderResponse.json();
+          const approveLink = paypalOrder.links?.find((l: any) => l.rel === "approve")?.href;
+
+          record.paymentId = paypalOrder.id;
+
+          return res.json({
+            orderId: paypalOrder.id,
+            approveUrl: approveLink || `https://www.paypal.com/checkoutnow?token=${paypalOrder.id}`,
+            unlockToken,
+            purchaseId,
+            status: "CREATED",
+          });
+        } else {
+          const errJson = await orderResponse.json().catch(() => ({}));
+          console.error("[PayPal Create Order API Error]:", errJson);
+        }
+      } catch (err) {
+        console.error("[PayPal API Call Error]:", err);
+      }
+    }
+
+    // Fallback to PayPal.me link if API call fails
+    const paypalLink = creator?.paymentSettings?.customPaymentLinks?.find((l) => l.url.includes("paypal") || l.name.toLowerCase().includes("paypal"))?.url
+      || "https://www.paypal.com/paypalme/angieG473";
+    const resolvedPaypalUrl = paypalLink.startsWith("http") ? paypalLink : `https://${paypalLink}`;
 
     res.json({
-      orderId,
+      orderId: purchaseId,
+      approveUrl: resolvedPaypalUrl,
       unlockToken,
-      paypalUrl: resolvedPaypalUrl,
+      purchaseId,
       status: "CREATED",
     });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message || "Error procesando PayPal" });
   }
 });
 
 /**
- * PayPal Capture & Confirm Payment
+ * PayPal Capture & Confirm Payment (Official API Verification)
  * POST /api/payments/paypal/capture-order
  */
 app.post("/api/payments/paypal/capture-order", async (req, res) => {
-  const { orderId, unlockToken } = req.body;
-  const record = purchases.find((p) => p.id === orderId || p.token === unlockToken);
+  try {
+    const { orderId, unlockToken } = req.body;
+    const record = purchases.find((p) => p.token === unlockToken || p.id === orderId || p.paymentId === orderId);
 
-  if (!record) {
-    return res.status(404).json({ error: "Orden de pago no encontrada" });
+    if (!record) {
+      return res.status(404).json({ error: "Orden de pago no encontrada" });
+    }
+
+    // If purchase is already completed
+    if (record.status === "completed") {
+      return res.json({
+        success: true,
+        valid: true,
+        status: "COMPLETED",
+        purchase: record,
+      });
+    }
+
+    const creator = creators.find((c) => c.handle.toLowerCase() === record.creatorHandle.toLowerCase())
+      || INITIAL_CREATORS.find((c) => c.handle.toLowerCase() === record.creatorHandle.toLowerCase());
+
+    const clientId = creator?.paymentSettings?.payPalClientId?.trim() 
+      || 'BAA8Frtu5JFlsHO30PzjEf0J23mdxSEfhSCZbeZrGfcskv7jBXDkYQR5U4Tv3sUApF5z64ONWtUdGfwf44';
+    const clientSecret = creator?.paymentSettings?.payPalClientSecret?.trim() 
+      || 'EBQBiVbmbih6qKanhmwkI0RwbiHWKolXovHRMu2DSGcigFTkwHS5J5AafOqMMXJO46goCK2sWZjQNFDw';
+
+    const accessToken = await getPayPalAccessToken(clientId, clientSecret);
+    const targetOrderId = record.paymentId || orderId;
+
+    if (accessToken && targetOrderId && targetOrderId.length > 5 && !targetOrderId.startsWith("pp_purch_")) {
+      try {
+        // Attempt to capture payment order via PayPal Live REST API
+        const captureRes = await fetch(`https://api-m.paypal.com/v2/checkout/orders/${targetOrderId}/capture`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (captureRes.ok) {
+          const captureData = await captureRes.json();
+          if (captureData.status === "COMPLETED" || captureData.status === "APPROVED") {
+            record.status = "completed";
+            const media = mediaItems.find((m) => m.id === record.mediaId);
+            if (media) media.purchasesCount += 1;
+            sendWhatsAppReceipt(record);
+
+            return res.json({
+              success: true,
+              valid: true,
+              status: "COMPLETED",
+              purchase: record,
+            });
+          }
+        } else {
+          // If already captured, verify order status from PayPal API
+          const orderDetailRes = await fetch(`https://api-m.paypal.com/v2/checkout/orders/${targetOrderId}`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+
+          if (orderDetailRes.ok) {
+            const orderDetail = await orderDetailRes.json();
+            if (orderDetail.status === "COMPLETED" || orderDetail.status === "APPROVED") {
+              record.status = "completed";
+              const media = mediaItems.find((m) => m.id === record.mediaId);
+              if (media) media.purchasesCount += 1;
+              sendWhatsAppReceipt(record);
+
+              return res.json({
+                success: true,
+                valid: true,
+                status: "COMPLETED",
+                purchase: record,
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.error("[PayPal Capture Error]:", err);
+      }
+    }
+
+    res.json({
+      success: false,
+      valid: false,
+      status: record.status,
+      error: "El pago no ha sido confirmado ni completado en la API oficial de PayPal.",
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Error verificando orden PayPal" });
   }
-
-  // Mark completed
-  record.status = "completed";
-  
-  const media = mediaItems.find((m) => m.id === record.mediaId);
-  if (media) media.purchasesCount += 1;
-
-  // Send WhatsApp confirmation
-  sendWhatsAppReceipt(record);
-
-  res.json({
-    success: true,
-    status: "COMPLETED",
-    purchase: record,
-    downloadUrl: `/api/media/download/${record.token}`,
-  });
 });
 
 /**

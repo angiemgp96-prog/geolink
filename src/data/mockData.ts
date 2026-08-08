@@ -24,9 +24,9 @@ export const INITIAL_CREATORS: CreatorProfile[] = [
     paymentSettings: {
       mercadoPagoAccessToken: 'APP_USR-7257482411293311-080712-ada9bb187061cb3d57c277c19d3916bc-3553496952',
       mercadoPagoPublicKey: '',
-      payPalClientId: 'sb-client-id-angelina-sandbox',
-      payPalClientSecret: 'sb-secret-angelina',
-      payPalMode: 'sandbox',
+      payPalClientId: 'BAA8Frtu5JFlsHO30PzjEf0J23mdxSEfhSCZbeZrGfcskv7jBXDkYQR5U4Tv3sUApF5z64ONWtUdGfwf44',
+      payPalClientSecret: 'EBQBiVbmbih6qKanhmwkI0RwbiHWKolXovHRMu2DSGcigFTkwHS5J5AafOqMMXJO46goCK2sWZjQNFDw',
+      payPalMode: 'live',
       customPaymentLinks: [
         { id: 'c2', name: 'Payoneer Direct', url: 'https://payoneer.com/angelina69', currency: 'USD' }
       ]

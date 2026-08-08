@@ -13,7 +13,7 @@ const NEQUI_USA_LINK = 'https://giros.nequi.com.co/l/Cc1Sv9Bz';
 const TELEGRAM_USER  = 'Angelinaguzman69'; // sin @
 // ─────────────────────────────────────────────────────────────────────
 
-type Screen = 'select' | 'contact_paypal' | 'contact_nequi' | 'mp_pending' | 'mp_success';
+type Screen = 'select' | 'contact_paypal' | 'contact_nequi' | 'mp_pending' | 'mp_success' | 'paypal_pending' | 'paypal_success';
 
 interface PurchaseModalProps {
   item: MediaItem | null;
@@ -31,6 +31,10 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   // MercadoPago API state
   const [mpUnlockToken, setMpUnlockToken]         = useState<string | null>(null);
   const [completedPurchase, setCompletedPurchase] = useState<PurchaseRecord | null>(null);
+
+  // PayPal Live API state
+  const [paypalUnlockToken, setPaypalUnlockToken] = useState<string | null>(null);
+  const [paypalOrderId, setPaypalOrderId]         = useState<string | null>(null);
 
   if (!item) return null;
 
@@ -51,7 +55,24 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     return () => clearInterval(id);
   }, [screen, mpUnlockToken]);
 
-  // ── Validar contacto para PayPal / Nequi ─────────────────────────
+  // ── Polling de verificación para PayPal Live API ───────────────────
+  useEffect(() => {
+    if (screen !== 'paypal_pending' || !paypalOrderId || !paypalUnlockToken) return;
+    const id = setInterval(async () => {
+      try {
+        const res = await api.capturePayPalOrder(paypalOrderId, paypalUnlockToken);
+        if (res.valid && res.purchase) {
+          setCompletedPurchase(res.purchase);
+          setScreen('paypal_success');
+          if (onPurchaseSuccess) onPurchaseSuccess(res.purchase);
+          clearInterval(id);
+        }
+      } catch {}
+    }, 3000);
+    return () => clearInterval(id);
+  }, [screen, paypalOrderId, paypalUnlockToken]);
+
+  // ── Validar contacto para Nequi / fallback ─────────────────────────
   const validateContact = () => {
     if (!contactInfo.trim()) {
       setContactError('⚠️ Ingresa tu número de WhatsApp o usuario de Telegram.');
@@ -82,7 +103,6 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
         return;
       }
       if (data.init_point) {
-        // Redirige directamente a Mercado Pago en una pestaña nueva
         window.open(data.init_point, '_blank');
         setMpUnlockToken(data.unlockToken);
         setScreen('mp_pending');
@@ -116,12 +136,49 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   };
 
   // ════════════════════════════════════════════════════════════════
-  // PAYPAL — abre PayPal + redirige esta ventana a Telegram
+  // PAYPAL — Redirección Directa a Checkout Oficial PayPal Live API
   // ════════════════════════════════════════════════════════════════
-  const handlePayPalConfirm = () => {
-    if (!validateContact()) return;
-    window.open(PAYPAL_LINK, '_blank');
-    window.location.href = telegramLink('PayPal');
+  const handlePayPalDirect = async () => {
+    setErrorMessage('');
+    setIsLoading(true);
+    try {
+      const data = await api.createPayPalOrder(item.id, '', '');
+      if (data.error) {
+        setErrorMessage(data.error);
+        return;
+      }
+      if (data.approveUrl) {
+        window.open(data.approveUrl, '_blank');
+        setPaypalUnlockToken(data.unlockToken);
+        setPaypalOrderId(data.orderId);
+        setScreen('paypal_pending');
+      } else {
+        setErrorMessage('No se pudo generar el checkout de PayPal Live. Intenta nuevamente.');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Error al conectar con la API de PayPal Live.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePayPalManualCheck = async () => {
+    if (!paypalOrderId || !paypalUnlockToken) return;
+    setIsLoading(true);
+    try {
+      const res = await api.capturePayPalOrder(paypalOrderId, paypalUnlockToken);
+      if (res.valid && res.purchase) {
+        setCompletedPurchase(res.purchase);
+        setScreen('paypal_success');
+        if (onPurchaseSuccess) onPurchaseSuccess(res.purchase);
+      } else {
+        setErrorMessage('El pago aún no ha sido capturado o completado en PayPal. Revisa la ventana de PayPal e intenta de nuevo.');
+      }
+    } catch {
+      setErrorMessage('No se pudo verificar la transacción con la API de PayPal Live.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // ════════════════════════════════════════════════════════════════
@@ -189,28 +246,29 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                   </div>
                   <div className="text-left">
                     <div>Mercado Pago</div>
-                    <div className="text-[11px] font-normal text-sky-100">Tarjetas · Efectivo · Débito (Redirección Inmediata)</div>
+                    <div className="text-[11px] font-normal text-sky-100">Tarjetas · Nequi · PSE · Débito</div>
                   </div>
                 </div>
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
               </button>
 
-              {/* PayPal */}
+              {/* PayPal Live API Direct */}
               <button
                 id="pay-paypal-button"
-                onClick={() => { setErrorMessage(''); setScreen('contact_paypal'); }}
-                className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#003087] to-[#009cde] hover:from-[#00256a] hover:to-[#0082c2] text-white font-bold text-sm shadow-lg shadow-blue-900/30 flex items-center justify-between transition-all cursor-pointer group"
+                disabled={isLoading}
+                onClick={handlePayPalDirect}
+                className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#003087] to-[#009cde] hover:from-[#00256a] hover:to-[#0082c2] text-white font-bold text-sm shadow-lg shadow-blue-900/30 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
                     <span className="font-extrabold italic text-base leading-none">P</span>
                   </div>
                   <div className="text-left">
-                    <div>PayPal — paypal.me/angieG473</div>
-                    <div className="text-[11px] font-normal text-blue-200">Tarjetas internacionales · USD</div>
+                    <div>PayPal (Oficial Live API)</div>
+                    <div className="text-[11px] font-normal text-blue-200">Tarjetas internacionales · USD (Verificación Directa)</div>
                   </div>
                 </div>
-                <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
               </button>
 
               {/* Nequi USA */}
@@ -373,6 +431,96 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 <h4 className="font-semibold text-sm text-white truncate">{item.title}</h4>
                 <p className="text-xs text-slate-400 mt-0.5">{item.duration ? `Duración: ${item.duration}` : `Tamaño: ${item.fileSize}`}</p>
                 <span className="text-xs text-emerald-400 font-medium">Confirmado — MERCADOPAGO</span>
+              </div>
+            </div>
+            <a id="download-media-button"
+              href={`/api/media/download/${completedPurchase.token}`}
+              target="_blank" rel="noreferrer"
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-base shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all">
+              <Download className="w-5 h-5" />
+              Descargar {item.type === 'video' ? 'Video HD' : 'Galería HD'}
+            </a>
+            <div className="text-xs text-slate-600 border-t border-slate-800 pt-2">
+              Token: <code className="text-purple-400 font-mono">{completedPurchase.token}</code>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            PANTALLA 5: PayPal Live — esperando verificación API
+        ═══════════════════════════════════════════════════════*/}
+        {screen === 'paypal_pending' && (
+          <div className="p-7 space-y-5 text-center">
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center">
+              <Loader2 className="w-7 h-7 animate-spin text-blue-400" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-white">Verificando pago en PayPal Live...</h3>
+              <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
+                Completa el pago en la ventana oficial de PayPal y vuelve aquí.<br />
+                Tu contenido se liberará automáticamente al capturar la orden.
+              </p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-sm space-y-2">
+              <div className="flex justify-between text-zinc-300">
+                <span className="text-zinc-500">Producto</span>
+                <span className="font-semibold truncate max-w-[180px]">{item.title}</span>
+              </div>
+              <div className="flex justify-between text-zinc-300">
+                <span className="text-zinc-500">Monto</span>
+                <span className="text-amber-400 font-bold">${item.price.toFixed(2)} USD</span>
+              </div>
+              <div className="flex justify-between text-zinc-300">
+                <span className="text-zinc-500">Estado</span>
+                <span className="text-blue-400 font-bold flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping inline-block" />
+                  Conectando API PayPal Live
+                </span>
+              </div>
+            </div>
+
+            {errorMessage && (
+              <div className="p-3 rounded-xl bg-red-950/80 border border-red-500/40 text-red-300 text-xs flex items-center gap-2 text-left">
+                <AlertCircle className="w-4 h-4 shrink-0" /><span>{errorMessage}</span>
+              </div>
+            )}
+
+            <div className="space-y-2.5">
+              <button onClick={handlePayPalManualCheck} disabled={isLoading}
+                className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50">
+                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                Ya pagué — Capturar y Verificar PayPal
+              </button>
+              <button onClick={() => { setScreen('select'); setErrorMessage(''); }}
+                className="w-full py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-xs transition-all cursor-pointer">
+                ← Volver a métodos de pago
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            PANTALLA 6: PayPal Live — pago confirmado ✓
+        ═══════════════════════════════════════════════════════*/}
+        {screen === 'paypal_success' && completedPurchase && (
+          <div className="p-8 text-center space-y-6">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+              <CheckCircle className="w-10 h-10 text-emerald-400" />
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 text-xs font-semibold mb-2 border border-emerald-500/20">
+                <Sparkles className="w-3.5 h-3.5" /> Pago Capturado en PayPal Live API
+              </div>
+              <h3 className="text-2xl font-bold text-white">¡Contenido Desbloqueado!</h3>
+              <p className="text-sm text-slate-400 mt-1">Pago verificado para <span className="text-purple-400 font-semibold">@{item.creatorHandle}</span></p>
+            </div>
+            <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700 text-left flex items-center gap-4">
+              <img src={item.previewUrl} alt={item.title} className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-600" />
+              <div className="overflow-hidden">
+                <h4 className="font-semibold text-sm text-white truncate">{item.title}</h4>
+                <p className="text-xs text-slate-400 mt-0.5">{item.duration ? `Duración: ${item.duration}` : `Tamaño: ${item.fileSize}`}</p>
+                <span className="text-xs text-emerald-400 font-medium">Orden Capturada — PAYPAL LIVE API</span>
               </div>
             </div>
             <a id="download-media-button"
