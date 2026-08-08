@@ -181,6 +181,16 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     }
   };
 
+  // ── PayPal vía Telegram: construye enlace paypal.me/[monto]USD + abre chat @Angelinaguzman69
+  const buildPayPalTelegramLink = () => {
+    const amountStr = `${Math.round(item.price)}USD`;
+    const paypalMeUrl = `https://paypal.me/angieG473/${amountStr}`;
+    const msg = encodeURIComponent(
+      `¡Hola! Quiero comprar el contenido: "${item.title}" ($${item.price.toFixed(2)} ${item.currency}).\n\nRealizaré el pago por este enlace directo: ${paypalMeUrl}\n\nAquí te adjunto mi comprobante para la entrega 📎`
+    );
+    return `https://t.me/${TELEGRAM_USER}?text=${msg}`;
+  };
+
   // ════════════════════════════════════════════════════════════════
   // NEQUI USA — abre Nequi + redirige esta ventana a Telegram
   // ════════════════════════════════════════════════════════════════
@@ -270,6 +280,26 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 </div>
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
               </button>
+
+              {/* PayPal vía Telegram Directo (PayPal.me/[monto]USD) */}
+              <a
+                id="pay-paypal-telegram-button"
+                href={buildPayPalTelegramLink()}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-between transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                    <Send className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div>Pagar vía Telegram (PayPal.me Directo)</div>
+                    <div className="text-[11px] font-normal text-emerald-100">paypal.me/angieG473/{Math.round(item.price)}USD · Chat @{TELEGRAM_USER}</div>
+                  </div>
+                </div>
+                <ExternalLink className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+              </a>
 
               {/* Nequi USA */}
               <button

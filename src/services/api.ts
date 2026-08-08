@@ -139,22 +139,40 @@ export const api = {
     return await res.json();
   },
 
-  async createPayPalOrder(mediaId: string, buyerEmail: string, buyerPhone: string) {
-    const res = await fetch('/api/payments/paypal/create-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mediaId, buyerEmail, buyerPhone })
-    });
-    return await res.json();
+  async createPayPalOrder(mediaId: string, buyerEmail?: string, buyerPhone?: string) {
+    try {
+      const res = await fetch('/api/payments/paypal/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mediaId, buyerEmail, buyerPhone })
+      });
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        return { error: 'El servidor está desplegando la última actualización de PayPal. Intenta de nuevo en 30 segundos.' };
+      }
+    } catch (err: any) {
+      return { error: err.message || 'Error de conexión con el servidor.' };
+    }
   },
 
   async capturePayPalOrder(orderId: string, unlockToken: string) {
-    const res = await fetch('/api/payments/paypal/capture-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId, unlockToken })
-    });
-    return await res.json();
+    try {
+      const res = await fetch('/api/payments/paypal/capture-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, unlockToken })
+      });
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        return { error: 'Error procesando la respuesta del servidor.' };
+      }
+    } catch (err: any) {
+      return { error: err.message || 'Error de conexión con el servidor.' };
+    }
   },
 
   async confirmDirectPayment(mediaId: string, paymentMethod: string, referenceNumber: string, buyerEmail: string, buyerPhone: string) {
