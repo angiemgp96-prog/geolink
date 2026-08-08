@@ -59,6 +59,20 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
     setPurchasesHistory(data);
   };
 
+  const handleApprovePurchase = async (tokenOrId: string) => {
+    try {
+      const res = await api.approvePurchaseManual(tokenOrId);
+      if (res.success) {
+        await loadPurchases();
+        if (onRefreshData) onRefreshData();
+      } else {
+        alert(res.error || 'Error al aprobar la venta');
+      }
+    } catch {
+      alert('Error de conexión al aprobar la venta');
+    }
+  };
+
   const handleSaveProfile = async () => {
     setIsSaving(true);
     try {
@@ -983,9 +997,19 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                         <td className="p-3 uppercase font-mono text-purple-300">{p.paymentMethod}</td>
                         <td className="p-3 font-bold text-emerald-400">${p.amount} {p.currency}</td>
                         <td className="p-3">
-                          <span className="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold">
-                            {p.status}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded font-bold text-[11px] ${p.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}`}>
+                              {p.status}
+                            </span>
+                            {p.status !== 'completed' && (
+                              <button
+                                onClick={() => handleApprovePurchase(p.token || p.id)}
+                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold shadow-md transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                              >
+                                <CheckCircle className="w-3 h-3" /> Aprobar Manual
+                              </button>
+                            )}
+                          </div>
                         </td>
                         <td className="p-3 font-mono text-purple-300">{p.downloadCount} descargas</td>
                       </tr>

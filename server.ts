@@ -978,6 +978,55 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
 });
 
 /**
+ * Manual Purchase Approval Endpoint
+ * POST /api/purchases/approve-manual
+ */
+app.post("/api/purchases/approve-manual", async (req, res) => {
+  try {
+    const { token, purchaseId } = req.body;
+    const targetKey = token || purchaseId;
+
+    if (!targetKey) {
+      return res.status(400).json({ error: "Se requiere un ID o Token de compra." });
+    }
+
+    const record = purchases.find((p) => p.token === targetKey || p.id === targetKey || p.paymentId === targetKey);
+
+    if (record) {
+      record.status = "completed";
+      const media = mediaItems.find((m) => m.id === record.mediaId);
+      if (media) media.purchasesCount += 1;
+      await savePurchase(record);
+      return res.json({ success: true, status: "completed", purchase: record });
+    }
+
+    // Search and update in Supabase
+    try {
+      const { data: dbRecord } = await supabase
+        .from("purchases")
+        .select("*")
+        .or(`token.eq.${targetKey},id.eq.${targetKey},payment_id.eq.${targetKey}`)
+        .single();
+
+      if (dbRecord) {
+        const mapped = fromSupabasePurchase(dbRecord);
+        mapped.status = "completed";
+        const media = mediaItems.find((m) => m.id === mapped.mediaId);
+        if (media) media.purchasesCount += 1;
+        await savePurchase(mapped);
+        return res.json({ success: true, status: "completed", purchase: mapped });
+      }
+    } catch (dbErr) {
+      console.warn("[Manual Approve DB Warning]", dbErr);
+    }
+
+    res.status(404).json({ error: "Compra no encontrada en los registros." });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Error al aprobar la compra manualmente." });
+  }
+});
+
+/**
  * GET /api/purchases/unlocked-items
  * Query Supabase & memory for completed purchases by visitor IP or passed tokens
  */
