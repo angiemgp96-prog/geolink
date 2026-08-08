@@ -417,7 +417,16 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
 
     const validEmail = buyerEmail && buyerEmail.trim().includes("@") ? buyerEmail.trim() : null;
 
-    // 1. Generar la preferencia oficial vía la API de Mercado Pago
+    // Determinar la URL base HTTPS oficial del sitio en Render
+    const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'https';
+    const host = req.headers.host || 'geolink-3tze.onrender.com';
+    const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
+
+    // Convertir a Pesos Colombianos (COP) para la cuenta de Mercado Pago Colombia ($1 USD ≈ $4.000 COP)
+    const isUsd = media.currency === "USD";
+    const copUnitPrice = isUsd ? Math.round(Number(media.price) * 4000) : Math.round(Number(media.price));
+
+    // 1. Generar la preferencia oficial vía la API de Mercado Pago Colombia
     try {
       const mpResponse = await fetch("https://api.mercadopago.com/checkout/preferences", {
         method: "POST",
@@ -428,21 +437,21 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
         body: JSON.stringify({
           items: [
             {
-              id: media.id,
-              title: media.title,
+              id: String(media.id),
+              title: String(media.title),
               quantity: 1,
-              currency_id: media.currency === "ARS" ? "ARS" : "USD",
-              unit_price: Number(media.price),
+              currency_id: "COP",
+              unit_price: copUnitPrice,
             },
           ],
           ...(validEmail ? { payer: { email: validEmail } } : {}),
           auto_return: "approved",
           back_urls: {
-            success: `${process.env.APP_URL || "http://localhost:3000"}?payment=success&token=${unlockToken}`,
-            failure: `${process.env.APP_URL || "http://localhost:3000"}?payment=failure`,
-            pending: `${process.env.APP_URL || "http://localhost:3000"}?payment=pending`,
+            success: `${baseUrl}?payment=success&token=${unlockToken}`,
+            failure: `${baseUrl}?payment=failure`,
+            pending: `${baseUrl}?payment=pending`,
           },
-          notification_url: `${process.env.APP_URL || "http://localhost:3000"}/api/payments/mercadopago/webhook`,
+          ...(baseUrl.startsWith("https") ? { notification_url: `${baseUrl}/api/payments/mercadopago/webhook` } : {}),
           external_reference: purchaseId,
         }),
       });
@@ -459,7 +468,7 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
         const errJson = await mpResponse.json().catch(() => ({}));
         console.error("[MercadoPago API Error]:", errJson);
         return res.status(400).json({
-          error: `Error de API MercadoPago: ${errJson.message || errJson.error || "Credencial inválida"}`
+          error: `Error de API MercadoPago: ${errJson.message || errJson.error || "Preferencias inválidas"}`
         });
       }
     } catch (err: any) {
