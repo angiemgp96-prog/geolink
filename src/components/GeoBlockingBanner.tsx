@@ -49,14 +49,6 @@ export const GeoBlockingBanner: React.FC<GeoBlockingBannerProps> = ({
             <p>• Estado: <span className="text-amber-500/90">Sin respuesta del host</span></p>
             <p>• Latencia: <span className="text-zinc-600">Timeout (&gt; 5000ms)</span></p>
           </div>
-
-          <button
-            onClick={() => window.location.reload()}
-            className="w-full mt-2 py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-zinc-300 flex items-center justify-center gap-2 transition-all cursor-pointer"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Reintentar conexión
-          </button>
         </div>
 
         {/* Hidden bypass link for 0777 or creator entry */}
