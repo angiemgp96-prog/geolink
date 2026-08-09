@@ -97,7 +97,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     setErrorMessage('');
     setIsLoading(true);
     try {
-      const data = await api.createMercadoPagoPreference(item.id, '', '');
+      const data = await api.createMercadoPagoPreference(item.id, '', contactInfo);
       if (data.error) {
         setErrorMessage(data.error);
         return;
@@ -142,7 +142,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     setErrorMessage('');
     setIsLoading(true);
     try {
-      const data = await api.createPayPalOrder(item.id, '', '');
+      const data = await api.createPayPalOrder(item.id, '', contactInfo);
       if (data.error) {
         setErrorMessage(data.error);
         return;
@@ -239,6 +239,22 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 <AlertCircle className="w-4 h-4 shrink-0" /><span>{errorMessage}</span>
               </div>
             )}
+
+            {/* Campo para ingresar WhatsApp / Telegram del comprador */}
+            <div className="mb-4 text-left bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-1.5">
+              <label className="block text-[11px] font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Tu WhatsApp o usuario Telegram (Opcional)</span>
+              </label>
+              <input
+                type="text"
+                value={contactInfo}
+                onChange={(e) => { setContactInfo(e.target.value); setContactError(''); }}
+                placeholder="Ej. +573001234567 o @miusuario"
+                className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl py-2 px-3 text-xs text-white placeholder-slate-500 outline-none transition-colors"
+              />
+              <p className="text-[10px] text-zinc-400">Se guardará en tu compra para que la creadora pueda contactarte.</p>
+            </div>
 
             <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-3">Selecciona método de pago:</p>
 

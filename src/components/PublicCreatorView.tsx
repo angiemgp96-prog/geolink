@@ -18,6 +18,14 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   onOpenPurchaseModal,
 }) => {
   const [filterType, setFilterType] = useState<'all' | 'video' | 'photo' | 'bundle'>('all');
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const filteredItems = mediaItems.filter((item) => {
     if (filterType === 'all') return true;
@@ -25,16 +33,50 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   });
 
   // Helper icon renderer
-  const renderLinkIcon = (iconName: string) => {
-    switch (iconName.toLowerCase()) {
-      case 'instagram': return <Instagram className="w-5 h-5 text-pink-400" />;
-      case 'youtube': return <Youtube className="w-5 h-5 text-red-500" />;
-      case 'video': case 'tiktok': return <Video className="w-5 h-5 text-cyan-400" />;
-      case 'dumbbell': return <Dumbbell className="w-5 h-5 text-amber-400" />;
-      case 'messagecircle': case 'telegram': return <MessageCircle className="w-5 h-5 text-sky-400" />;
-      default: return <ExternalLink className="w-5 h-5 text-purple-400" />;
+  const renderLinkIcon = (iconName: string, linkTitle: string = '') => {
+    const combined = (iconName + ' ' + linkTitle).toLowerCase();
+    if (combined.includes('onlyfans') || combined.includes('of')) {
+      return <Sparkles className="w-5 h-5 text-sky-400 fill-sky-400/20 animate-pulse" />;
     }
+    if (combined.includes('instagram')) {
+      return <Instagram className="w-5 h-5 text-pink-400" />;
+    }
+    if (combined.includes('youtube')) {
+      return <Youtube className="w-5 h-5 text-red-500" />;
+    }
+    if (combined.includes('video') || combined.includes('tiktok')) {
+      return <Video className="w-5 h-5 text-cyan-400" />;
+    }
+    if (combined.includes('dumbbell') || combined.includes('fit')) {
+      return <Dumbbell className="w-5 h-5 text-amber-400" />;
+    }
+    if (combined.includes('messagecircle') || combined.includes('telegram')) {
+      return <MessageCircle className="w-5 h-5 text-sky-400" />;
+    }
+    return <ExternalLink className="w-5 h-5 text-purple-400" />;
   };
+
+  if (isPageLoading) {
+    return (
+      <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center p-6 text-center space-y-6">
+        <div className="relative">
+          <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 animate-spin flex items-center justify-center">
+            <div className="w-full h-full bg-[#030712] rounded-full" />
+          </div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Sparkles className="w-8 h-8 text-pink-400 animate-pulse" />
+          </div>
+        </div>
+        <div className="space-y-2 max-w-sm">
+          <h2 className="text-xl font-bold text-white tracking-wide">Cargando perfil exclusivo...</h2>
+          <p className="text-xs text-zinc-400">Verificando enlaces oficiales y catálogo de @{creator.handle}</p>
+        </div>
+        <div className="w-48 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 animate-pulse w-full" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen text-zinc-100 pb-20 selection:bg-indigo-500 selection:text-white">
@@ -125,7 +167,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-zinc-900/80 border border-white/10 flex items-center justify-center group-hover:scale-105 transition-transform">
-                      {renderLinkIcon(link.icon)}
+                      {renderLinkIcon(link.icon, link.title)}
                     </div>
                     <span className="font-bold text-sm text-white group-hover:text-indigo-300 transition-colors">
                       {link.title}

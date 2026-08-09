@@ -16,6 +16,7 @@ export const INITIAL_CREATORS: CreatorProfile[] = [
     whatsappNumber: '+5491155443322',
     createdAt: new Date().toISOString(),
     links: [
+      { id: 'l0', title: 'OnlyFans Oficial 🔥 (@angielina69)', url: 'https://onlyfans.com/angielina69', icon: 'OnlyFans', active: true, clicks: 4920 },
       { id: 'l1', title: 'Instagram Oficial 📸 (@angiemgp69)', url: 'https://instagram.com/angiemgp69', icon: 'Instagram', active: true, clicks: 3410 },
       { id: 'l2', title: 'Link.me Oficial 🔗', url: 'https://link.me/angelina69', icon: 'Globe', active: true, clicks: 1850 },
       { id: 'l3', title: 'Telegram VIP Gratis 💬', url: 'https://t.me/example_channel', icon: 'MessageCircle', active: true, clicks: 1240 },
