@@ -7,7 +7,7 @@ export const INITIAL_CREATORS: CreatorProfile[] = [
     name: 'Angelina69 🔥',
     title: 'Model & Digital Creator',
     bio: 'Bienvenido a mi espacio exclusivo 💋 Contenido diario, fotos HD y videos 4K sin censura.',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
+    avatar: 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg',
     banner: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
     themeColor: 'from-pink-600 via-purple-600 to-indigo-700',
     badge: 'TOP 0.1% CREATOR',
