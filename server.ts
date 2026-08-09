@@ -199,6 +199,35 @@ async function syncFromSupabase() {
       console.log(`[Supabase DB] Loaded ${creators.length} creator profiles.`);
     }
 
+    // Load custom links from dedicated creator_links table in Supabase if exists
+    try {
+      const { data: dbLinks, error: lErr } = await supabase.from("creator_links").select("*");
+      if (!lErr && dbLinks && dbLinks.length > 0) {
+        dbLinks.forEach(row => {
+          const creator = creators.find(c => c.handle.toLowerCase() === (row.creator_handle || '').toLowerCase());
+          if (creator) {
+            const existingIdx = creator.links.findIndex(l => l.id === row.id);
+            const mappedLink = {
+              id: row.id,
+              title: row.title,
+              url: row.url,
+              icon: row.icon || 'Link',
+              active: row.active !== false,
+              clicks: row.clicks || 0,
+            };
+            if (existingIdx >= 0) {
+              creator.links[existingIdx] = mappedLink;
+            } else {
+              creator.links.push(mappedLink);
+            }
+          }
+        });
+        console.log(`[Supabase DB] Loaded ${dbLinks.length} custom links from creator_links table.`);
+      }
+    } catch (lErr) {
+      console.warn("[Supabase creator_links Sync Warning]", lErr);
+    }
+
     const { data: dbMedia, error: mErr } = await supabase.from("media_items").select("*");
     if (!mErr && dbMedia && dbMedia.length > 0) {
       mediaItems = dbMedia.map(fromSupabaseMedia);
@@ -378,11 +407,22 @@ app.post("/api/creators", async (req, res) => {
   // Sync to Supabase
   try {
     const supabasePayload = toSupabaseCreator(profileData);
-    const { error } = await supabase.from("creators").upsert(supabasePayload);
-    if (error) {
-      console.error("[Supabase Creator Sync Error]", error);
-    } else {
-      console.log(`[Supabase DB] Creator '${profileData.handle}' updated successfully.`);
+    // Sync links to dedicated creator_links table in Supabase
+    if (Array.isArray(profileData.links) && profileData.links.length > 0) {
+      try {
+        const linksPayload = profileData.links.map(link => ({
+          id: link.id,
+          creator_handle: profileData.handle,
+          title: link.title,
+          url: link.url,
+          icon: link.icon,
+          active: link.active !== false,
+          clicks: link.clicks || 0,
+        }));
+        await supabase.from("creator_links").upsert(linksPayload);
+      } catch (linkErr) {
+        console.warn("[Supabase creator_links Sync Warning]", linkErr);
+      }
     }
   } catch (err) {
     console.error("[Supabase Error]", err);

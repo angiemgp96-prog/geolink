@@ -16,11 +16,11 @@ export const INITIAL_CREATORS: CreatorProfile[] = [
     whatsappNumber: '+5491155443322',
     createdAt: new Date().toISOString(),
     links: [
-      { id: 'l0', title: 'OnlyFans Oficial 🔥 (@angielina69)', url: 'https://onlyfans.com/angielina69', icon: 'OnlyFans', active: true, clicks: 4920 },
+      { id: 'l0', title: 'OnlyFans Oficial 🔥 (@angelinax69)', url: 'https://onlyfans.com/angelinax69', icon: 'OnlyFans', active: true, clicks: 4920 },
       { id: 'l1', title: 'Instagram Oficial 📸 (@angiemgp69)', url: 'https://instagram.com/angiemgp69', icon: 'Instagram', active: true, clicks: 3410 },
       { id: 'l2', title: 'Link.me Oficial 🔗', url: 'https://link.me/angelina69', icon: 'Globe', active: true, clicks: 1850 },
-      { id: 'l3', title: 'Telegram VIP Gratis 💬', url: 'https://t.me/example_channel', icon: 'MessageCircle', active: true, clicks: 1240 },
-      { id: 'l4', title: 'TikTok Oficial 🎵', url: 'https://tiktok.com', icon: 'Video', active: true, clicks: 2150 },
+      { id: 'l3', title: 'Telegram VIP Gratis 💬', url: 'https://t.me/example_channel', icon: 'Telegram', active: true, clicks: 1240 },
+      { id: 'l4', title: 'TikTok Oficial 🎵', url: 'https://tiktok.com', icon: 'TikTok', active: true, clicks: 2150 },
     ],
     paymentSettings: {
       mercadoPagoAccessToken: 'APP_USR-7257482411293311-080712-ada9bb187061cb3d57c277c19d3916bc-3553496952',

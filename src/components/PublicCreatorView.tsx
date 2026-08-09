@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Lock, CheckCircle2, Instagram, Youtube, Video, Dumbbell, MessageCircle, ExternalLink, Sparkles, Image as ImageIcon, Film, Layers, ShoppingBag, Send, Download } from 'lucide-react';
+import { Play, Lock, CheckCircle2, Instagram, Youtube, Video, Dumbbell, MessageCircle, ExternalLink, Sparkles, Image as ImageIcon, Film, Layers, ShoppingBag, Send, Download, Globe, Flame, Link as LinkIcon } from 'lucide-react';
 import { CreatorProfile, MediaItem, CustomLink } from '../types';
 
 interface PublicCreatorViewProps {
@@ -23,7 +23,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setIsPageLoading(false);
-    }, 3000);
+    }, 2000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -32,11 +32,11 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     return item.type === filterType;
   });
 
-  // Helper icon renderer
+  // Helper icon renderer con íconos distintivos por plataforma
   const renderLinkIcon = (iconName: string, linkTitle: string = '') => {
     const combined = (iconName + ' ' + linkTitle).toLowerCase();
     if (combined.includes('onlyfans') || combined.includes('of')) {
-      return <Sparkles className="w-5 h-5 text-sky-400 fill-sky-400/20 animate-pulse" />;
+      return <Flame className="w-5 h-5 text-sky-400 fill-sky-400/20 animate-pulse" />;
     }
     if (combined.includes('instagram')) {
       return <Instagram className="w-5 h-5 text-pink-400" />;
@@ -44,16 +44,19 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     if (combined.includes('youtube')) {
       return <Youtube className="w-5 h-5 text-red-500" />;
     }
-    if (combined.includes('video') || combined.includes('tiktok')) {
+    if (combined.includes('tiktok') || combined.includes('video')) {
       return <Video className="w-5 h-5 text-cyan-400" />;
+    }
+    if (combined.includes('telegram') || combined.includes('messagecircle')) {
+      return <Send className="w-5 h-5 text-sky-400" />;
+    }
+    if (combined.includes('link.me') || combined.includes('globe') || combined.includes('web')) {
+      return <Globe className="w-5 h-5 text-purple-400" />;
     }
     if (combined.includes('dumbbell') || combined.includes('fit')) {
       return <Dumbbell className="w-5 h-5 text-amber-400" />;
     }
-    if (combined.includes('messagecircle') || combined.includes('telegram')) {
-      return <MessageCircle className="w-5 h-5 text-sky-400" />;
-    }
-    return <ExternalLink className="w-5 h-5 text-purple-400" />;
+    return <LinkIcon className="w-5 h-5 text-indigo-400" />;
   };
 
   if (isPageLoading) {

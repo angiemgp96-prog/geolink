@@ -72,13 +72,13 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     return () => clearInterval(id);
   }, [screen, paypalOrderId, paypalUnlockToken]);
 
-  // ── Validar contacto para Nequi / fallback ─────────────────────────
+  // ── Validar contacto obligatorio ─────────────────────────────────
   const validateContact = () => {
-    if (!contactInfo.trim()) {
-      setContactError('⚠️ Ingresa tu número de WhatsApp o usuario de Telegram.');
+    if (!contactInfo || !contactInfo.trim()) {
+      setErrorMessage('⚠️ Debes ingresar tu WhatsApp o usuario de Telegram antes de continuar con la compra.');
       return false;
     }
-    setContactError('');
+    setErrorMessage('');
     return true;
   };
 
@@ -94,6 +94,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   // MERCADO PAGO — Redirección Directa a Checkout Oficial API
   // ════════════════════════════════════════════════════════════════
   const handleMercadoPagoDirect = async () => {
+    if (!validateContact()) return;
     setErrorMessage('');
     setIsLoading(true);
     try {
@@ -139,6 +140,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   // PAYPAL — Redirección Directa a Checkout Oficial PayPal Live API
   // ════════════════════════════════════════════════════════════════
   const handlePayPalDirect = async () => {
+    if (!validateContact()) return;
     setErrorMessage('');
     setIsLoading(true);
     try {
@@ -186,9 +188,15 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     const amountStr = `${Math.round(item.price)}USD`;
     const paypalMeUrl = `https://paypal.me/angieG473/${amountStr}`;
     const msg = encodeURIComponent(
-      `¡Hola! Quiero comprar el contenido: "${item.title}" ($${item.price.toFixed(2)} ${item.currency}).\n\nRealizaré el pago por este enlace directo: ${paypalMeUrl}\n\nAquí te adjunto mi comprobante para la entrega 📎`
+      `¡Hola! Quiero comprar el contenido: "${item.title}" ($${item.price.toFixed(2)} ${item.currency}).\n\nMi contacto: ${contactInfo}\nRealizaré el pago por este enlace directo: ${paypalMeUrl}\n\nAquí te adjunto mi comprobante para la entrega 📎`
     );
     return `https://t.me/${TELEGRAM_USER}?text=${msg}`;
+  };
+
+  const handlePayPalTelegramClick = (e: React.MouseEvent) => {
+    if (!validateContact()) {
+      e.preventDefault();
+    }
   };
 
   // ════════════════════════════════════════════════════════════════
@@ -301,6 +309,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
               <a
                 id="pay-paypal-telegram-button"
                 href={buildPayPalTelegramLink()}
+                onClick={handlePayPalTelegramClick}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-between transition-all cursor-pointer group"
