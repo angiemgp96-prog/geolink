@@ -24,7 +24,28 @@ export const api = {
 
   async checkAccess(handle: string, countryCode?: string) {
     try {
-      const url = `/api/creators/${encodeURIComponent(handle)}/check-access${countryCode ? `?country=${countryCode}` : ''}`;
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      let deviceHash = '';
+      try {
+        deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
+        if (!deviceHash && typeof window !== 'undefined') {
+          const rawFp = [navigator.userAgent, screen.width, screen.height, screen.colorDepth, navigator.language, tz].join('|');
+          let hash = 0;
+          for (let i = 0; i < rawFp.length; i++) {
+            hash = (hash << 5) - hash + rawFp.charCodeAt(i);
+            hash |= 0;
+          }
+          deviceHash = `dev_${Math.abs(hash).toString(36)}`;
+          localStorage.setItem('geolink_device_fingerprint', deviceHash);
+        }
+      } catch {}
+
+      const params = new URLSearchParams();
+      if (countryCode) params.set('country', countryCode);
+      if (tz) params.set('tz', tz);
+      if (deviceHash) params.set('dh', deviceHash);
+
+      const url = `/api/creators/${encodeURIComponent(handle)}/check-access?${params.toString()}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('Access check error');
       return await res.json();
@@ -199,11 +220,38 @@ export const api = {
     return await res.json();
   },
 
-  async blockIp(handle: string, ipAddress: string) {
+  async blockIp(handle: string, ipAddress: string, deviceHash?: string) {
+    if (isSupabaseConfigured()) {
+      try {
+        if (ipAddress) {
+          const cleanIp = ipAddress.trim();
+          await supabase.from('blocked_ips').upsert({
+            id: `block_${cleanIp.replace(/[^a-z0-9]/gi, '_')}`,
+            ip_address: cleanIp,
+            creator_handle: handle || 'angelina69',
+            reason: 'Bloqueo manual desde Historial de Ventas',
+            created_at: new Date().toISOString()
+          });
+        }
+        if (deviceHash) {
+          const cleanHash = deviceHash.trim();
+          await supabase.from('blocked_devices').upsert({
+            id: `dev_${cleanHash.replace(/[^a-z0-9]/gi, '_')}`,
+            device_hash: cleanHash,
+            creator_handle: handle || 'angelina69',
+            reason: 'Bloqueo por huella digital de dispositivo / VPN',
+            created_at: new Date().toISOString()
+          });
+        }
+      } catch (err) {
+        console.warn('Supabase direct block error:', err);
+      }
+    }
+
     const res = await fetch('/api/creators/block-ip', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ handle, ipAddress })
+      body: JSON.stringify({ handle, ipAddress, deviceHash })
     });
     return await res.json();
   },
