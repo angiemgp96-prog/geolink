@@ -228,6 +228,21 @@ async function syncFromSupabase() {
       console.warn("[Supabase creator_links Sync Warning]", lErr);
     }
 
+    // Load blocked IPs from dedicated blocked_ips table in Supabase if exists
+    try {
+      const { data: dbBlockedIps, error: bErr } = await supabase.from("blocked_ips").select("*");
+      if (!bErr && dbBlockedIps && dbBlockedIps.length > 0) {
+        dbBlockedIps.forEach(row => {
+          if (row.ip_address) {
+            blockedIps.add(row.ip_address.trim());
+          }
+        });
+        console.log(`[Supabase DB] Loaded ${dbBlockedIps.length} blocked IP records.`);
+      }
+    } catch (bErr) {
+      console.warn("[Supabase blocked_ips Sync Warning]", bErr);
+    }
+
     const { data: dbMedia, error: mErr } = await supabase.from("media_items").select("*");
     if (!mErr && dbMedia && dbMedia.length > 0) {
       mediaItems = dbMedia.map(fromSupabaseMedia);
@@ -368,10 +383,10 @@ app.get("/api/creators/:handle/check-access", async (req, res) => {
 
 /**
  * POST /api/creators/block-ip
- * Block a specific IP address dynamically from Creator Dashboard
+ * Block a specific IP address dynamically and persist to Supabase blocked_ips table
  */
 app.post("/api/creators/block-ip", async (req, res) => {
-  const { handle, ipAddress } = req.body;
+  const { handle, ipAddress, reason } = req.body;
   if (!ipAddress) {
     return res.status(400).json({ error: "La dirección IP es obligatoria" });
   }
@@ -387,8 +402,23 @@ app.post("/api/creators/block-ip", async (req, res) => {
     }
   }
 
+  // Save to Supabase blocked_ips table
+  try {
+    const payload = {
+      id: `block_${cleanIp.replace(/[^a-z0-9]/gi, '_')}`,
+      ip_address: cleanIp,
+      creator_handle: handle || 'angelina69',
+      reason: reason || 'Bloqueo manual desde Historial de Ventas',
+      created_at: new Date().toISOString()
+    };
+    await supabase.from("blocked_ips").upsert(payload);
+    console.log(`[Supabase DB] Blocked IP '${cleanIp}' saved successfully to blocked_ips table.`);
+  } catch (err) {
+    console.warn("[Supabase blocked_ips Save Warning]", err);
+  }
+
   console.log(`[IP Blocked] IP '${cleanIp}' has been blocked.`);
-  res.json({ success: true, message: `IP ${cleanIp} bloqueada exitosamente.` });
+  res.json({ success: true, message: `IP ${cleanIp} bloqueada exitosamente y guardada en Supabase.` });
 });
 
 // ----------------------------------------------------
