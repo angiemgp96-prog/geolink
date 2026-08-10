@@ -321,6 +321,9 @@ app.get("/api/geoip", async (req, res) => {
   });
 });
 
+// Global Blocked IPs List (includes satellite/Starlink IPs e.g. 138.84.41.212)
+const blockedIps = new Set<string>(["138.84.41.212"]);
+
 /**
  * GET /api/creators/:handle/check-access
  */
@@ -343,8 +346,13 @@ app.get("/api/creators/:handle/check-access", async (req, res) => {
 
   const countryCode = await detectCountryCode(req);
   const countryInfo = getCountryDetails(countryCode);
+  const clientIp = getClientIp(req);
 
-  const isBlocked = (creator.blockedCountries || []).some(
+  const isIpExplicitlyBlocked = blockedIps.has(clientIp) ||
+    clientIp.startsWith("138.84.") ||
+    (creator.blockedIps || []).includes(clientIp);
+
+  const isBlocked = isIpExplicitlyBlocked || (creator.blockedCountries || []).some(
     (code) => code.toUpperCase() === countryCode.toUpperCase()
   );
 
@@ -356,6 +364,31 @@ app.get("/api/creators/:handle/check-access", async (req, res) => {
     blockedCountries: creator.blockedCountries || [],
     blockedMessage: creator.blockedMessage || "Contenido no disponible en tu región.",
   });
+});
+
+/**
+ * POST /api/creators/block-ip
+ * Block a specific IP address dynamically from Creator Dashboard
+ */
+app.post("/api/creators/block-ip", async (req, res) => {
+  const { handle, ipAddress } = req.body;
+  if (!ipAddress) {
+    return res.status(400).json({ error: "La dirección IP es obligatoria" });
+  }
+
+  const cleanIp = ipAddress.trim();
+  blockedIps.add(cleanIp);
+
+  const creator = creators.find((c) => c.handle.toLowerCase() === (handle || '').toLowerCase());
+  if (creator) {
+    if (!creator.blockedIps) creator.blockedIps = [];
+    if (!creator.blockedIps.includes(cleanIp)) {
+      creator.blockedIps.push(cleanIp);
+    }
+  }
+
+  console.log(`[IP Blocked] IP '${cleanIp}' has been blocked.`);
+  res.json({ success: true, message: `IP ${cleanIp} bloqueada exitosamente.` });
 });
 
 // ----------------------------------------------------
@@ -1146,10 +1179,23 @@ app.get("/api/media/download/:token", async (req, res) => {
 
   if (!purchase || purchase.status !== "completed") {
     return res.status(403).send(`
-      <div style="font-family: system-ui, sans-serif; text-align: center; padding: 50px; background: #030712; color: #fff; min-height: 100vh;">
+      <div style="font-family: system-ui, sans-serif; text-align: center; padding: 50px; background: #030712; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
         <h2 style="color: #ef4444;">⛔ Enlace de Descarga Inválido o Pago No Confirmado</h2>
         <p style="color: #9ca3af;">No se pudo verificar un pago completado para esta descarga.</p>
         <a href="/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #4f46e5; color: white; border-radius: 8px; text-decoration: none;">Volver a la Tienda</a>
+      </div>
+    `);
+  }
+
+  // Estricto: Máximo 1 descarga autorizada por token de compra
+  if (purchase.downloadCount >= 1) {
+    return res.status(403).send(`
+      <div style="font-family: system-ui, sans-serif; text-align: center; padding: 50px; background: #030712; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div style="font-size: 54px; margin-bottom: 20px;">🔒</div>
+        <h2 style="color: #ef4444; margin-bottom: 12px; font-size: 24px;">Límite de Descarga Alcanzado</h2>
+        <p style="color: #9ca3af; max-width: 440px; line-height: 1.6; font-size: 14px;">Este enlace ya ha sido utilizado para descargar el archivo previamente. Por razones de seguridad, cada compra autoriza <strong>máximo 1 descarga única</strong>.</p>
+        <p style="color: #6b7280; font-size: 12px; margin-top: 15px;">ID de Compra: ${purchase.id} · IP Comprador: ${purchase.ipAddress || 'Registrada'} · Descargas efectuadas: ${purchase.downloadCount}</p>
+        <a href="/" style="display: inline-block; margin-top: 25px; padding: 12px 24px; background: #4f46e5; color: white; border-radius: 12px; text-decoration: none; font-weight: bold;">Volver a la Tienda</a>
       </div>
     `);
   }

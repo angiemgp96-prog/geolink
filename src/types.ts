@@ -36,6 +36,7 @@ export interface CreatorProfile {
   whatsappNumber: string;
   links: CustomLink[];
   paymentSettings: PaymentSettings;
+  blockedIps?: string[];
   createdAt: string;
 }
 

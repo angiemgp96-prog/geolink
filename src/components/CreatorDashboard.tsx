@@ -73,6 +73,23 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
     }
   };
 
+  const handleBlockIp = async (ipAddress: string) => {
+    if (!ipAddress || ipAddress === 'Detected') {
+      alert('Dirección IP no válida para bloquear');
+      return;
+    }
+    if (confirm(`¿Estás seguro de que deseas bloquear la IP ${ipAddress}? Este comprador ya no podrá acceder a tu sitio web.`)) {
+      try {
+        const res = await api.blockIp(creator.handle, ipAddress);
+        alert(res.message || `IP ${ipAddress} bloqueada exitosamente.`);
+        await loadPurchases();
+        if (onRefreshData) onRefreshData();
+      } catch {
+        alert('Error al bloquear la IP');
+      }
+    }
+  };
+
   const handleSaveProfile = async () => {
     setIsSaving(true);
     try {
@@ -991,8 +1008,22 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                         <td className="p-3 text-slate-400">{new Date(p.createdAt).toLocaleDateString()}</td>
                         <td className="p-3 font-semibold text-white">{p.mediaTitle}</td>
                         <td className="p-3">
-                          <div>{p.buyerPhone}</div>
+                          <div className="font-semibold text-white">{p.buyerPhone || 'Sin teléfono'}</div>
                           <div className="text-slate-400 text-[10px]">{p.buyerEmail}</div>
+                          {p.ipAddress && (
+                            <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/80 border border-cyan-700/50 px-1.5 py-0.5 rounded">
+                                🌐 {p.ipAddress}
+                              </span>
+                              <button
+                                onClick={() => handleBlockIp(p.ipAddress)}
+                                title={`Bloquear IP ${p.ipAddress} permanentemente`}
+                                className="px-2 py-0.5 bg-red-950 hover:bg-red-800 text-red-200 border border-red-500/50 rounded text-[10px] font-bold transition-all cursor-pointer shadow flex items-center gap-1"
+                              >
+                                🚫 Bloquear IP
+                              </button>
+                            </div>
+                          )}
                         </td>
                         <td className="p-3 uppercase font-mono text-purple-300">{p.paymentMethod}</td>
                         <td className="p-3 font-bold text-emerald-400">${p.amount} {p.currency}</td>
@@ -1011,7 +1042,17 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                             )}
                           </div>
                         </td>
-                        <td className="p-3 font-mono text-purple-300">{p.downloadCount} descargas</td>
+                        <td className="p-3 font-mono">
+                          {p.downloadCount >= 1 ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-950/80 border border-red-500/50 text-red-300 rounded text-[11px] font-bold">
+                              {p.downloadCount} / 1 descarga (Límite)
+                            </span>
+                          ) : (
+                            <span className="text-purple-300 text-xs">
+                              {p.downloadCount} descargas
+                            </span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

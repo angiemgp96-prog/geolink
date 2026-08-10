@@ -199,6 +199,15 @@ export const api = {
     return await res.json();
   },
 
+  async blockIp(handle: string, ipAddress: string) {
+    const res = await fetch('/api/creators/block-ip', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handle, ipAddress })
+    });
+    return await res.json();
+  },
+
   async getPurchases(creatorHandle?: string): Promise<PurchaseRecord[]> {
     const url = creatorHandle ? `/api/purchases?creator=${encodeURIComponent(creatorHandle)}` : '/api/purchases';
     const res = await fetch(url);
