@@ -243,6 +243,21 @@ async function syncFromSupabase() {
       console.warn("[Supabase blocked_ips Sync Warning]", bErr);
     }
 
+    // Load blocked devices from dedicated blocked_devices table in Supabase if exists
+    try {
+      const { data: dbBlockedDevices, error: dErr } = await supabase.from("blocked_devices").select("*");
+      if (!dErr && dbBlockedDevices && dbBlockedDevices.length > 0) {
+        dbBlockedDevices.forEach(row => {
+          if (row.device_hash) {
+            blockedDevices.add(row.device_hash.trim());
+          }
+        });
+        console.log(`[Supabase DB] Loaded ${dbBlockedDevices.length} blocked device fingerprint records.`);
+      }
+    } catch (dErr) {
+      console.warn("[Supabase blocked_devices Sync Warning]", dErr);
+    }
+
     const { data: dbMedia, error: mErr } = await supabase.from("media_items").select("*");
     if (!mErr && dbMedia && dbMedia.length > 0) {
       mediaItems = dbMedia.map(fromSupabaseMedia);
@@ -336,8 +351,9 @@ app.get("/api/geoip", async (req, res) => {
   });
 });
 
-// Global Blocked IPs List (includes satellite/Starlink IPs e.g. 138.84.41.212)
+// Global Blocked Lists
 const blockedIps = new Set<string>(["138.84.41.212"]);
+const blockedDevices = new Set<string>();
 
 /**
  * GET /api/creators/:handle/check-access
@@ -362,12 +378,25 @@ app.get("/api/creators/:handle/check-access", async (req, res) => {
   const countryCode = await detectCountryCode(req);
   const countryInfo = getCountryDetails(countryCode);
   const clientIp = getClientIp(req);
+  const clientTz = (req.query.tz as string) || '';
+  const deviceHash = (req.query.dh as string) || '';
 
+  // 1. Device Fingerprint Hash Block Check
+  const isDeviceBlocked = Boolean(deviceHash && blockedDevices.has(deviceHash.trim()));
+
+  // 2. Anti-VPN Timezone Mismatch Heuristic:
+  // If Colombia is blocked by creator, and visitor's device timezone is Colombia (Bogota / GMT-5),
+  // but IP pretends to be from US/ES/FR etc. -> VPN BYPASS DETECTED!
+  const isColombiaBlocked = (creator.blockedCountries || []).some(c => c.toUpperCase() === 'CO');
+  const isColombianTimezone = clientTz.includes('Bogota') || clientTz.includes('GMT-5') || clientTz.includes('America/Guayaquil') || clientTz.includes('America/Lima');
+  const isVpnBypass = isColombiaBlocked && isColombianTimezone && (countryCode !== 'CO');
+
+  // 3. Explicit IP Block Check
   const isIpExplicitlyBlocked = blockedIps.has(clientIp) ||
     clientIp.startsWith("138.84.") ||
     (creator.blockedIps || []).includes(clientIp);
 
-  const isBlocked = isIpExplicitlyBlocked || (creator.blockedCountries || []).some(
+  const isBlocked = isDeviceBlocked || isVpnBypass || isIpExplicitlyBlocked || (creator.blockedCountries || []).some(
     (code) => code.toUpperCase() === countryCode.toUpperCase()
   );
 
@@ -378,47 +407,58 @@ app.get("/api/creators/:handle/check-access", async (req, res) => {
     visitorCountryFlag: countryInfo.flag,
     blockedCountries: creator.blockedCountries || [],
     blockedMessage: creator.blockedMessage || "Contenido no disponible en tu región.",
+    vpnDetected: isVpnBypass,
   });
 });
 
 /**
  * POST /api/creators/block-ip
- * Block a specific IP address dynamically and persist to Supabase blocked_ips table
+ * Block a specific IP address dynamically and persist to Supabase blocked_ips and blocked_devices tables
  */
 app.post("/api/creators/block-ip", async (req, res) => {
-  const { handle, ipAddress, reason } = req.body;
-  if (!ipAddress) {
-    return res.status(400).json({ error: "La dirección IP es obligatoria" });
+  const { handle, ipAddress, deviceHash, reason } = req.body;
+  if (!ipAddress && !deviceHash) {
+    return res.status(400).json({ error: "La dirección IP o Huella de dispositivo es obligatoria" });
   }
 
-  const cleanIp = ipAddress.trim();
-  blockedIps.add(cleanIp);
+  if (ipAddress) {
+    const cleanIp = ipAddress.trim();
+    blockedIps.add(cleanIp);
 
-  const creator = creators.find((c) => c.handle.toLowerCase() === (handle || '').toLowerCase());
-  if (creator) {
-    if (!creator.blockedIps) creator.blockedIps = [];
-    if (!creator.blockedIps.includes(cleanIp)) {
-      creator.blockedIps.push(cleanIp);
+    try {
+      const payload = {
+        id: `block_${cleanIp.replace(/[^a-z0-9]/gi, '_')}`,
+        ip_address: cleanIp,
+        creator_handle: handle || 'angelina69',
+        reason: reason || 'Bloqueo manual desde Historial de Ventas',
+        created_at: new Date().toISOString()
+      };
+      await supabase.from("blocked_ips").upsert(payload);
+    } catch (err) {
+      console.warn("[Supabase blocked_ips Save Warning]", err);
     }
   }
 
-  // Save to Supabase blocked_ips table
-  try {
-    const payload = {
-      id: `block_${cleanIp.replace(/[^a-z0-9]/gi, '_')}`,
-      ip_address: cleanIp,
-      creator_handle: handle || 'angelina69',
-      reason: reason || 'Bloqueo manual desde Historial de Ventas',
-      created_at: new Date().toISOString()
-    };
-    await supabase.from("blocked_ips").upsert(payload);
-    console.log(`[Supabase DB] Blocked IP '${cleanIp}' saved successfully to blocked_ips table.`);
-  } catch (err) {
-    console.warn("[Supabase blocked_ips Save Warning]", err);
+  if (deviceHash) {
+    const cleanHash = deviceHash.trim();
+    blockedDevices.add(cleanHash);
+
+    try {
+      const payload = {
+        id: `dev_${cleanHash.replace(/[^a-z0-9]/gi, '_')}`,
+        device_hash: cleanHash,
+        creator_handle: handle || 'angelina69',
+        reason: reason || 'Bloqueo por huella digital de dispositivo / VPN',
+        created_at: new Date().toISOString()
+      };
+      await supabase.from("blocked_devices").upsert(payload);
+    } catch (err) {
+      console.warn("[Supabase blocked_devices Save Warning]", err);
+    }
   }
 
-  console.log(`[IP Blocked] IP '${cleanIp}' has been blocked.`);
-  res.json({ success: true, message: `IP ${cleanIp} bloqueada exitosamente y guardada en Supabase.` });
+  console.log(`[Block Action] IP '${ipAddress || 'none'}' and Device '${deviceHash || 'none'}' have been blocked.`);
+  res.json({ success: true, message: `IP y Dispositivo bloqueados exitosamente y guardados en Supabase.` });
 });
 
 // ----------------------------------------------------
