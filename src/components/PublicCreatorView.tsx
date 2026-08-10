@@ -19,6 +19,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 }) => {
   const [filterType, setFilterType] = useState<'all' | 'video' | 'photo' | 'bundle'>('all');
   const [isPageLoading, setIsPageLoading] = useState(true);
+  const [downloadedMediaIds, setDownloadedMediaIds] = useState<string[]>([]);
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -307,17 +308,30 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
                     {/* Buy / Unlock OR Download Button */}
                     {isUnlocked ? (
-                      <a
-                        id={`download-media-${item.id}`}
-                        href={downloadToken ? `/api/media/download/${downloadToken}` : item.downloadUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        download
-                        className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer border border-emerald-400/40"
-                      >
-                        <Download className="w-4 h-4 animate-bounce" />
-                        <span>Descargar</span>
-                      </a>
+                      downloadedMediaIds.includes(item.id) || Boolean(localStorage.getItem(`geolink_downloaded_${item.id}`)) ? (
+                        <div className="w-full py-3 px-4 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-400 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                          <Lock className="w-4 h-4 text-zinc-500" />
+                          <span>Descargado (Límite 1/1)</span>
+                        </div>
+                      ) : (
+                        <a
+                          id={`download-media-${item.id}`}
+                          href={downloadToken ? `/api/media/download/${downloadToken}` : item.downloadUrl}
+                          onClick={() => {
+                            setDownloadedMediaIds((prev) => [...prev, item.id]);
+                            try {
+                              localStorage.setItem(`geolink_downloaded_${item.id}`, 'true');
+                            } catch {}
+                          }}
+                          target="_blank"
+                          rel="noreferrer"
+                          download
+                          className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer border border-emerald-400/40"
+                        >
+                          <Download className="w-4 h-4 animate-bounce" />
+                          <span>Descargar</span>
+                        </a>
+                      )
                     ) : (
                       <button
                         id={`buy-media-${item.id}`}

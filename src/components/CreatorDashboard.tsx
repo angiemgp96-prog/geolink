@@ -78,14 +78,19 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
       alert('Dirección IP no válida para bloquear');
       return;
     }
-    if (confirm(`¿Estás seguro de que deseas bloquear la IP ${ipAddress}? Este comprador ya no podrá acceder a tu sitio web.`)) {
+    let deviceHash = '';
+    try {
+      deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
+    } catch {}
+
+    if (confirm(`¿Estás seguro de que deseas bloquear la IP ${ipAddress}? Este comprador y su dispositivo quedarán bloqueados en Supabase.`)) {
       try {
-        const res = await api.blockIp(creator.handle, ipAddress);
-        alert(res.message || `IP ${ipAddress} bloqueada exitosamente.`);
+        const res = await api.blockIp(creator.handle, ipAddress, deviceHash);
+        alert(res.message || `IP ${ipAddress} y Dispositivo bloqueados exitosamente.`);
         await loadPurchases();
         if (onRefreshData) onRefreshData();
       } catch {
-        alert('Error al bloquear la IP');
+        alert('Error al bloquear la IP y dispositivo');
       }
     }
   };
