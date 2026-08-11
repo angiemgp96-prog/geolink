@@ -210,12 +210,12 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
 
   // ─────────────────────────────────────────────────────────────────
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-      <div className="bg-[#0d0f1a] border border-white/10 backdrop-blur-2xl rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl relative my-8 text-zinc-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+      <div className="bg-[#0d0f1a] border border-white/10 backdrop-blur-2xl rounded-3xl w-full max-w-lg shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto text-zinc-100">
 
         {/* Close */}
         <button id="close-purchase-modal" onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-zinc-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+          className="absolute top-3.5 right-3.5 z-20 w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 text-zinc-200 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-lg border border-white/10 backdrop-blur-md">
           <X className="w-5 h-5" />
         </button>
 
@@ -223,14 +223,14 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
             PANTALLA 1: Selección de método
         ═══════════════════════════════════════════════════════*/}
         {screen === 'select' && (
-          <div className="p-6 md:p-7">
-            <div className="flex items-center gap-2 text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1.5">
+          <div className="p-5 sm:p-6 pr-12">
+            <div className="flex items-center gap-2 text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1">
               <Lock className="w-3.5 h-3.5" /><span>Desbloqueo de Contenido Exclusivo</span>
             </div>
-            <h3 className="text-xl font-bold text-white mb-4 line-clamp-2">{item.title}</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-3 line-clamp-2">{item.title}</h3>
 
             {/* Preview blur */}
-            <div className="relative rounded-2xl overflow-hidden mb-5 border border-slate-700/60 bg-slate-900 h-36">
+            <div className="relative rounded-2xl overflow-hidden mb-4 border border-slate-700/60 bg-slate-900 h-28 sm:h-32">
               <img src={item.previewUrl} alt={item.title} className="w-full h-full object-cover blur-sm opacity-50 scale-105" />
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
                 <div className="w-10 h-10 rounded-full bg-indigo-600/30 border border-indigo-400/60 flex items-center justify-center backdrop-blur-md">
