@@ -592,6 +592,7 @@ app.delete("/api/media/:id", async (req, res) => {
  */
 app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
   try {
+    const { mediaId, buyerEmail, buyerPhone } = req.body;
     let media = mediaItems.find((m) => m.id === mediaId);
     if (!media && (mediaId === 'acceso_full_cat_actual' || mediaId?.includes('acceso_full'))) {
       media = INITIAL_MEDIA_ITEMS.find(m => m.id === 'acceso_full_cat_actual') || {
