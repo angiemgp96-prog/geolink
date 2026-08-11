@@ -1258,11 +1258,17 @@ app.get("/api/purchases/unlocked-items", async (req, res) => {
     if (hasFullAccess) {
       const fullAccessPurchase = allMatches.find(p => p.mediaId === 'acceso_full_cat_actual' || p.mediaId?.includes('acceso_full'));
       const fullAccessToken = fullAccessPurchase?.token || 'full_access';
+      const purchaseTime = fullAccessPurchase?.createdAt ? new Date(fullAccessPurchase.createdAt).getTime() : Date.now();
+
       mediaItems.forEach(item => {
-        if (!unlockedMediaIds.includes(item.id)) {
-          unlockedMediaIds.push(item.id);
+        const itemTime = item.createdAt ? new Date(item.createdAt).getTime() : 0;
+        // Solo desbloquear si el producto fue publicado ANTES o AL MOMENTO de la compra
+        if (itemTime <= purchaseTime) {
+          if (!unlockedMediaIds.includes(item.id)) {
+            unlockedMediaIds.push(item.id);
+          }
+          unlockedTokensMap[item.id] = fullAccessToken;
         }
-        unlockedTokensMap[item.id] = fullAccessToken;
       });
     } else {
       allMatches.forEach(p => {
