@@ -185,6 +185,46 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
         </div>
 
+        {/* Botón Acceso Full ($50 USD) — Desbloquear Catálogo Actual */}
+        <div className="bg-gradient-to-r from-amber-950/40 via-indigo-950/40 to-purple-950/40 border border-amber-500/40 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl transition-all hover:border-amber-400/60">
+          <div className="flex items-center gap-3 text-left">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-black text-xl shrink-0 shadow-lg shadow-amber-500/20">
+              👑
+            </div>
+            <div>
+              <h3 className="font-black text-sm text-white flex items-center gap-2">
+                <span>Acceso Full — Catálogo Actual</span>
+                <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">$50 USD</span>
+              </h3>
+              <p className="text-[11px] text-zinc-400 mt-0.5">Desbloquea instantáneamente todas las fotos y videos publicados hasta la fecha.</p>
+            </div>
+          </div>
+
+          <button
+            id="acceso-full-button"
+            onClick={() => onOpenPurchaseModal({
+              id: 'acceso_full_cat_actual',
+              creatorId: creator.id,
+              creatorHandle: creator.handle,
+              title: '👑 ACCESO FULL — Desbloquear Catálogo Actual',
+              description: 'Acceso inmediato a todas las fotos y videos publicados hasta la fecha.',
+              type: 'bundle',
+              price: 50,
+              currency: 'USD',
+              previewUrl: creator.avatar,
+              downloadUrl: creator.avatar,
+              fileSize: 'COMPLETO',
+              duration: 'ILIMITADO',
+              purchasesCount: 920,
+              isFeatured: true,
+              createdAt: new Date().toISOString()
+            })}
+            className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 uppercase tracking-wider"
+          >
+            <span>Desbloquear Todo por $50 USD</span>
+          </button>
+        </div>
+
         {/* Digital Store Section (Fotos & Videos Exclusivos) */}
         <div className="space-y-6">
           

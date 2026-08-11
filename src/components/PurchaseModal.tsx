@@ -264,6 +264,12 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
               <p className="text-[10px] text-zinc-400">Se guardará en tu compra para que la creadora pueda contactarte.</p>
             </div>
 
+            {/* General Security Tag */}
+            <div className="mb-4 text-center bg-emerald-950/40 border border-emerald-500/30 rounded-xl py-2 px-3 flex items-center justify-center gap-1.5 text-xs text-emerald-300 font-bold shadow-sm">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Pago Seguro directamente con las plataformas</span>
+            </div>
+
             <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-3">Selecciona método de pago:</p>
 
             <div className="space-y-3">

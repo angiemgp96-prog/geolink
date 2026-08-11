@@ -1212,11 +1212,25 @@ app.get("/api/purchases/unlocked-items", async (req, res) => {
     [...dbMatches, ...memMatches].forEach(p => map.set(p.id, p));
     const allMatches = Array.from(map.values());
 
-    const unlockedMediaIds = Array.from(new Set(allMatches.map(p => p.mediaId)));
+    const hasFullAccess = allMatches.some(p => p.mediaId === 'acceso_full_cat_actual' || p.mediaId?.includes('acceso_full'));
+
+    let unlockedMediaIds = Array.from(new Set(allMatches.map(p => p.mediaId)));
     const unlockedTokensMap: Record<string, string> = {};
-    allMatches.forEach(p => {
-      unlockedTokensMap[p.mediaId] = p.token;
-    });
+
+    if (hasFullAccess) {
+      const fullAccessPurchase = allMatches.find(p => p.mediaId === 'acceso_full_cat_actual' || p.mediaId?.includes('acceso_full'));
+      const fullAccessToken = fullAccessPurchase?.token || 'full_access';
+      mediaItems.forEach(item => {
+        if (!unlockedMediaIds.includes(item.id)) {
+          unlockedMediaIds.push(item.id);
+        }
+        unlockedTokensMap[item.id] = fullAccessToken;
+      });
+    } else {
+      allMatches.forEach(p => {
+        unlockedTokensMap[p.mediaId] = p.token;
+      });
+    }
 
     res.json({
       clientIp,
