@@ -64,6 +64,23 @@ export const INITIAL_CREATORS: CreatorProfile[] = [
 
 export const INITIAL_MEDIA_ITEMS: MediaItem[] = [
   {
+    id: 'acceso_full_cat_actual',
+    creatorId: 'creator_1',
+    creatorHandle: 'angelina69',
+    title: '👑 ACCESO FULL — Desbloquear Catálogo Actual',
+    description: 'Acceso inmediato a todas las fotos y videos publicados hasta la fecha.',
+    type: 'bundle',
+    price: 50,
+    currency: 'USD',
+    previewUrl: 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg',
+    downloadUrl: 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg',
+    fileSize: 'COMPLETO',
+    duration: 'ILIMITADO',
+    purchasesCount: 920,
+    isFeatured: true,
+    createdAt: new Date().toISOString()
+  },
+  {
     id: 'media_101',
     creatorId: 'creator_1',
     creatorHandle: 'angelina69',

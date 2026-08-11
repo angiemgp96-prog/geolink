@@ -592,8 +592,26 @@ app.delete("/api/media/:id", async (req, res) => {
  */
 app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
   try {
-    const { mediaId, buyerEmail, buyerPhone } = req.body;
-    const media = mediaItems.find((m) => m.id === mediaId);
+    let media = mediaItems.find((m) => m.id === mediaId);
+    if (!media && (mediaId === 'acceso_full_cat_actual' || mediaId?.includes('acceso_full'))) {
+      media = INITIAL_MEDIA_ITEMS.find(m => m.id === 'acceso_full_cat_actual') || {
+        id: 'acceso_full_cat_actual',
+        creatorId: 'creator_1',
+        creatorHandle: 'angelina69',
+        title: '👑 ACCESO FULL — Desbloquear Catálogo Actual',
+        description: 'Acceso inmediato a todas las fotos y videos publicados hasta la fecha.',
+        type: 'bundle',
+        price: 50,
+        currency: 'USD',
+        previewUrl: 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg',
+        downloadUrl: 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg',
+        fileSize: 'COMPLETO',
+        duration: 'ILIMITADO',
+        purchasesCount: 920,
+        isFeatured: true,
+        createdAt: new Date().toISOString()
+      };
+    }
 
     if (!media) {
       return res.status(404).json({ error: "Contenido no encontrado" });
@@ -784,7 +802,26 @@ async function getPayPalAccessToken(clientId: string, clientSecret: string): Pro
 app.post("/api/payments/paypal/create-order", async (req, res) => {
   try {
     const { mediaId, buyerEmail, buyerPhone } = req.body;
-    const media = mediaItems.find((m) => m.id === mediaId);
+    let media = mediaItems.find((m) => m.id === mediaId);
+    if (!media && (mediaId === 'acceso_full_cat_actual' || mediaId?.includes('acceso_full'))) {
+      media = INITIAL_MEDIA_ITEMS.find(m => m.id === 'acceso_full_cat_actual') || {
+        id: 'acceso_full_cat_actual',
+        creatorId: 'creator_1',
+        creatorHandle: 'angelina69',
+        title: '👑 ACCESO FULL — Desbloquear Catálogo Actual',
+        description: 'Acceso inmediato a todas las fotos y videos publicados hasta la fecha.',
+        type: 'bundle',
+        price: 50,
+        currency: 'USD',
+        previewUrl: 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg',
+        downloadUrl: 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg',
+        fileSize: 'COMPLETO',
+        duration: 'ILIMITADO',
+        purchasesCount: 920,
+        isFeatured: true,
+        createdAt: new Date().toISOString()
+      };
+    }
 
     if (!media) return res.status(404).json({ error: "Contenido no encontrado" });
 
