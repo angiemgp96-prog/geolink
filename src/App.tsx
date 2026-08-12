@@ -7,6 +7,7 @@ import { PublicCreatorView } from './components/PublicCreatorView';
 import { CreatorDashboard } from './components/CreatorDashboard';
 import { PurchaseModal } from './components/PurchaseModal';
 import { NewCreatorModal } from './components/NewCreatorModal';
+import { AdminLoginModal } from './components/AdminLoginModal';
 import { VisitorLeadModal } from './components/VisitorLeadModal';
 import { INITIAL_CREATORS, INITIAL_MEDIA_ITEMS } from './data/mockData';
 import { Lock } from 'lucide-react';
