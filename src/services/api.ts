@@ -1,5 +1,11 @@
-import { CreatorProfile, MediaItem, PurchaseRecord, VisitorLocation } from '../types';
-import { supabase, isSupabaseConfigured } from '../../services/client';
+import { createClient } from '@supabase/supabase-js';
+import { CreatorProfile, MediaItem, PurchaseRecord, VisitorLocation, VisitorLead } from '../types';
+
+const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL || 'https://eqpabbrmdssgoaaqtkgu.supabase.co';
+const SUPABASE_ANON_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcGFiYnJtZHNzZ29hYXF0a2d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxMDk2NTMsImV4cCI6MjEwMTY4NTY1M30.K09vvdfxkuBxd64RuQey9KV13Yz20fBBPkbWQOGGodQ';
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const isSupabaseConfigured = () => Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
 export const api = {
   // 1. Geo-IP Location & Access Check

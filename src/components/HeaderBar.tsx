@@ -2,7 +2,7 @@ import React from 'react';
 import { ShieldAlert, Globe, User, LayoutDashboard, ExternalLink, PlusCircle, CheckCircle2, Zap } from 'lucide-react';
 import { CreatorProfile, VisitorLocation } from '../types';
 import { COUNTRIES_LIST } from '../data/countries';
-import { isSupabaseConfigured } from '../../services/client';
+import { isSupabaseConfigured } from '../services/api';
 
 interface HeaderBarProps {
   creators: CreatorProfile[];
