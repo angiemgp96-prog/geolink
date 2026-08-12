@@ -343,6 +343,18 @@ export const api = {
   },
 
   async updateLeadCaptureSetting(requireLeadCapture: boolean): Promise<boolean> {
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('lead_capture_settings').upsert({
+          id: 'default',
+          require_lead_capture: requireLeadCapture,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+      } catch (err) {
+        console.warn('Supabase lead capture update warning:', err);
+      }
+    }
+
     try {
       const res = await fetch('/api/settings/lead-capture', {
         method: 'POST',

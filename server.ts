@@ -1409,13 +1409,14 @@ app.post("/api/settings/lead-capture", async (req, res) => {
     requireLeadCapture = Boolean(enabled);
 
     try {
-      await supabase.from("lead_capture_settings").upsert({
+      const { error: sErr } = await supabase.from("lead_capture_settings").upsert({
         id: "default",
         require_lead_capture: requireLeadCapture,
         updated_at: new Date().toISOString()
-      });
+      }, { onConflict: 'id' });
+      if (sErr) console.warn("[Supabase lead_capture_settings Upsert Error]", sErr);
     } catch (sErr) {
-      console.warn("[Supabase lead_capture_settings Upsert Error]", sErr);
+      console.warn("[Supabase lead_capture_settings Upsert Exception]", sErr);
     }
 
     res.json({ success: true, requireLeadCapture });
