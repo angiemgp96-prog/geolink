@@ -17,12 +17,13 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   onUpdateCreator,
   onRefreshData,
 }) => {
-  const [activeTab, setActiveTab] = useState<'geoblock' | 'store' | 'payments' | 'whatsapp' | 'links' | 'sales'>('geoblock');
+  const [activeTab, setActiveTab] = useState<'geoblock' | 'store' | 'payments' | 'whatsapp' | 'links' | 'sales' | 'leads'>('geoblock');
   
   // Profile edit state
   const [profile, setProfile] = useState<CreatorProfile>({ ...creator });
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [visitorLeads, setVisitorLeads] = useState<VisitorLead[]>([]);
 
   // New Media Item Form State
   const [isAddingMedia, setIsAddingMedia] = useState(false);
@@ -52,11 +53,17 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   useEffect(() => {
     setProfile({ ...creator });
     loadPurchases();
+    loadVisitorLeads();
   }, [creator]);
 
   const loadPurchases = async () => {
     const data = await api.getPurchases(creator.handle);
     setPurchasesHistory(data);
+  };
+
+  const loadVisitorLeads = async () => {
+    const data = await api.getVisitorLeads();
+    setVisitorLeads(data);
   };
 
   const handleApprovePurchase = async (tokenOrId: string) => {

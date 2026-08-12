@@ -25,7 +25,13 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   const [screen, setScreen]             = useState<Screen>('select');
   const [isLoading, setIsLoading]       = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [contactInfo, setContactInfo]   = useState('');
+  const [contactInfo, setContactInfo]   = useState(() => {
+    try {
+      return localStorage.getItem('geolink_visitor_contact') || '';
+    } catch {
+      return '';
+    }
+  });
   const [contactError, setContactError] = useState('');
 
   // MercadoPago API state

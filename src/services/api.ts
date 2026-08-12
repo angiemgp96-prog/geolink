@@ -272,6 +272,43 @@ export const api = {
     return await res.json();
   },
 
+  async saveVisitorLead(contactInfo: string, countryCode?: string) {
+    let deviceHash = '';
+    try {
+      deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
+    } catch {}
+
+    if (isSupabaseConfigured()) {
+      try {
+        const leadObj = {
+          id: `lead_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          contact_info: contactInfo.trim(),
+          country_code: countryCode || '',
+          device_hash: deviceHash,
+          created_at: new Date().toISOString()
+        };
+        await supabase.from('visitor_leads').upsert(leadObj);
+      } catch (err) {
+        console.warn('Supabase lead save warning:', err);
+      }
+    }
+
+    const res = await fetch('/api/visitor-leads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contactInfo, countryCode, deviceHash })
+    });
+    return await res.json();
+  },
+
+  async getVisitorLeads(): Promise<VisitorLead[]> {
+    try {
+      const res = await fetch('/api/visitor-leads');
+      if (res.ok) return await res.json();
+    } catch {}
+    return [];
+  },
+
   async getUnlockedItems(tokens?: string[]): Promise<{
     clientIp: string;
     unlockedMediaIds: string[];

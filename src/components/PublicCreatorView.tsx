@@ -310,12 +310,21 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       </div>
                     )}
 
-                    {/* Type Badge */}
-                    <div className="absolute top-3 left-3 bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full text-[11px] font-semibold text-white flex items-center gap-1.5">
-                      {item.type === 'video' && <Film className="w-3.5 h-3.5 text-indigo-400" />}
-                      {item.type === 'photo' && <ImageIcon className="w-3.5 h-3.5 text-indigo-300" />}
-                      {item.type === 'bundle' && <Layers className="w-3.5 h-3.5 text-amber-400" />}
-                      <span className="capitalize">{item.type}</span>
+                    {/* Type Badge & Extra Premium Tag */}
+                    <div className="absolute top-3 left-3 flex items-center gap-2">
+                      <div className="bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full text-[11px] font-semibold text-white flex items-center gap-1.5">
+                        {item.type === 'video' && <Film className="w-3.5 h-3.5 text-indigo-400" />}
+                        {item.type === 'photo' && <ImageIcon className="w-3.5 h-3.5 text-indigo-300" />}
+                        {item.type === 'bundle' && <Layers className="w-3.5 h-3.5 text-amber-400" />}
+                        <span className="capitalize">{item.type}</span>
+                      </div>
+
+                      {item.isExtraPremium && (
+                        <div className="bg-gradient-to-r from-amber-500 via-rose-600 to-amber-600 border border-amber-300/80 px-2.5 py-1 rounded-full text-[10px] font-black text-white flex items-center gap-1 shadow-lg shadow-amber-500/30 uppercase tracking-wider">
+                          <Sparkles className="w-3 h-3 text-amber-200 fill-amber-200" />
+                          <span>EXTRA PREMIUM</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Price Tag or Unlocked Tag */}

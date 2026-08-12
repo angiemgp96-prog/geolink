@@ -7,7 +7,7 @@ import { PublicCreatorView } from './components/PublicCreatorView';
 import { CreatorDashboard } from './components/CreatorDashboard';
 import { PurchaseModal } from './components/PurchaseModal';
 import { NewCreatorModal } from './components/NewCreatorModal';
-import { AdminLoginModal } from './components/AdminLoginModal';
+import { VisitorLeadModal } from './components/VisitorLeadModal';
 import { INITIAL_CREATORS, INITIAL_MEDIA_ITEMS } from './data/mockData';
 import { Lock } from 'lucide-react';
 
@@ -15,6 +15,22 @@ export default function App() {
   const [creators, setCreators] = useState<CreatorProfile[]>(INITIAL_CREATORS);
   const [currentCreator, setCurrentCreator] = useState<CreatorProfile>(INITIAL_CREATORS[0]);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>(INITIAL_MEDIA_ITEMS);
+  const [isVisitorLeadModalOpen, setIsVisitorLeadModalOpen] = useState<boolean>(false);
+  const [visitorContact, setVisitorContact] = useState<string>('');
+
+  useEffect(() => {
+    try {
+      const savedContact = localStorage.getItem('geolink_visitor_contact');
+      if (savedContact) {
+        setVisitorContact(savedContact);
+      } else {
+        const timer = setTimeout(() => {
+          setIsVisitorLeadModalOpen(true);
+        }, 1200);
+        return () => clearTimeout(timer);
+      }
+    } catch {}
+  }, []);
   
   const [visitorLocation, setVisitorLocation] = useState<VisitorLocation>({
     ip: '181.16.2.44',
@@ -337,6 +353,14 @@ export default function App() {
         </button>
       </footer>
 
+      {/* Visitor Lead Capture Modal */}
+      <VisitorLeadModal
+        isOpen={isVisitorLeadModalOpen}
+        onClose={(contact) => {
+          setVisitorContact(contact);
+          setIsVisitorLeadModalOpen(false);
+        }}
+      />
     </div>
   );
 }

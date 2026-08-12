@@ -28,28 +28,29 @@ let purchases: PurchaseRecord[] = [];
 function fromSupabaseCreator(row: any): CreatorProfile {
   const initial = INITIAL_CREATORS.find((c) => c.handle.toLowerCase() === row.handle?.toLowerCase());
   const initialSettings = initial?.paymentSettings || {};
-  const dbSettings = row.payment_settings || row.data?.paymentSettings || {};
 
   return {
-    id: row.id,
-    handle: row.handle,
-    name: row.name || row.handle,
-    title: row.title || '',
-    bio: row.bio || '',
-    avatar: row.avatar || '',
-    banner: row.banner || '',
-    themeColor: row.data?.themeColor || initial?.themeColor || 'from-pink-600 via-purple-600 to-indigo-700',
-    badge: row.badge || initial?.badge || 'TOP CREATOR',
-    blockedCountries: Array.isArray(row.blocked_countries) ? row.blocked_countries : (row.data?.blockedCountries || initial?.blockedCountries || []),
-    blockedMessage: row.blocked_message || row.data?.blockedMessage || initial?.blockedMessage || 'Contenido no disponible en tu región.',
-    whatsappNumber: row.whatsapp_number || row.data?.whatsappNumber || initial?.whatsappNumber || '',
-    links: (Array.isArray(row.links) && row.links.length > 0) ? row.links : (initial?.links || []),
+    id: row.id || 'creator_1',
+    handle: row.handle || 'angelina69',
+    name: row.name || initial?.name || 'Angelina VIP',
+    title: row.title || initial?.title || 'Contenido Exclusivo 🔞',
+    bio: row.bio || initial?.bio || '',
+    avatar: row.avatar || initial?.avatar || '',
+    banner: row.banner || initial?.banner || '',
+    themeColor: row.theme_color || initial?.themeColor || 'from-purple-600 via-pink-600 to-amber-500',
+    badge: row.badge || initial?.badge || 'CREADOR OFICIAL',
+    blockedCountries: row.blocked_countries || initial?.blockedCountries || ['CO'],
+    blockedMessage: row.blocked_message || initial?.blockedMessage || 'Este perfil no está disponible en tu región.',
+    whatsappNumber: row.whatsapp_number || initial?.whatsappNumber || '',
+    storeMode: row.store_mode || row.data?.storeMode || initial?.storeMode || 'subscription',
+    links: row.links ? (typeof row.links === 'string' ? JSON.parse(row.links) : row.links) : (initial?.links || []),
     paymentSettings: {
-      ...initialSettings,
-      ...dbSettings,
-      customPaymentLinks: (dbSettings.customPaymentLinks && dbSettings.customPaymentLinks.length > 0)
-        ? dbSettings.customPaymentLinks
-        : (initialSettings.customPaymentLinks || [])
+      mercadoPagoAccessToken: row.mercadopago_access_token || initialSettings.mercadoPagoAccessToken || '',
+      mercadoPagoPublicKey: row.mercadopago_public_key || initialSettings.mercadoPagoPublicKey || '',
+      payPalClientId: row.paypal_client_id || initialSettings.payPalClientId || '',
+      payPalClientSecret: row.paypal_client_secret || initialSettings.payPalClientSecret || '',
+      payPalMode: row.paypal_mode || initialSettings.payPalMode || 'live',
+      customPaymentLinks: row.custom_payment_links ? (typeof row.custom_payment_links === 'string' ? JSON.parse(row.custom_payment_links) : row.custom_payment_links) : (initialSettings.customPaymentLinks || [])
     },
     createdAt: row.created_at || new Date().toISOString()
   };
@@ -1250,20 +1251,35 @@ app.get("/api/purchases/unlocked-items", async (req, res) => {
     [...dbMatches, ...memMatches].forEach(p => map.set(p.id, p));
     const allMatches = Array.from(map.values());
 
-    const hasFullAccess = allMatches.some(p => p.mediaId === 'acceso_full_cat_actual' || p.mediaId?.includes('acceso_full'));
+    // Check for valid active VIP Membership / Full Access purchase
+    const validFullAccessPurchase = allMatches.find(p => {
+      if (p.mediaId !== 'acceso_full_cat_actual' && !p.mediaId?.includes('acceso_full') && p.mediaId !== 'vip_membership_monthly') return false;
+      // Evaluate 30-day expiration if expiresAt is set
+      if (p.expiresAt) {
+        const expTime = new Date(p.expiresAt).getTime();
+        if (Date.now() > expTime) return false; // Expired!
+      } else if (p.createdAt) {
+        // Fallback: 30 days from createdAt
+        const purchaseTime = new Date(p.createdAt).getTime();
+        const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+        if (Date.now() > purchaseTime + thirtyDaysMs) return false; // Expired!
+      }
+      return true;
+    });
 
     let unlockedMediaIds = Array.from(new Set(allMatches.map(p => p.mediaId)));
     const unlockedTokensMap: Record<string, string> = {};
 
-    if (hasFullAccess) {
-      const fullAccessPurchase = allMatches.find(p => p.mediaId === 'acceso_full_cat_actual' || p.mediaId?.includes('acceso_full'));
-      const fullAccessToken = fullAccessPurchase?.token || 'full_access';
-      const purchaseTime = fullAccessPurchase?.createdAt ? new Date(fullAccessPurchase.createdAt).getTime() : Date.now();
+    if (validFullAccessPurchase) {
+      const fullAccessToken = validFullAccessPurchase.token || 'full_access';
+      const purchaseTime = validFullAccessPurchase.createdAt ? new Date(validFullAccessPurchase.createdAt).getTime() : Date.now();
 
       mediaItems.forEach(item => {
         const itemTime = item.createdAt ? new Date(item.createdAt).getTime() : 0;
-        // Solo desbloquear si el producto fue publicado ANTES o AL MOMENTO de la compra
-        if (itemTime <= purchaseTime) {
+        // Rules for Membership / Full Access:
+        // 1. MUST NOT be Extra Premium (Extra Premium items require individual purchase!)
+        // 2. MUST have been published on or before purchase time
+        if (!item.isExtraPremium && itemTime <= purchaseTime) {
           if (!unlockedMediaIds.includes(item.id)) {
             unlockedMediaIds.push(item.id);
           }
@@ -1285,6 +1301,50 @@ app.get("/api/purchases/unlocked-items", async (req, res) => {
   } catch (err: any) {
     res.status(500).json({ error: err.message || "Error al verificar compras por IP" });
   }
+});
+
+// ----------------------------------------------------
+// VISITOR LEADS ENDPOINTS (WhatsApp / Telegram Capture)
+// ----------------------------------------------------
+let visitorLeads: any[] = [];
+
+app.post("/api/visitor-leads", async (req, res) => {
+  try {
+    const { contactInfo, countryCode, deviceHash } = req.body;
+    if (!contactInfo || contactInfo.trim().length < 3) {
+      return res.status(400).json({ error: "Contacto no válido" });
+    }
+
+    const leadObj = {
+      id: `lead_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      contact_info: contactInfo.trim(),
+      ip_address: getClientIp(req),
+      country_code: countryCode || '',
+      device_hash: deviceHash || '',
+      created_at: new Date().toISOString()
+    };
+
+    visitorLeads.push(leadObj);
+
+    try {
+      const { error } = await supabase.from("visitor_leads").upsert(leadObj);
+      if (error) console.warn("[Supabase Lead Sync Error]", error);
+    } catch {}
+
+    res.json({ success: true, lead: leadObj });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/visitor-leads", async (req, res) => {
+  try {
+    const { data, error } = await supabase.from("visitor_leads").select("*").order("created_at", { ascending: false });
+    if (!error && data) {
+      return res.json(data);
+    }
+  } catch {}
+  res.json(visitorLeads);
 });
 
 /**

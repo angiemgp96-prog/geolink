@@ -37,6 +37,7 @@ export interface CreatorProfile {
   links: CustomLink[];
   paymentSettings: PaymentSettings;
   blockedIps?: string[];
+  storeMode?: 'subscription' | 'store' | 'hybrid';
   createdAt: string;
 }
 
@@ -58,6 +59,7 @@ export interface MediaItem {
   itemCount?: number; // for bundles
   purchasesCount: number;
   isFeatured?: boolean;
+  isExtraPremium?: boolean;
   createdAt: string;
 }
 
@@ -76,9 +78,19 @@ export interface PurchaseRecord {
   status: 'completed' | 'pending' | 'failed';
   ipAddress?: string;
   createdAt: string;
+  expiresAt?: string;
   downloadCount: number;
   downloadUrl: string;
   whatsappSent?: boolean;
+}
+
+export interface VisitorLead {
+  id: string;
+  contactInfo: string;
+  ipAddress?: string;
+  countryCode?: string;
+  deviceHash?: string;
+  createdAt: string;
 }
 
 export interface VisitorLocation {
