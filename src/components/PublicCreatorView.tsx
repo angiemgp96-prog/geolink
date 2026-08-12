@@ -154,30 +154,30 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             </a>
           </div>
 
-          {/* Custom Links (Link.me Section) */}
-          <div className="space-y-3 pt-4">
-            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest text-left">
-              Mis Enlaces Oficiales
+          {/* Custom Links (Compact Section) */}
+          <div className="space-y-2 pt-2">
+            <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-left">
+              Enlaces Directos
             </h3>
 
-            <div className="grid grid-cols-1 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {creator.links.filter(l => l.active).map((link: CustomLink) => (
                 <a
                   key={link.id}
                   href={link.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-indigo-500/50 p-4 rounded-2xl flex items-center justify-between transition-all group shadow-md"
+                  className="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-indigo-500/50 px-3 py-2 rounded-xl flex items-center justify-between transition-all group shadow-sm text-xs"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-zinc-900/80 border border-white/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <div className="flex items-center gap-2 truncate">
+                    <div className="w-6 h-6 rounded-lg bg-zinc-900/80 border border-white/10 flex items-center justify-center shrink-0">
                       {renderLinkIcon(link.icon, link.title)}
                     </div>
-                    <span className="font-bold text-sm text-white group-hover:text-indigo-300 transition-colors">
+                    <span className="font-bold text-xs text-white group-hover:text-indigo-300 transition-colors truncate">
                       {link.title}
                     </span>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
+                  <ExternalLink className="w-3 h-3 text-zinc-400 group-hover:text-white transition-colors shrink-0 ml-1" />
                 </a>
               ))}
             </div>
@@ -269,8 +269,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             </div>
           </div>
 
-          {/* Media Store Items Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Media Store Items Grid (Vertical Aspect Ratio for Portrait Photos/Videos) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {filteredItems.map((item) => {
               const isUnlocked = unlockedMediaIds.includes(item.id);
               const downloadToken = unlockedTokensMap[item.id];
@@ -282,8 +282,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                     isUnlocked ? 'border-emerald-500/50 bg-emerald-950/10' : 'border-white/10 hover:border-indigo-500/50'
                   }`}
                 >
-                  {/* Media Preview Card */}
-                  <div className="relative h-56 bg-zinc-900/80 overflow-hidden">
+                  {/* Media Preview Card with Vertical Portrait Aspect Ratio */}
+                  <div className="relative aspect-[3/4] sm:aspect-[4/5] bg-zinc-900/80 overflow-hidden">
                     <img
                       src={item.previewUrl}
                       alt={item.title}
@@ -299,7 +299,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                         </div>
                       </div>
                     ) : (
-                      <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
                         <div className="w-12 h-12 rounded-full border border-white/20 bg-white/10 backdrop-blur-md flex items-center justify-center text-white shadow-2xl group-hover:scale-110 transition-transform">
                           {item.type === 'video' ? (
                             <Play className="w-6 h-6 text-white fill-white/30 ml-0.5" />
@@ -327,11 +327,15 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       )}
                     </div>
 
-                    {/* Price Tag or Unlocked Tag */}
-                    <div className={`absolute bottom-3 right-3 text-white font-extrabold text-sm px-3.5 py-1.5 rounded-xl shadow-lg border ${
-                      isUnlocked ? 'bg-emerald-600 border-emerald-400/40' : 'bg-indigo-600 border-indigo-400/30'
-                    }`}>
-                      {isUnlocked ? '✅ Pagado' : `$${item.price.toFixed(2)} ${item.currency}`}
+                    {/* Price Tag (Clean Backdrop Blur Label - NO Button Background) */}
+                    <div className="absolute bottom-3 right-3 text-white font-extrabold text-sm px-3 py-1 rounded-xl backdrop-blur-md bg-black/70 border border-white/15 shadow-xl">
+                      {isUnlocked ? (
+                        <span className="text-emerald-400 text-xs font-bold flex items-center gap-1">✅ Pagado</span>
+                      ) : (
+                        <span className="text-amber-300 font-extrabold text-sm drop-shadow-md">
+                          ${item.price.toFixed(2)} <span className="text-[10px] text-zinc-300 font-bold">{item.currency}</span>
+                        </span>
+                      )}
                     </div>
                   </div>
 

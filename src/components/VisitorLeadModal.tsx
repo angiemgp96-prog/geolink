@@ -10,7 +10,7 @@ interface VisitorLeadModalProps {
 
 export const VisitorLeadModal: React.FC<VisitorLeadModalProps> = ({ isOpen, onClose }) => {
   const [mode, setMode] = useState<'phone' | 'telegram'>('phone');
-  const [selectedCountry, setSelectedCountry] = useState<PhoneCountry>(PHONE_COUNTRIES[0]); // Colombia CO
+  const [selectedCountry, setSelectedCountry] = useState<PhoneCountry>(() => findPhoneCountry('CO'));
   const [phoneNumber, setPhoneNumber] = useState('');
   const [telegramHandle, setTelegramHandle] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
