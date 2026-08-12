@@ -19,30 +19,6 @@ export default function App() {
   const [isVisitorLeadModalOpen, setIsVisitorLeadModalOpen] = useState<boolean>(false);
   const [visitorContact, setVisitorContact] = useState<string>('');
 
-  useEffect(() => {
-    try {
-      const savedContact = localStorage.getItem('geolink_visitor_contact');
-      if (savedContact) {
-        setVisitorContact(savedContact);
-      }
-    } catch {}
-  }, []);
-
-  // Reactively trigger lead modal whenever accessAllowed becomes true for allowed visitors
-  useEffect(() => {
-    if (accessAllowed && !isAdminLoggedIn) {
-      try {
-        const savedContact = localStorage.getItem('geolink_visitor_contact');
-        if (!savedContact) {
-          const timer = setTimeout(() => {
-            setIsVisitorLeadModalOpen(true);
-          }, 800);
-          return () => clearTimeout(timer);
-        }
-      } catch {}
-    }
-  }, [accessAllowed, isAdminLoggedIn]);
-  
   const [visitorLocation, setVisitorLocation] = useState<VisitorLocation>({
     ip: '181.16.2.44',
     countryCode: 'US',
@@ -68,6 +44,30 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'public' | 'dashboard'>('public');
   const [selectedMediaForPurchase, setSelectedMediaForPurchase] = useState<MediaItem | null>(null);
   const [isNewCreatorModalOpen, setIsNewCreatorModalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      const savedContact = localStorage.getItem('geolink_visitor_contact');
+      if (savedContact) {
+        setVisitorContact(savedContact);
+      }
+    } catch {}
+  }, []);
+
+  // Reactively trigger lead modal whenever accessAllowed becomes true for allowed visitors
+  useEffect(() => {
+    if (accessAllowed && !isAdminLoggedIn) {
+      try {
+        const savedContact = localStorage.getItem('geolink_visitor_contact');
+        if (!savedContact) {
+          const timer = setTimeout(() => {
+            setIsVisitorLeadModalOpen(true);
+          }, 800);
+          return () => clearTimeout(timer);
+        }
+      } catch {}
+    }
+  }, [accessAllowed, isAdminLoggedIn]);
 
   const [unlockedMediaIds, setUnlockedMediaIds] = useState<string[]>([]);
   const [unlockedTokensMap, setUnlockedTokensMap] = useState<Record<string, string>>({});
