@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Play, Lock, CheckCircle2, Instagram, Youtube, Video, Dumbbell, MessageCircle, ExternalLink, Sparkles, Image as ImageIcon, Film, Layers, ShoppingBag, Send, Download, Globe, Flame, Link as LinkIcon } from 'lucide-react';
 import { CreatorProfile, MediaItem, CustomLink } from '../types';
+import { detectLanguage, TRANSLATIONS, SupportedLanguage } from '../data/translations';
+import { api } from '../services/api';
 
 interface PublicCreatorViewProps {
   creator: CreatorProfile;
@@ -20,6 +22,19 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   const [filterType, setFilterType] = useState<'all' | 'video' | 'photo' | 'bundle'>('all');
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [downloadedMediaIds, setDownloadedMediaIds] = useState<string[]>([]);
+  const [lang, setLang] = useState<SupportedLanguage>('es');
+
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.es;
+
+  React.useEffect(() => {
+    api.getVisitorLocation().then(loc => {
+      if (loc && loc.countryCode) {
+        setLang(detectLanguage(loc.countryCode));
+      }
+    }).catch(() => {
+      setLang(detectLanguage());
+    });
+  }, []);
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -99,8 +114,25 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
       <div className="max-w-3xl mx-auto px-4 -mt-24 relative z-10 space-y-8">
         
         {/* Creator Info Card */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl text-center space-y-4">
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl text-center space-y-4 relative">
           
+          {/* Floating Language Switcher Badge */}
+          <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-black/60 backdrop-blur-md border border-white/15 px-2.5 py-1 rounded-full text-xs font-bold shadow-lg z-20">
+            <Globe className="w-3.5 h-3.5 text-indigo-400" />
+            <select
+              value={lang}
+              onChange={(e) => setLang(e.target.value as SupportedLanguage)}
+              className="bg-transparent text-white focus:outline-none cursor-pointer font-bold uppercase text-[10px]"
+            >
+              <option value="es" className="bg-zinc-900 text-white">🇪🇸 ES</option>
+              <option value="en" className="bg-zinc-900 text-white">🇺🇸 EN</option>
+              <option value="pt" className="bg-zinc-900 text-white">🇧🇷 PT</option>
+              <option value="fr" className="bg-zinc-900 text-white">🇫🇷 FR</option>
+              <option value="de" className="bg-zinc-900 text-white">🇩🇪 DE</option>
+              <option value="it" className="bg-zinc-900 text-white">🇮🇹 IT</option>
+            </select>
+          </div>
+
           {/* Avatar with Gradient Rim */}
           <div className="relative mx-auto w-28 h-28 md:w-32 md:h-32 rounded-full p-1 bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-xl shadow-indigo-500/20 -mt-20 md:-mt-24">
             <img
@@ -125,18 +157,18 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
           </div>
 
           {/* Bio */}
-          <p className="text-sm text-zinc-300 max-w-lg mx-auto leading-relaxed">
+          <p className="text-xs md:text-sm text-zinc-300 max-w-lg mx-auto leading-relaxed">
             {creator.bio}
           </p>
 
-          {/* Action Buttons: Contacto VIP & Grupo Hot Telegram */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+          {/* Quick VIP Action Buttons */}
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <a
               id="telegram-vip-direct-button"
               href="https://t.me/Angelinaguzman69"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 font-semibold text-xs transition-all shadow-sm"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 font-extrabold text-xs uppercase tracking-wide transition-all border border-sky-500/40 hover:scale-105"
             >
               <Send className="w-4 h-4 text-sky-400" />
               <span>Contacto Directo Telegram VIP</span>
@@ -193,10 +225,10 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             </div>
             <div>
               <h3 className="font-black text-sm text-white flex items-center gap-2">
-                <span>Acceso Full — Catálogo Actual</span>
+                <span>{t.fullAccessTitle}</span>
                 <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">$50 USD</span>
               </h3>
-              <p className="text-[11px] text-zinc-400 mt-0.5">Desbloquea instantáneamente todas las fotos y videos publicados hasta la fecha.</p>
+              <p className="text-[11px] text-zinc-400 mt-0.5">{t.fullAccessDesc}</p>
             </div>
           </div>
 
@@ -206,8 +238,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               id: 'acceso_full_cat_actual',
               creatorId: creator.id,
               creatorHandle: creator.handle,
-              title: '👑 ACCESO FULL — Desbloquear Catálogo Actual',
-              description: 'Acceso inmediato a todas las fotos y videos publicados hasta la fecha.',
+              title: `👑 ${t.fullAccessTitle}`,
+              description: t.fullAccessDesc,
               type: 'bundle',
               price: 50,
               currency: 'USD',
@@ -221,7 +253,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             })}
             className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 uppercase tracking-wider"
           >
-            <span>Desbloquear Todo por $50 USD</span>
+            <span>{t.fullAccessBtn}</span>
           </button>
         </div>
 
@@ -232,9 +264,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             <div>
               <div className="flex items-center gap-2 text-indigo-400 font-extrabold text-sm uppercase tracking-wider">
                 <ShoppingBag className="w-4 h-4" />
-                <span>Tienda Exclusiva</span>
+                <span>{t.storeSectionTitle}</span>
               </div>
-              <h2 className="text-2xl font-bold text-white mt-1">Fotos & Videos Desbloqueables</h2>
+              <h2 className="text-2xl font-bold text-white mt-1">{t.storeSectionSub}</h2>
             </div>
 
             {/* Content Filters */}
@@ -246,7 +278,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                   filterType === 'all' ? 'bg-indigo-600 text-white font-semibold' : 'text-zinc-400 hover:text-white'
                 }`}
               >
-                Todos ({mediaItems.length})
+                {t.filterAll} ({mediaItems.length})
               </button>
               <button
                 id="filter-video-button"
@@ -255,7 +287,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                   filterType === 'video' ? 'bg-indigo-600 text-white font-semibold' : 'text-zinc-400 hover:text-white'
                 }`}
               >
-                <Film className="w-3.5 h-3.5" /> Videos
+                <Film className="w-3.5 h-3.5" /> {t.filterVideos}
               </button>
               <button
                 id="filter-photo-button"
@@ -264,7 +296,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                   filterType === 'photo' ? 'bg-indigo-600 text-white font-semibold' : 'text-zinc-400 hover:text-white'
                 }`}
               >
-                <ImageIcon className="w-3.5 h-3.5" /> Fotos
+                <ImageIcon className="w-3.5 h-3.5" /> {t.filterPhotos}
               </button>
             </div>
           </div>
@@ -295,7 +327,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       <div className="absolute inset-0 bg-emerald-950/40 flex items-center justify-center">
                         <div className="px-4 py-2 rounded-full border border-emerald-400/60 bg-emerald-600/40 backdrop-blur-md flex items-center gap-2 text-white font-extrabold text-xs shadow-2xl uppercase tracking-wider">
                           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                          <span>Adquirido</span>
+                          <span>{t.purchasedBadge}</span>
                         </div>
                       </div>
                     ) : (
@@ -322,7 +354,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       {item.isExtraPremium && (
                         <div className="bg-gradient-to-r from-amber-500 via-rose-600 to-amber-600 border border-amber-300/80 px-2.5 py-1 rounded-full text-[10px] font-black text-white flex items-center gap-1 shadow-lg shadow-amber-500/30 uppercase tracking-wider">
                           <Sparkles className="w-3 h-3 text-amber-200 fill-amber-200" />
-                          <span>EXTRA PREMIUM</span>
+                          <span>{t.extraPremiumBadge}</span>
                         </div>
                       )}
                     </div>
@@ -330,7 +362,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                     {/* Price Tag (Clean Backdrop Blur Label - NO Button Background) */}
                     <div className="absolute bottom-3 right-3 text-white font-extrabold text-sm px-3 py-1 rounded-xl backdrop-blur-md bg-black/70 border border-white/15 shadow-xl">
                       {isUnlocked ? (
-                        <span className="text-emerald-400 text-xs font-bold flex items-center gap-1">✅ Pagado</span>
+                        <span className="text-emerald-400 text-xs font-bold flex items-center gap-1">✅ {t.purchasedBadge}</span>
                       ) : (
                         <span className="text-amber-300 font-extrabold text-sm drop-shadow-md">
                           ${item.price.toFixed(2)} <span className="text-[10px] text-zinc-300 font-bold">{item.currency}</span>
@@ -355,7 +387,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                         {item.duration ? `⏳ ${item.duration}` : `📦 ${item.fileSize}`}
                       </span>
                       <span className="text-emerald-400 font-medium">
-                        🔥 {item.purchasesCount} Compras
+                        🔥 {item.purchasesCount} {t.purchasesCountLabel}
                       </span>
                     </div>
 
@@ -364,7 +396,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       downloadedMediaIds.includes(item.id) || Boolean(localStorage.getItem(`geolink_downloaded_${item.id}`)) ? (
                         <div className="w-full py-3 px-4 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-400 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
                           <Lock className="w-4 h-4 text-zinc-500" />
-                          <span>Descargado (Límite 1/1)</span>
+                          <span>{t.downloadedLimit}</span>
                         </div>
                       ) : (
                         <a
@@ -382,7 +414,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                           className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer border border-emerald-400/40"
                         >
                           <Download className="w-4 h-4 animate-bounce" />
-                          <span>Descargar</span>
+                          <span>{t.downloadNowBtn}</span>
                         </a>
                       )
                     ) : (
@@ -392,7 +424,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                         className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
                       >
                         <Lock className="w-4 h-4" />
-                        <span>Desbloquear (${item.price.toFixed(2)})</span>
+                        <span>{t.unlockNowBtn} (${item.price.toFixed(2)})</span>
                       </button>
                     )}
 

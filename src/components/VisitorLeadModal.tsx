@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Lock, Phone, Sparkles, Send, ShieldCheck, Search, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { api } from '../services/api';
 import { PHONE_COUNTRIES, PhoneCountry, findPhoneCountry } from '../data/phoneCountries';
+import { detectLanguage, TRANSLATIONS, SupportedLanguage } from '../data/translations';
 
 interface VisitorLeadModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface VisitorLeadModalProps {
 export const VisitorLeadModal: React.FC<VisitorLeadModalProps> = ({ isOpen, onClose }) => {
   const [mode, setMode] = useState<'phone' | 'telegram'>('phone');
   const [selectedCountry, setSelectedCountry] = useState<PhoneCountry>(() => findPhoneCountry('CO'));
+  const [lang, setLang] = useState<SupportedLanguage>('es');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [telegramHandle, setTelegramHandle] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,15 +20,20 @@ export const VisitorLeadModal: React.FC<VisitorLeadModalProps> = ({ isOpen, onCl
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Auto-detect visitor country on load
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.es;
+
+  // Auto-detect visitor country & language on load
   useEffect(() => {
     if (isOpen) {
       api.getVisitorLocation().then(loc => {
         if (loc && loc.countryCode) {
           const detected = findPhoneCountry(loc.countryCode);
           if (detected) setSelectedCountry(detected);
+          setLang(detectLanguage(loc.countryCode));
         }
-      }).catch(() => {});
+      }).catch(() => {
+        setLang(detectLanguage());
+      });
     }
   }, [isOpen]);
 
@@ -122,11 +129,11 @@ export const VisitorLeadModal: React.FC<VisitorLeadModalProps> = ({ isOpen, onCl
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 font-extrabold text-[11px] uppercase tracking-widest mb-2">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Perfil Exclusivo VIP</span>
+            <span>{t.vipBadge}</span>
           </div>
-          <h2 className="text-xl md:text-2xl font-black text-white">Acceso al Contenido Privado</h2>
+          <h2 className="text-xl md:text-2xl font-black text-white">{t.modalTitle}</h2>
           <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
-            Ingresa tu WhatsApp o Telegram oficial para identificarte y acceder a todas las fotos y videos.
+            {t.modalDesc}
           </p>
         </div>
 
@@ -139,7 +146,7 @@ export const VisitorLeadModal: React.FC<VisitorLeadModalProps> = ({ isOpen, onCl
               mode === 'phone' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Phone className="w-3.5 h-3.5" /> WhatsApp / Teléfono
+            <Phone className="w-3.5 h-3.5" /> {t.modePhone}
           </button>
           <button
             type="button"
@@ -148,7 +155,7 @@ export const VisitorLeadModal: React.FC<VisitorLeadModalProps> = ({ isOpen, onCl
               mode === 'telegram' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            ✈️ Telegram (@usuario)
+            {t.modeTelegram}
           </button>
         </div>
 
@@ -156,7 +163,7 @@ export const VisitorLeadModal: React.FC<VisitorLeadModalProps> = ({ isOpen, onCl
           {mode === 'phone' ? (
             <div className="space-y-2">
               <label className="block text-[11px] font-bold text-indigo-300 uppercase tracking-wider">
-                Selecciona tu País y Número Móvil:
+                {t.selectCountryLabel}
               </label>
 
               <div className="flex items-center gap-2">
@@ -233,7 +240,7 @@ export const VisitorLeadModal: React.FC<VisitorLeadModalProps> = ({ isOpen, onCl
               {/* Digit Counter & Validation Hint */}
               <div className="flex items-center justify-between text-[11px] font-semibold px-1">
                 <span className="text-slate-400">
-                  {selectedCountry.name}: Exige {Array.isArray(requiredDigits) ? `${requiredDigits[0]}-${requiredDigits[1]}` : requiredDigits} dígitos
+                  {selectedCountry.name}: {t.digitsRequired} {Array.isArray(requiredDigits) ? `${requiredDigits[0]}-${requiredDigits[1]}` : requiredDigits}
                 </span>
                 <span className={isPhoneValid ? 'text-emerald-400 font-bold' : 'text-amber-400'}>
                   Dígitos: {phoneNumber.length}/{Array.isArray(requiredDigits) ? requiredDigits[1] : requiredDigits} {isPhoneValid ? '✓' : ''}
@@ -250,7 +257,7 @@ export const VisitorLeadModal: React.FC<VisitorLeadModalProps> = ({ isOpen, onCl
                   type="text"
                   value={telegramHandle}
                   onChange={handleTelegramInputChange}
-                  placeholder="@miusuario"
+                  placeholder={t.telegramPlaceholder}
                   className="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-xl py-3 px-4 text-xs text-white placeholder-slate-500 outline-none transition-colors pr-10"
                   autoFocus
                 />
@@ -260,7 +267,7 @@ export const VisitorLeadModal: React.FC<VisitorLeadModalProps> = ({ isOpen, onCl
                   <Send className="w-4 h-4 text-indigo-400 absolute right-3.5 top-3.5" />
                 )}
               </div>
-              <p className="text-[10px] text-slate-400 mt-1">Ingresa tu usuario de Telegram con la @ (Mínimo 5 caracteres).</p>
+              <p className="text-[10px] text-slate-400 mt-1">{t.telegramHint}</p>
             </div>
           )}
 
@@ -272,13 +279,13 @@ export const VisitorLeadModal: React.FC<VisitorLeadModalProps> = ({ isOpen, onCl
             disabled={!isValid || isSubmitting}
             className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-amber-500 hover:from-indigo-500 hover:to-amber-400 text-white font-extrabold text-xs uppercase tracking-wider shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <span>Continuar al Perfil VIP ⚡</span>
+            <span>{t.continueBtn}</span>
           </button>
         </form>
 
         <div className="flex items-center justify-center gap-1.5 text-[10px] text-zinc-500 font-medium">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Acceso Privado Encriptado · Privacidad Garantizada</span>
+          <span>{t.encryptedNotice}</span>
         </div>
       </div>
     </div>
