@@ -1156,45 +1156,89 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                 <tr>
                   <th className="p-3 rounded-l-xl">Fecha / Hora</th>
                   <th className="p-3">Contacto (WhatsApp / Telegram)</th>
-                  <th className="p-3">País</th>
-                  <th className="p-3">IP Origen</th>
+                  <th className="p-3">País por Indicativo (+57)</th>
+                  <th className="p-3">País por IP Origen</th>
+                  <th className="p-3">Estado VPN</th>
                   <th className="p-3 rounded-r-xl">Acción</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
-                {visitorLeads.length === 0 ? (
+                {(visitorLeads || []).length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-slate-500">
+                    <td colSpan={6} className="p-8 text-center text-slate-500">
                       No hay registros de visitantes aún.
                     </td>
                   </tr>
                 ) : (
-                  visitorLeads.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-slate-800/40">
-                      <td className="p-3 font-medium text-slate-300">
-                        {new Date(lead.createdAt).toLocaleString()}
-                      </td>
-                      <td className="p-3 font-bold text-amber-300 text-sm">
-                        {lead.contactInfo}
-                      </td>
-                      <td className="p-3 text-slate-400">
-                        {lead.countryCode || '🌐 Global'}
-                      </td>
-                      <td className="p-3 text-slate-400 font-mono">
-                        {lead.ipAddress || 'Protegida'}
-                      </td>
-                      <td className="p-3">
-                        <a
-                          href={lead.contactInfo.startsWith('@') ? `https://t.me/${lead.contactInfo.replace('@', '')}` : `https://wa.me/${lead.contactInfo.replace(/[^0-9]/g, '')}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 font-bold border border-emerald-500/40 inline-flex items-center gap-1"
-                        >
-                          <Send className="w-3 h-3" /> Contactar
-                        </a>
-                      </td>
-                    </tr>
-                  ))
+                  visitorLeads.map((lead) => {
+                    const contactStr = (lead.contactInfo || (lead as any).contact_info || '').trim();
+                    
+                    // Helper phone country prefix mapping
+                    const cleanPhone = contactStr.replace(/[^0-9+]/g, '');
+                    let phoneCountry = { code: 'GLOBAL', name: 'Internacional', flag: '🌐' };
+                    if (cleanPhone.startsWith('+57') || cleanPhone.startsWith('57') || (cleanPhone.length >= 10 && cleanPhone.startsWith('3'))) {
+                      phoneCountry = { code: 'CO', name: 'Colombia (+57)', flag: '🇨🇴' };
+                    } else if (cleanPhone.startsWith('+1') || cleanPhone.startsWith('1')) {
+                      phoneCountry = { code: 'US', name: 'EE.UU. / Canadá (+1)', flag: '🇺🇸' };
+                    } else if (cleanPhone.startsWith('+34') || cleanPhone.startsWith('34')) {
+                      phoneCountry = { code: 'ES', name: 'España (+34)', flag: '🇪🇸' };
+                    } else if (cleanPhone.startsWith('+52') || cleanPhone.startsWith('52')) {
+                      phoneCountry = { code: 'MX', name: 'México (+52)', flag: '🇲🇽' };
+                    } else if (cleanPhone.startsWith('+507') || cleanPhone.startsWith('507')) {
+                      phoneCountry = { code: 'PA', name: 'Panamá (+507)', flag: '🇵🇦' };
+                    } else if (cleanPhone.startsWith('+54') || cleanPhone.startsWith('54')) {
+                      phoneCountry = { code: 'AR', name: 'Argentina (+54)', flag: '🇦🇷' };
+                    } else if (cleanPhone.startsWith('+56') || cleanPhone.startsWith('56')) {
+                      phoneCountry = { code: 'CL', name: 'Chile (+56)', flag: '🇨🇱' };
+                    } else if (cleanPhone.startsWith('+51') || cleanPhone.startsWith('51')) {
+                      phoneCountry = { code: 'PE', name: 'Perú (+51)', flag: '🇵🇪' };
+                    } else if (cleanPhone.startsWith('+593') || cleanPhone.startsWith('593')) {
+                      phoneCountry = { code: 'EC', name: 'Ecuador (+593)', flag: '🇪🇨' };
+                    } else if (cleanPhone.startsWith('+58') || cleanPhone.startsWith('58')) {
+                      phoneCountry = { code: 'VE', name: 'Venezuela (+58)', flag: '🇻🇪' };
+                    }
+
+                    const ipCountry = lead.countryCode || 'DESCONOCIDO';
+                    const isMismatchedVpn = phoneCountry.code === 'CO' && ipCountry !== 'CO' && ipCountry !== 'DESCONOCIDO';
+
+                    return (
+                      <tr key={lead.id} className="hover:bg-slate-800/40">
+                        <td className="p-3 font-medium text-slate-300">
+                          {lead.createdAt ? new Date(lead.createdAt).toLocaleString() : 'Reciente'}
+                        </td>
+                        <td className="p-3 font-bold text-amber-300 text-sm">
+                          {contactStr || 'No especificado'}
+                        </td>
+                        <td className="p-3 text-slate-300 font-semibold">
+                          {phoneCountry.flag} {phoneCountry.name}
+                        </td>
+                        <td className="p-3 text-slate-400 font-mono">
+                          {lead.countryCode ? `🌐 ${lead.countryCode}` : '🌐 Global'} ({lead.ipAddress || 'Protegida'})
+                        </td>
+                        <td className="p-3">
+                          {isMismatchedVpn ? (
+                            <span className="px-2 py-0.5 rounded font-bold text-[10px] bg-red-500/20 text-red-400 border border-red-500/40">
+                              ⚠️ POSIBLE VPN (Tel +57 vs IP {ipCountry})
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded font-semibold text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              🟢 Normal
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-3">
+                          <a
+                            href={contactStr.startsWith('@') ? `https://t.me/${contactStr.replace('@', '')}` : `https://wa.me/${contactStr.replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 font-bold border border-emerald-500/40 inline-flex items-center gap-1"
+                          >
+                            <Send className="w-3 h-3" /> Contactar
+                          </a>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

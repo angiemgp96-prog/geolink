@@ -1315,11 +1315,44 @@ app.post("/api/visitor-leads", async (req, res) => {
       return res.status(400).json({ error: "Contacto no válido" });
     }
 
+    const clientIp = getClientIp(req);
+    const detectIpCountry = countryCode || await detectCountryCode(req);
+    const cleanPhone = (contactInfo || '').replace(/[^0-9+]/g, '');
+
+    // Anti-VPN Check: Phone indicates Colombia (+57 / 57 / 3xx), but IP is outside Colombia
+    const isColombiaPhone = cleanPhone.startsWith('+57') || cleanPhone.startsWith('57') || (cleanPhone.length >= 10 && cleanPhone.startsWith('3'));
+    if (isColombiaPhone && detectIpCountry !== 'CO') {
+      console.warn(`[Anti-VPN Phone Evasion] Phone ${cleanPhone} (CO) vs IP ${detectIpCountry} (${clientIp}). Auto-blocking.`);
+      blockedIps.add(clientIp);
+      if (deviceHash) blockedDevices.add(deviceHash.trim());
+
+      try {
+        await supabase.from("blocked_ips").upsert({
+          id: `block_${clientIp.replace(/[^a-z0-9]/gi, '_')}`,
+          ip_address: clientIp,
+          creator_handle: 'angelina69',
+          reason: `Bloqueo automatico: Inconsistencia VPN (Telefono +57 Colombia vs IP ${detectIpCountry})`,
+          created_at: new Date().toISOString()
+        });
+        if (deviceHash) {
+          await supabase.from("blocked_devices").upsert({
+            id: `dev_${deviceHash.replace(/[^a-z0-9]/gi, '_')}`,
+            device_hash: deviceHash.trim(),
+            creator_handle: 'angelina69',
+            reason: `Bloqueo automatico: Inconsistencia VPN (Telefono +57 Colombia vs IP ${detectIpCountry})`,
+            created_at: new Date().toISOString()
+          });
+        }
+      } catch (bErr) {
+        console.warn("[Auto Block Lead VPN Error]", bErr);
+      }
+    }
+
     const leadObj = {
       id: `lead_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       contact_info: contactInfo.trim(),
-      ip_address: getClientIp(req),
-      country_code: countryCode || '',
+      ip_address: clientIp,
+      country_code: detectIpCountry || '',
       device_hash: deviceHash || '',
       created_at: new Date().toISOString()
     };
@@ -1340,11 +1373,30 @@ app.post("/api/visitor-leads", async (req, res) => {
 app.get("/api/visitor-leads", async (req, res) => {
   try {
     const { data, error } = await supabase.from("visitor_leads").select("*").order("created_at", { ascending: false });
-    if (!error && data) {
-      return res.json(data);
+    if (!error && data && data.length > 0) {
+      const mapped = data.map((row: any) => ({
+        id: row.id,
+        contactInfo: row.contact_info || row.contactInfo || '',
+        contact_info: row.contact_info || row.contactInfo || '',
+        ipAddress: row.ip_address || row.ipAddress || '',
+        countryCode: row.country_code || row.countryCode || '',
+        deviceHash: row.device_hash || row.deviceHash || '',
+        createdAt: row.created_at || new Date().toISOString()
+      }));
+      return res.json(mapped);
     }
   } catch {}
-  res.json(visitorLeads);
+
+  const mappedMem = visitorLeads.map((row: any) => ({
+    id: row.id,
+    contactInfo: row.contact_info || row.contactInfo || '',
+    contact_info: row.contact_info || row.contactInfo || '',
+    ipAddress: row.ip_address || row.ipAddress || '',
+    countryCode: row.country_code || row.countryCode || '',
+    deviceHash: row.device_hash || row.deviceHash || '',
+    createdAt: row.created_at || new Date().toISOString()
+  }));
+  res.json(mappedMem);
 });
 
 /**
