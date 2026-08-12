@@ -329,5 +329,31 @@ export const api = {
       console.warn('Error fetching unlocked items:', err);
     }
     return { clientIp: '', unlockedMediaIds: [], unlockedTokensMap: {}, purchases: [] };
+  },
+
+  async getLeadCaptureSetting(): Promise<boolean> {
+    try {
+      const res = await fetch('/api/settings/lead-capture');
+      if (res.ok) {
+        const data = await res.json();
+        return typeof data.requireLeadCapture === 'boolean' ? data.requireLeadCapture : true;
+      }
+    } catch {}
+    return true;
+  },
+
+  async updateLeadCaptureSetting(requireLeadCapture: boolean): Promise<boolean> {
+    try {
+      const res = await fetch('/api/settings/lead-capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requireLeadCapture })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data.requireLeadCapture;
+      }
+    } catch {}
+    return requireLeadCapture;
   }
 };

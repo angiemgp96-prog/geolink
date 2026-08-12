@@ -44,6 +44,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'public' | 'dashboard'>('public');
   const [selectedMediaForPurchase, setSelectedMediaForPurchase] = useState<MediaItem | null>(null);
   const [isNewCreatorModalOpen, setIsNewCreatorModalOpen] = useState<boolean>(false);
+  const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
 
   useEffect(() => {
     try {
@@ -52,11 +53,28 @@ export default function App() {
         setVisitorContact(savedContact);
       }
     } catch {}
+
+    api.getLeadCaptureSetting().then(setRequireLeadCapture).catch(() => {});
   }, []);
 
-  // Reactively trigger lead modal whenever accessAllowed becomes true for allowed visitors
+  // Reactively trigger lead modal or perform silent IP capture
   useEffect(() => {
     if (accessAllowed && !isAdminLoggedIn) {
+      if (!requireLeadCapture) {
+        // OFF MODE: Silent IP & Location logging in Supabase
+        setIsVisitorLeadModalOpen(false);
+        try {
+          const silentDone = sessionStorage.getItem('geolink_silent_lead_saved');
+          if (!silentDone) {
+            api.saveVisitorLead('Captura Silenciosa por IP', visitorLocation.countryCode).then(() => {
+              sessionStorage.setItem('geolink_silent_lead_saved', 'true');
+            }).catch(() => {});
+          }
+        } catch {}
+        return;
+      }
+
+      // ON MODE: Modal popup requirement
       try {
         const savedContact = localStorage.getItem('geolink_visitor_contact');
         if (!savedContact) {
@@ -67,7 +85,7 @@ export default function App() {
         }
       } catch {}
     }
-  }, [accessAllowed, isAdminLoggedIn]);
+  }, [accessAllowed, isAdminLoggedIn, requireLeadCapture, visitorLocation.countryCode]);
 
   const [unlockedMediaIds, setUnlockedMediaIds] = useState<string[]>([]);
   const [unlockedTokensMap, setUnlockedTokensMap] = useState<Record<string, string>>({});

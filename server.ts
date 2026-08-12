@@ -239,34 +239,40 @@ async function syncFromSupabase() {
           }
         });
         console.log(`[Supabase DB] Loaded ${dbBlockedIps.length} blocked IP records.`);
+      if (!bErr && dbBlockedIps) {
+        dbBlockedIps.forEach((b: any) => {
+          if (b.ip_address) blockedIps.add(b.ip_address.trim());
+        });
+        console.log(`[Supabase DB] Loaded ${blockedIps.size} blocked IPs.`);
       }
-    } catch (bErr) {
-      console.warn("[Supabase blocked_ips Sync Warning]", bErr);
-    }
+    } catch {}
 
-    // Load blocked devices from dedicated blocked_devices table in Supabase if exists
     try {
       const { data: dbBlockedDevices, error: dErr } = await supabase.from("blocked_devices").select("*");
-      if (!dErr && dbBlockedDevices && dbBlockedDevices.length > 0) {
-        dbBlockedDevices.forEach(row => {
-          if (row.device_hash) {
-            blockedDevices.add(row.device_hash.trim());
-          }
+      if (!dErr && dbBlockedDevices) {
+        dbBlockedDevices.forEach((d: any) => {
+          if (d.device_hash) blockedDevices.add(d.device_hash.trim());
         });
-        console.log(`[Supabase DB] Loaded ${dbBlockedDevices.length} blocked device fingerprint records.`);
+        console.log(`[Supabase DB] Loaded ${blockedDevices.size} blocked devices.`);
       }
-    } catch (dErr) {
-      console.warn("[Supabase blocked_devices Sync Warning]", dErr);
-    }
+    } catch {}
+
+    try {
+      const { data: dbSetting } = await supabase.from("lead_capture_settings").select("*").eq("id", "default").single();
+      if (dbSetting && typeof dbSetting.require_lead_capture === "boolean") {
+        requireLeadCapture = dbSetting.require_lead_capture;
+        console.log(`[Supabase DB] Loaded requireLeadCapture: ${requireLeadCapture}`);
+      }
+    } catch {}
 
     const { data: dbMedia, error: mErr } = await supabase.from("media_items").select("*");
     if (!mErr && dbMedia && dbMedia.length > 0) {
-      mediaItems = dbMedia.map(fromSupabaseMedia);
-      console.log(`[Supabase DB] Loaded ${mediaItems.length} media store items.`);
+      mediaItems = dbMedia.map(fromSupabaseMediaItem);
+      console.log(`[Supabase DB] Loaded ${mediaItems.length} media items.`);
     }
 
     const { data: dbPurchases, error: pErr } = await supabase.from("purchases").select("*");
-    if (!pErr && dbPurchases && dbPurchases.length > 0) {
+    if (!pErr && dbPurchases) {
       purchases = dbPurchases.map(fromSupabasePurchase);
       console.log(`[Supabase DB] Loaded ${purchases.length} purchase records.`);
     }
@@ -1311,13 +1317,11 @@ let visitorLeads: any[] = [];
 app.post("/api/visitor-leads", async (req, res) => {
   try {
     const { contactInfo, countryCode, deviceHash } = req.body;
-    if (!contactInfo || contactInfo.trim().length < 3) {
-      return res.status(400).json({ error: "Contacto no válido" });
-    }
+    const finalContact = (contactInfo && contactInfo.trim().length >= 3) ? contactInfo.trim() : 'Captura Silenciosa por IP';
 
     const clientIp = getClientIp(req);
     const detectIpCountry = countryCode || await detectCountryCode(req);
-    const cleanPhone = (contactInfo || '').replace(/[^0-9+]/g, '');
+    const cleanPhone = (finalContact || '').replace(/[^0-9+]/g, '');
 
     // Anti-VPN Check: Phone indicates Colombia (+57 / 57 / 3xx), but IP is outside Colombia
     const isColombiaPhone = cleanPhone.startsWith('+57') || cleanPhone.startsWith('57') || (cleanPhone.length >= 10 && cleanPhone.startsWith('3'));
@@ -1350,7 +1354,7 @@ app.post("/api/visitor-leads", async (req, res) => {
 
     const leadObj = {
       id: `lead_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      contact_info: contactInfo.trim(),
+      contact_info: finalContact,
       ip_address: clientIp,
       country_code: detectIpCountry || '',
       device_hash: deviceHash || '',
@@ -1397,6 +1401,34 @@ app.get("/api/visitor-leads", async (req, res) => {
     createdAt: row.created_at || new Date().toISOString()
   }));
   res.json(mappedMem);
+});
+
+// ----------------------------------------------------
+// LEAD CAPTURE SETTINGS (ON / OFF SWITCH)
+// ----------------------------------------------------
+app.get("/api/settings/lead-capture", (req, res) => {
+  res.json({ requireLeadCapture });
+});
+
+app.post("/api/settings/lead-capture", async (req, res) => {
+  try {
+    const { requireLeadCapture: enabled } = req.body;
+    requireLeadCapture = Boolean(enabled);
+
+    try {
+      await supabase.from("lead_capture_settings").upsert({
+        id: "default",
+        require_lead_capture: requireLeadCapture,
+        updated_at: new Date().toISOString()
+      });
+    } catch (sErr) {
+      console.warn("[Supabase lead_capture_settings Upsert Error]", sErr);
+    }
+
+    res.json({ success: true, requireLeadCapture });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 /**

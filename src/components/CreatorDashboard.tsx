@@ -51,6 +51,16 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   const [purchasesHistory, setPurchasesHistory] = useState<PurchaseRecord[]>([]);
   const [testPhone, setTestPhone] = useState('');
   const [waTestResponse, setWaTestResponse] = useState<string | null>(null);
+  const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
+
+  useEffect(() => {
+    api.getLeadCaptureSetting().then(setRequireLeadCapture).catch(() => {});
+  }, []);
+
+  const handleToggleLeadCapture = async (enabled: boolean) => {
+    setRequireLeadCapture(enabled);
+    await api.updateLeadCaptureSetting(enabled);
+  };
 
   useEffect(() => {
     if (creator) {
@@ -1235,6 +1245,43 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
       {/* TAB 7: PROSPECTOS / LEADS CAPTURADOS */}
       {activeTab === 'leads' && (
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6">
+          
+          {/* Lead Capture Mode Switch ON / OFF Card */}
+          <div className="bg-slate-800/80 border border-purple-500/40 rounded-2xl p-5 space-y-3 shadow-lg">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h4 className="font-extrabold text-sm text-white flex items-center gap-2">
+                  <span>Modo de Captura de Contactos (Modal al Ingresar)</span>
+                  <span className={`px-2.5 py-0.5 rounded text-[10px] font-black uppercase ${requireLeadCapture ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'}`}>
+                    {requireLeadCapture ? '🟢 ACTIVADO (ON)' : '🔴 DESACTIVADO (OFF)'}
+                  </span>
+                </h4>
+                <p className="text-xs text-slate-300 mt-1 leading-snug">
+                  {requireLeadCapture
+                    ? 'El visitante debe ingresar su número de WhatsApp o Telegram antes de explorar el perfil.'
+                    : 'Los visitantes ingresan directamente sin modal. El sistema guarda silenciosamente su IP y ubicación en Supabase.'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleToggleLeadCapture(true)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${requireLeadCapture ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'bg-slate-900 text-slate-400 border border-slate-700 hover:text-white'}`}
+                >
+                  🟢 ACTIVADO (ON)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleToggleLeadCapture(false)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${!requireLeadCapture ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30' : 'bg-slate-900 text-slate-400 border border-slate-700 hover:text-white'}`}
+                >
+                  🔴 DESACTIVADO (OFF)
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
             <div>
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
