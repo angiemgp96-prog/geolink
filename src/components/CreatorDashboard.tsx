@@ -51,19 +51,41 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   const [waTestResponse, setWaTestResponse] = useState<string | null>(null);
 
   useEffect(() => {
-    setProfile({ ...creator });
+    if (creator) {
+      setProfile({
+        ...creator,
+        blockedCountries: Array.isArray(creator.blockedCountries) ? creator.blockedCountries : ['CO'],
+        links: Array.isArray(creator.links) ? creator.links : [],
+        paymentSettings: creator.paymentSettings || {
+          mercadoPagoAccessToken: '',
+          mercadoPagoPublicKey: '',
+          payPalClientId: '',
+          payPalClientSecret: '',
+          payPalMode: 'live',
+          customPaymentLinks: []
+        }
+      });
+    }
     loadPurchases();
     loadVisitorLeads();
   }, [creator]);
 
   const loadPurchases = async () => {
-    const data = await api.getPurchases(creator.handle);
-    setPurchasesHistory(data);
+    try {
+      const data = await api.getPurchases(creator.handle);
+      setPurchasesHistory(Array.isArray(data) ? data : []);
+    } catch {
+      setPurchasesHistory([]);
+    }
   };
 
   const loadVisitorLeads = async () => {
-    const data = await api.getVisitorLeads();
-    setVisitorLeads(data);
+    try {
+      const data = await api.getVisitorLeads();
+      setVisitorLeads(Array.isArray(data) ? data : []);
+    } catch {
+      setVisitorLeads([]);
+    }
   };
 
   const handleApprovePurchase = async (tokenOrId: string) => {
@@ -253,7 +275,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
           }`}
         >
           <ShieldAlert className="w-4 h-4 text-amber-400" />
-          <span>Bloqueo Geográfico IP ({profile.blockedCountries.length})</span>
+          <span>Bloqueo Geográfico IP ({(profile.blockedCountries || []).length})</span>
         </button>
 
         <button
@@ -266,7 +288,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
           }`}
         >
           <ShoppingBag className="w-4 h-4 text-purple-400" />
-          <span>Tienda Fotos/Videos ({mediaItems.length})</span>
+          <span>Tienda Fotos/Videos ({(mediaItems || []).length})</span>
         </button>
 
         <button
@@ -305,7 +327,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
           }`}
         >
           <LinkIcon className="w-4 h-4 text-pink-400" />
-          <span>Perfil & Enlaces ({profile.links.length})</span>
+          <span>Perfil & Enlaces ({(profile.links || []).length})</span>
         </button>
 
         <button
@@ -318,7 +340,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
           }`}
         >
           <History className="w-4 h-4 text-indigo-400" />
-          <span>Ventas & Descargas ({purchasesHistory.length})</span>
+          <span>Ventas & Descargas ({(purchasesHistory || []).length})</span>
         </button>
 
         <button
@@ -331,7 +353,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
           }`}
         >
           <UserCheck className="w-4 h-4 text-purple-400" />
-          <span>Prospectos / Leads ({visitorLeads.length})</span>
+          <span>Prospectos / Leads ({(visitorLeads || []).length})</span>
         </button>
 
       </div>
