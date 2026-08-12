@@ -354,14 +354,16 @@ export default function App() {
         </button>
       </footer>
 
-      {/* Visitor Lead Capture Modal */}
-      <VisitorLeadModal
-        isOpen={isVisitorLeadModalOpen}
-        onClose={(contact) => {
-          setVisitorContact(contact);
-          setIsVisitorLeadModalOpen(false);
-        }}
-      />
+      {/* Visitor Lead Capture Modal (Only for allowed countries and non-admins) */}
+      {accessAllowed && !isAdminLoggedIn && (
+        <VisitorLeadModal
+          isOpen={isVisitorLeadModalOpen}
+          onClose={(contact) => {
+            setVisitorContact(contact);
+            setIsVisitorLeadModalOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
