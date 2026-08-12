@@ -232,20 +232,13 @@ async function syncFromSupabase() {
     // Load blocked IPs from dedicated blocked_ips table in Supabase if exists
     try {
       const { data: dbBlockedIps, error: bErr } = await supabase.from("blocked_ips").select("*");
-      if (!bErr && dbBlockedIps && dbBlockedIps.length > 0) {
-        dbBlockedIps.forEach(row => {
-          if (row.ip_address) {
-            blockedIps.add(row.ip_address.trim());
-          }
-        });
-        console.log(`[Supabase DB] Loaded ${dbBlockedIps.length} blocked IP records.`);
       if (!bErr && dbBlockedIps) {
         dbBlockedIps.forEach((b: any) => {
           if (b.ip_address) blockedIps.add(b.ip_address.trim());
         });
         console.log(`[Supabase DB] Loaded ${blockedIps.size} blocked IPs.`);
       }
-    } catch {}
+    } catch (_err) {}
 
     try {
       const { data: dbBlockedDevices, error: dErr } = await supabase.from("blocked_devices").select("*");
@@ -255,7 +248,7 @@ async function syncFromSupabase() {
         });
         console.log(`[Supabase DB] Loaded ${blockedDevices.size} blocked devices.`);
       }
-    } catch {}
+    } catch (_err) {}
 
     try {
       const { data: dbSetting } = await supabase.from("lead_capture_settings").select("*").eq("id", "default").single();
@@ -263,7 +256,7 @@ async function syncFromSupabase() {
         requireLeadCapture = dbSetting.require_lead_capture;
         console.log(`[Supabase DB] Loaded requireLeadCapture: ${requireLeadCapture}`);
       }
-    } catch {}
+    } catch (_err) {}
 
     const { data: dbMedia, error: mErr } = await supabase.from("media_items").select("*");
     if (!mErr && dbMedia && dbMedia.length > 0) {
