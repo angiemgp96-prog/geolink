@@ -9,6 +9,7 @@ interface CreatorDashboardProps {
   mediaItems: MediaItem[];
   onUpdateCreator: (updated: CreatorProfile) => void;
   onRefreshData: () => void;
+  onTestLeadModal?: () => void;
 }
 
 export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
@@ -16,6 +17,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   mediaItems,
   onUpdateCreator,
   onRefreshData,
+  onTestLeadModal,
 }) => {
   const [activeTab, setActiveTab] = useState<'geoblock' | 'store' | 'payments' | 'whatsapp' | 'links' | 'sales' | 'leads'>('geoblock');
   
@@ -428,7 +430,71 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
       {/* TAB 2: STORE MANAGER (Fotos y Videos) */}
       {activeTab === 'store' && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          
+          {/* Store Mode Selector Card */}
+          <div className="bg-gradient-to-r from-purple-950/60 via-slate-900 to-indigo-950/60 border border-purple-500/40 rounded-3xl p-6 space-y-3 shadow-xl">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-amber-400" />
+              <h4 className="font-extrabold text-base text-white">Modo de Operación de la Tienda</h4>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Selecciona cómo deseas ofrecer tu contenido exclusivo a los visitantes. Puedes alternar entre suscripciones mensuales y ventas de productos individuales.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setProfile({ ...profile, storeMode: 'subscription' })}
+                className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                  (profile.storeMode || 'subscription') === 'subscription'
+                    ? 'bg-purple-600/30 border-purple-500 text-white shadow-lg shadow-purple-900/30'
+                    : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <div className="font-bold text-sm text-purple-300 mb-1 flex items-center gap-1.5">
+                  👑 Membresía Suscripción
+                </div>
+                <div className="text-[11px] text-slate-300 leading-snug">
+                  Muestra el botón de <strong>$50 USD Acceso Full</strong>. Desbloquea todo el catálogo estándar automáticamente por 30 días.
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setProfile({ ...profile, storeMode: 'store' })}
+                className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                  profile.storeMode === 'store'
+                    ? 'bg-indigo-600/30 border-indigo-500 text-white shadow-lg shadow-indigo-900/30'
+                    : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <div className="font-bold text-sm text-indigo-300 mb-1 flex items-center gap-1.5">
+                  🛍️ Tienda de Ventas Individuales
+                </div>
+                <div className="text-[11px] text-slate-300 leading-snug">
+                  Oculta la suscripción y vende cada foto o video de forma independiente por su precio asignado.
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setProfile({ ...profile, storeMode: 'hybrid' })}
+                className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                  profile.storeMode === 'hybrid'
+                    ? 'bg-amber-600/30 border-amber-500 text-white shadow-lg shadow-amber-900/30'
+                    : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <div className="font-bold text-sm text-amber-300 mb-1 flex items-center gap-1.5">
+                  ⚡ Modo Híbrido (Ambos)
+                </div>
+                <div className="text-[11px] text-slate-300 leading-snug">
+                  Ofrece el botón de Suscripción $50 USD y también permite la compra individual de cada producto.
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
             <h3 className="text-xl font-bold text-white">Gestión de Contenido Exclusivo</h3>
             <button
               id="add-media-item-button"
@@ -542,6 +608,20 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                     onChange={(e) => setNewMedia({ ...newMedia, fileSize: e.target.value })}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
                   />
+                </div>
+
+                {/* Extra Premium Checkbox */}
+                <div className="md:col-span-2 bg-slate-800/80 p-3 rounded-2xl border border-amber-500/30 flex items-center gap-3">
+                  <input
+                    id="new-media-extra-premium-checkbox"
+                    type="checkbox"
+                    checked={Boolean(newMedia.isExtraPremium)}
+                    onChange={(e) => setNewMedia({ ...newMedia, isExtraPremium: e.target.checked })}
+                    className="w-4 h-4 text-amber-500 rounded focus:ring-amber-400 cursor-pointer"
+                  />
+                  <label htmlFor="new-media-extra-premium-checkbox" className="text-xs font-bold text-amber-300 cursor-pointer flex items-center gap-1">
+                    💎 Marcar como EXTRA PREMIUM (Excluido de la Suscripción Mensual $50 USD)
+                  </label>
                 </div>
               </div>
 
@@ -680,6 +760,20 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
                   />
                 </div>
+
+                {/* Extra Premium Checkbox */}
+                <div className="md:col-span-2 bg-slate-800/80 p-3 rounded-2xl border border-amber-500/30 flex items-center gap-3">
+                  <input
+                    id="edit-media-extra-premium-checkbox"
+                    type="checkbox"
+                    checked={Boolean(editingMedia.isExtraPremium)}
+                    onChange={(e) => setEditingMedia({ ...editingMedia, isExtraPremium: e.target.checked })}
+                    className="w-4 h-4 text-amber-500 rounded focus:ring-amber-400 cursor-pointer"
+                  />
+                  <label htmlFor="edit-media-extra-premium-checkbox" className="text-xs font-bold text-amber-300 cursor-pointer flex items-center gap-1">
+                    💎 Marcar como EXTRA PREMIUM (Excluido de la Suscripción Mensual $50 USD)
+                  </label>
+                </div>
               </div>
 
               <div>
@@ -722,7 +816,14 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                   className="w-20 h-20 rounded-xl object-cover shrink-0 border border-slate-700"
                 />
                 <div className="flex-1 overflow-hidden">
-                  <h4 className="font-bold text-sm text-white truncate">{item.title}</h4>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-bold text-sm text-white truncate">{item.title}</h4>
+                    {item.isExtraPremium && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
+                        💎 EXTRA PREMIUM
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-purple-400 font-semibold mt-0.5">
                     ${item.price.toFixed(2)} {item.currency}
                   </p>
@@ -1142,12 +1243,22 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
               </h2>
               <p className="text-xs text-slate-400 mt-1">Lista de usuarios que han ingresado su contacto al visitar tu sitio web.</p>
             </div>
-            <button
-              onClick={loadVisitorLeads}
-              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1.5"
-            >
-              <RefreshCw className="w-3.5 h-3.5" /> Recargar
-            </button>
+            <div className="flex items-center gap-2">
+              {onTestLeadModal && (
+                <button
+                  onClick={onTestLeadModal}
+                  className="px-3 py-1.5 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-xs font-bold text-purple-300 flex items-center gap-1.5 transition-all"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-purple-400" /> Probar Modal de Captura en Vivo 🚀
+                </button>
+              )}
+              <button
+                onClick={loadVisitorLeads}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1.5"
+              >
+                <RefreshCw className="w-3.5 h-3.5" /> Recargar
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">

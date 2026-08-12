@@ -24,14 +24,24 @@ export default function App() {
       const savedContact = localStorage.getItem('geolink_visitor_contact');
       if (savedContact) {
         setVisitorContact(savedContact);
-      } else {
-        const timer = setTimeout(() => {
-          setIsVisitorLeadModalOpen(true);
-        }, 1200);
-        return () => clearTimeout(timer);
       }
     } catch {}
   }, []);
+
+  // Reactively trigger lead modal whenever accessAllowed becomes true for allowed visitors
+  useEffect(() => {
+    if (accessAllowed && !isAdminLoggedIn) {
+      try {
+        const savedContact = localStorage.getItem('geolink_visitor_contact');
+        if (!savedContact) {
+          const timer = setTimeout(() => {
+            setIsVisitorLeadModalOpen(true);
+          }, 800);
+          return () => clearTimeout(timer);
+        }
+      } catch {}
+    }
+  }, [accessAllowed, isAdminLoggedIn]);
   
   const [visitorLocation, setVisitorLocation] = useState<VisitorLocation>({
     ip: '181.16.2.44',
@@ -288,6 +298,12 @@ export default function App() {
             mediaItems={mediaItems}
             onUpdateCreator={handleUpdateCreator}
             onRefreshData={handleRefreshData}
+            onTestLeadModal={() => {
+              localStorage.removeItem('geolink_visitor_contact');
+              setVisitorContact('');
+              setIsVisitorLeadModalOpen(true);
+              setActiveTab('public');
+            }}
           />
         )}
       </main>
