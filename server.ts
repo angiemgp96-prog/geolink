@@ -260,8 +260,8 @@ async function syncFromSupabase() {
 
     const { data: dbMedia, error: mErr } = await supabase.from("media_items").select("*");
     if (!mErr && dbMedia && dbMedia.length > 0) {
-      mediaItems = dbMedia.map(fromSupabaseMediaItem);
-      console.log(`[Supabase DB] Loaded ${mediaItems.length} media items.`);
+      mediaItems = dbMedia.map(fromSupabaseMedia);
+      console.log(`[Supabase DB] Loaded ${mediaItems.length} media items from Supabase.`);
     }
 
     const { data: dbPurchases, error: pErr } = await supabase.from("purchases").select("*");

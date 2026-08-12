@@ -44,6 +44,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   }, []);
 
   const filteredItems = mediaItems.filter((item) => {
+    if (item.id === 'acceso_full_cat_actual') return false;
     if (filterType === 'all') return true;
     return item.type === filterType;
   });
