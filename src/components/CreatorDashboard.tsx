@@ -778,10 +778,17 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                   id="mp-access-token-input"
                   type="password"
                   placeholder="APP_USR-xxxxxx-xxxxxx-xxxxxx"
-                  value={profile.paymentSettings.mercadoPagoAccessToken}
+                  value={profile.paymentSettings?.mercadoPagoAccessToken || ''}
                   onChange={(e) => setProfile({
                     ...profile,
-                    paymentSettings: { ...profile.paymentSettings, mercadoPagoAccessToken: e.target.value }
+                    paymentSettings: {
+                      mercadoPagoPublicKey: profile.paymentSettings?.mercadoPagoPublicKey || '',
+                      payPalClientId: profile.paymentSettings?.payPalClientId || '',
+                      payPalClientSecret: profile.paymentSettings?.payPalClientSecret || '',
+                      payPalMode: profile.paymentSettings?.payPalMode || 'live',
+                      customPaymentLinks: profile.paymentSettings?.customPaymentLinks || [],
+                      mercadoPagoAccessToken: e.target.value
+                    }
                   })}
                   className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white font-mono"
                 />
@@ -804,10 +811,17 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                     id="paypal-client-id-input"
                     type="text"
                     placeholder="AXXXXXX..."
-                    value={profile.paymentSettings.payPalClientId}
+                    value={profile.paymentSettings?.payPalClientId || ''}
                     onChange={(e) => setProfile({
                       ...profile,
-                      paymentSettings: { ...profile.paymentSettings, payPalClientId: e.target.value }
+                      paymentSettings: {
+                        mercadoPagoAccessToken: profile.paymentSettings?.mercadoPagoAccessToken || '',
+                        mercadoPagoPublicKey: profile.paymentSettings?.mercadoPagoPublicKey || '',
+                        payPalClientSecret: profile.paymentSettings?.payPalClientSecret || '',
+                        payPalMode: profile.paymentSettings?.payPalMode || 'live',
+                        customPaymentLinks: profile.paymentSettings?.customPaymentLinks || [],
+                        payPalClientId: e.target.value
+                      }
                     })}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white font-mono"
                   />
@@ -819,10 +833,17 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                     id="paypal-secret-input"
                     type="password"
                     placeholder="EXXXXXX..."
-                    value={profile.paymentSettings.payPalClientSecret}
+                    value={profile.paymentSettings?.payPalClientSecret || ''}
                     onChange={(e) => setProfile({
                       ...profile,
-                      paymentSettings: { ...profile.paymentSettings, payPalClientSecret: e.target.value }
+                      paymentSettings: {
+                        mercadoPagoAccessToken: profile.paymentSettings?.mercadoPagoAccessToken || '',
+                        mercadoPagoPublicKey: profile.paymentSettings?.mercadoPagoPublicKey || '',
+                        payPalClientId: profile.paymentSettings?.payPalClientId || '',
+                        payPalMode: profile.paymentSettings?.payPalMode || 'live',
+                        customPaymentLinks: profile.paymentSettings?.customPaymentLinks || [],
+                        payPalClientSecret: e.target.value
+                      }
                     })}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white font-mono"
                   />

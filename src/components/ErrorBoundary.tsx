@@ -35,6 +35,11 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="text-xs text-slate-400 leading-relaxed">
               Ocurrió un ajuste de memoria en el navegador. Haz clic para recargar el panel de forma limpia.
             </p>
+            {this.state.error && (
+              <div className="bg-slate-950 border border-amber-500/30 p-3 rounded-xl text-[11px] text-amber-300 font-mono text-left overflow-x-auto max-h-32">
+                {this.state.error.toString()}
+              </div>
+            )}
             <button
               onClick={() => {
                 this.setState({ hasError: false, error: null });
