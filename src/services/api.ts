@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { CreatorProfile, MediaItem, PurchaseRecord, VisitorLocation, VisitorLead } from '../types';
+import { CreatorProfile, MediaItem, PurchaseRecord, VisitorLocation, VisitorLead, PaymentMethodsVisibility } from '../types';
 
 const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL || 'https://eqpabbrmdssgoaaqtkgu.supabase.co';
 const SUPABASE_ANON_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcGFiYnJtZHNzZ29hYXF0a2d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxMDk2NTMsImV4cCI6MjEwMTY4NTY1M30.K09vvdfxkuBxd64RuQey9KV13Yz20fBBPkbWQOGGodQ';
@@ -367,5 +367,81 @@ export const api = {
       }
     } catch {}
     return requireLeadCapture;
+  },
+
+  async getPaymentMethodsVisibility(): Promise<PaymentMethodsVisibility> {
+    const defaultVis: PaymentMethodsVisibility = {
+      mercadopago: true,
+      paypal: true,
+      paypal_telegram: true,
+      nequi_usa: true,
+    };
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('payment_methods_visibility')
+          .select('*')
+          .limit(1);
+        if (!error && data && data.length > 0) {
+          const row = data[0];
+          return {
+            mercadopago: typeof row.mercadopago === 'boolean' ? row.mercadopago : true,
+            paypal: typeof row.paypal === 'boolean' ? row.paypal : true,
+            paypal_telegram: typeof row.paypal_telegram === 'boolean' ? row.paypal_telegram : true,
+            nequi_usa: typeof row.nequi_usa === 'boolean' ? row.nequi_usa : true,
+          };
+        }
+      } catch (err) {
+        console.warn('Supabase fetch payment_methods_visibility warning:', err);
+      }
+    }
+
+    try {
+      const res = await fetch('/api/settings/payment-methods-visibility');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.visibility) {
+          return {
+            mercadopago: typeof data.visibility.mercadopago === 'boolean' ? data.visibility.mercadopago : true,
+            paypal: typeof data.visibility.paypal === 'boolean' ? data.visibility.paypal : true,
+            paypal_telegram: typeof data.visibility.paypal_telegram === 'boolean' ? data.visibility.paypal_telegram : true,
+            nequi_usa: typeof data.visibility.nequi_usa === 'boolean' ? data.visibility.nequi_usa : true,
+          };
+        }
+      }
+    } catch {}
+
+    return defaultVis;
+  },
+
+  async updatePaymentMethodsVisibility(visibility: PaymentMethodsVisibility): Promise<PaymentMethodsVisibility> {
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('payment_methods_visibility').upsert({
+          id: 'default',
+          mercadopago: visibility.mercadopago,
+          paypal: visibility.paypal,
+          paypal_telegram: visibility.paypal_telegram,
+          nequi_usa: visibility.nequi_usa,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+      } catch (err) {
+        console.warn('Supabase update payment_methods_visibility warning:', err);
+      }
+    }
+
+    try {
+      const res = await fetch('/api/settings/payment-methods-visibility', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ visibility })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.visibility) return data.visibility;
+      }
+    } catch {}
+
+    return visibility;
   }
 };

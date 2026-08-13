@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, CreditCard, ShoppingBag, Link as LinkIcon, MessageSquare, History, Plus, Trash2, Edit, Save, CheckCircle, AlertCircle, RefreshCw, Send, DollarSign, Globe, Lock, UserCheck, Sparkles } from 'lucide-react';
-import { CreatorProfile, MediaItem, PurchaseRecord, CustomLink, VisitorLead } from '../types';
+import { ShieldAlert, CreditCard, ShoppingBag, Link as LinkIcon, MessageSquare, History, Plus, Trash2, Edit, Save, CheckCircle, AlertCircle, RefreshCw, Send, DollarSign, Globe, Lock, UserCheck, Sparkles, Eye } from 'lucide-react';
+import { CreatorProfile, MediaItem, PurchaseRecord, CustomLink, VisitorLead, PaymentMethodsVisibility } from '../types';
 import { COUNTRIES_LIST } from '../data/countries';
 import { api } from '../services/api';
 
@@ -52,14 +52,27 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   const [testPhone, setTestPhone] = useState('');
   const [waTestResponse, setWaTestResponse] = useState<string | null>(null);
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
+  const [paymentVisibility, setPaymentVisibility] = useState<PaymentMethodsVisibility>({
+    mercadopago: true,
+    paypal: true,
+    paypal_telegram: true,
+    nequi_usa: true,
+  });
 
   useEffect(() => {
     api.getLeadCaptureSetting().then(setRequireLeadCapture).catch(() => {});
+    api.getPaymentMethodsVisibility().then(setPaymentVisibility).catch(() => {});
   }, []);
 
   const handleToggleLeadCapture = async (enabled: boolean) => {
     setRequireLeadCapture(enabled);
     await api.updateLeadCaptureSetting(enabled);
+  };
+
+  const handleTogglePaymentVisibility = async (key: keyof PaymentMethodsVisibility, value: boolean) => {
+    const updated = { ...paymentVisibility, [key]: value };
+    setPaymentVisibility(updated);
+    await api.updatePaymentMethodsVisibility(updated);
   };
 
   useEffect(() => {
@@ -873,6 +886,95 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
               <CreditCard className="w-5 h-5 text-sky-400" />
               <span>Configuración de Pasarelas de Pago API</span>
             </h3>
+
+            {/* VISIBILIDAD DE MÉTODOS DE PAGO */}
+            <div className="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-sm text-indigo-300 flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-indigo-400" />
+                    <span>Visibilidad de Botones de Pago en Checkout</span>
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Oculta o muestra los botones de pago que verán tus clientes en la pantalla de compra. No altera tus credenciales API ni el procesamiento.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                {/* Mercado Pago */}
+                <div className="flex items-center justify-between p-3.5 bg-slate-900/80 border border-slate-700/60 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <CreditCard className="w-5 h-5 text-sky-400 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold text-white">Mercado Pago</div>
+                      <div className="text-[10px] text-slate-400">Tarjetas · Nequi · PSE</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePaymentVisibility('mercadopago', !paymentVisibility.mercadopago)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentVisibility.mercadopago ? 'bg-sky-500' : 'bg-slate-700'}`}
+                  >
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${paymentVisibility.mercadopago ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+
+                {/* PayPal Live API */}
+                <div className="flex items-center justify-between p-3.5 bg-slate-900/80 border border-slate-700/60 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded bg-blue-600/30 text-blue-400 font-extrabold italic text-xs flex items-center justify-center shrink-0">P</div>
+                    <div>
+                      <div className="text-xs font-bold text-white">PayPal (API Directa)</div>
+                      <div className="text-[10px] text-slate-400">Checkout Oficial API</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePaymentVisibility('paypal', !paymentVisibility.paypal)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentVisibility.paypal ? 'bg-blue-500' : 'bg-slate-700'}`}
+                  >
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${paymentVisibility.paypal ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+
+                {/* PayPal Telegram */}
+                <div className="flex items-center justify-between p-3.5 bg-slate-900/80 border border-slate-700/60 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <Send className="w-5 h-5 text-emerald-400 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold text-white">PayPal vía Telegram</div>
+                      <div className="text-[10px] text-slate-400">Enlace paypal.me + Chat</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePaymentVisibility('paypal_telegram', !paymentVisibility.paypal_telegram)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentVisibility.paypal_telegram ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                  >
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${paymentVisibility.paypal_telegram ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+
+                {/* Nequi USA */}
+                <div className="flex items-center justify-between p-3.5 bg-slate-900/80 border border-slate-700/60 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <span className="text-base shrink-0">🇨🇴</span>
+                    <div>
+                      <div className="text-xs font-bold text-white">Nequi Giro USA</div>
+                      <div className="text-[10px] text-slate-400">Giros desde Estados Unidos</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePaymentVisibility('nequi_usa', !paymentVisibility.nequi_usa)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentVisibility.nequi_usa ? 'bg-purple-500' : 'bg-slate-700'}`}
+                  >
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${paymentVisibility.nequi_usa ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+              </div>
+            </div>
 
             {/* Mercado Pago */}
             <div className="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-5 space-y-4">

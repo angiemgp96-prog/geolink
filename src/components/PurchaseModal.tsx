@@ -4,7 +4,7 @@ import {
   AlertCircle, Sparkles, ShieldCheck, ArrowRight, Phone, Send,
   Loader2, RefreshCw,
 } from 'lucide-react';
-import { MediaItem, PurchaseRecord } from '../types';
+import { MediaItem, PurchaseRecord, PaymentMethodsVisibility } from '../types';
 import { api } from '../services/api';
 
 // ─── Configuración de enlaces estáticos ──────────────────────────────
@@ -41,6 +41,23 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   // PayPal Live API state
   const [paypalUnlockToken, setPaypalUnlockToken] = useState<string | null>(null);
   const [paypalOrderId, setPaypalOrderId]         = useState<string | null>(null);
+
+  // Visibilidad de métodos de pago desde Supabase/API
+  const [paymentVisibility, setPaymentVisibility] = useState<PaymentMethodsVisibility>({
+    mercadopago: true,
+    paypal: true,
+    paypal_telegram: true,
+    nequi_usa: true,
+  });
+
+  useEffect(() => {
+    if (!item) return;
+    api.getPaymentMethodsVisibility()
+      .then((vis) => {
+        if (vis) setPaymentVisibility(vis);
+      })
+      .catch(() => {});
+  }, [item]);
 
   if (!item) return null;
 
@@ -278,82 +295,96 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
 
             <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-3">Selecciona método de pago:</p>
 
-            <div className="space-y-3">
-              {/* Mercado Pago — Redirección Directa */}
-              <button
-                id="pay-mercadopago-button"
-                disabled={isLoading}
-                onClick={handleMercadoPagoDirect}
-                className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-sky-600/20 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-                    <CreditCard className="w-5 h-5" />
-                  </div>
-                  <div className="text-left">
-                    <div>Mercado Pago</div>
-                    <div className="text-[11px] font-normal text-sky-100">Tarjetas · Nequi · PSE · Débito</div>
-                  </div>
-                </div>
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
-              </button>
+            {(!paymentVisibility.mercadopago && !paymentVisibility.paypal && !paymentVisibility.paypal_telegram && !paymentVisibility.nequi_usa) ? (
+              <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/30 text-amber-300 text-xs text-center font-medium my-3">
+                ⚠️ No hay métodos de pago habilitados visualmente en este momento.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {/* Mercado Pago — Redirección Directa */}
+                {paymentVisibility.mercadopago && (
+                  <button
+                    id="pay-mercadopago-button"
+                    disabled={isLoading}
+                    onClick={handleMercadoPagoDirect}
+                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-sky-600/20 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                        <CreditCard className="w-5 h-5" />
+                      </div>
+                      <div className="text-left">
+                        <div>Mercado Pago</div>
+                        <div className="text-[11px] font-normal text-sky-100">Tarjetas · Nequi · PSE · Débito</div>
+                      </div>
+                    </div>
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
+                  </button>
+                )}
 
-              {/* PayPal Live API Direct */}
-              <button
-                id="pay-paypal-button"
-                disabled={isLoading}
-                onClick={handlePayPalDirect}
-                className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#003087] to-[#009cde] hover:from-[#00256a] hover:to-[#0082c2] text-white font-bold text-sm shadow-lg shadow-blue-900/30 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-                    <span className="font-extrabold italic text-base leading-none">P</span>
-                  </div>
-                  <div className="text-left">
-                    <div>PayPal (Oficial Live API)</div>
-                    <div className="text-[11px] font-normal text-blue-200">Tarjetas internacionales · USD (Verificación Directa)</div>
-                  </div>
-                </div>
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
-              </button>
+                {/* PayPal Live API Direct */}
+                {paymentVisibility.paypal && (
+                  <button
+                    id="pay-paypal-button"
+                    disabled={isLoading}
+                    onClick={handlePayPalDirect}
+                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#003087] to-[#009cde] hover:from-[#00256a] hover:to-[#0082c2] text-white font-bold text-sm shadow-lg shadow-blue-900/30 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                        <span className="font-extrabold italic text-base leading-none">P</span>
+                      </div>
+                      <div className="text-left">
+                        <div>PayPal (Oficial Live API)</div>
+                        <div className="text-[11px] font-normal text-blue-200">Tarjetas internacionales · USD (Verificación Directa)</div>
+                      </div>
+                    </div>
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
+                  </button>
+                )}
 
-              {/* PayPal vía Telegram Directo (PayPal.me/[monto]USD) */}
-              <a
-                id="pay-paypal-telegram-button"
-                href={buildPayPalTelegramLink()}
-                onClick={handlePayPalTelegramClick}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-between transition-all cursor-pointer group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-                    <Send className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <div>Pagar vía Telegram (PayPal.me Directo)</div>
-                    <div className="text-[11px] font-normal text-emerald-100">paypal.me/angieG473/{Math.round(item.price)}USD · Chat @{TELEGRAM_USER}</div>
-                  </div>
-                </div>
-                <ExternalLink className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
-              </a>
+                {/* PayPal vía Telegram Directo (PayPal.me/[monto]USD) */}
+                {paymentVisibility.paypal_telegram && (
+                  <a
+                    id="pay-paypal-telegram-button"
+                    href={buildPayPalTelegramLink()}
+                    onClick={handlePayPalTelegramClick}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-between transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                        <Send className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="text-left">
+                        <div>Pagar vía Telegram (PayPal.me Directo)</div>
+                        <div className="text-[11px] font-normal text-emerald-100">paypal.me/angieG473/{Math.round(item.price)}USD · Chat @{TELEGRAM_USER}</div>
+                      </div>
+                    </div>
+                    <ExternalLink className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                  </a>
+                )}
 
-              {/* Nequi USA */}
-              <button
-                id="pay-nequi-usa-button"
-                onClick={() => { setErrorMessage(''); setScreen('contact_nequi'); }}
-                className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#6a0dad] to-[#9b30d9] hover:from-[#5a0b99] hover:to-[#8525c5] text-white font-bold text-sm shadow-lg shadow-purple-900/30 flex items-center justify-between transition-all cursor-pointer group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇨🇴</div>
-                  <div className="text-left">
-                    <div>Nequi — Giro desde USA</div>
-                    <div className="text-[11px] font-normal text-purple-200">Envío fácil desde Estados Unidos</div>
-                  </div>
-                </div>
-                <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-            </div>
+                {/* Nequi USA */}
+                {paymentVisibility.nequi_usa && (
+                  <button
+                    id="pay-nequi-usa-button"
+                    onClick={() => { setErrorMessage(''); setScreen('contact_nequi'); }}
+                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#6a0dad] to-[#9b30d9] hover:from-[#5a0b99] hover:to-[#8525c5] text-white font-bold text-sm shadow-lg shadow-purple-900/30 flex items-center justify-between transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇨🇴</div>
+                      <div className="text-left">
+                        <div>Nequi — Giro desde USA</div>
+                        <div className="text-[11px] font-normal text-purple-200">Envío fácil desde Estados Unidos</div>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                )}
+              </div>
+            )}
 
             <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-zinc-600">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />

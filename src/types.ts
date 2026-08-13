@@ -7,6 +7,13 @@ export interface CustomLink {
   clicks?: number;
 }
 
+export interface PaymentMethodsVisibility {
+  mercadopago: boolean;
+  paypal: boolean;
+  paypal_telegram: boolean;
+  nequi_usa: boolean;
+}
+
 export interface PaymentSettings {
   mercadoPagoAccessToken: string;
   mercadoPagoPublicKey: string;

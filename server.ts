@@ -24,6 +24,13 @@ let creators: CreatorProfile[] = [...INITIAL_CREATORS];
 let mediaItems: MediaItem[] = [...INITIAL_MEDIA_ITEMS];
 let purchases: PurchaseRecord[] = [];
 
+let paymentMethodsVisibility = {
+  mercadopago: true,
+  paypal: true,
+  paypal_telegram: true,
+  nequi_usa: true,
+};
+
 // Data Mappers: Supabase <-> TypeScript
 function fromSupabaseCreator(row: any): CreatorProfile {
   const initial = INITIAL_CREATORS.find((c) => c.handle.toLowerCase() === row.handle?.toLowerCase());
@@ -255,6 +262,20 @@ async function syncFromSupabase() {
       if (dbSetting && typeof dbSetting.require_lead_capture === "boolean") {
         requireLeadCapture = dbSetting.require_lead_capture;
         console.log(`[Supabase DB] Loaded requireLeadCapture: ${requireLeadCapture}`);
+      }
+    } catch (_err) {}
+
+    try {
+      const { data: dbVis } = await supabase.from("payment_methods_visibility").select("*").limit(1);
+      if (dbVis && dbVis.length > 0) {
+        const row = dbVis[0];
+        paymentMethodsVisibility = {
+          mercadopago: typeof row.mercadopago === 'boolean' ? row.mercadopago : true,
+          paypal: typeof row.paypal === 'boolean' ? row.paypal : true,
+          paypal_telegram: typeof row.paypal_telegram === 'boolean' ? row.paypal_telegram : true,
+          nequi_usa: typeof row.nequi_usa === 'boolean' ? row.nequi_usa : true,
+        };
+        console.log(`[Supabase DB] Loaded paymentMethodsVisibility:`, paymentMethodsVisibility);
       }
     } catch (_err) {}
 
@@ -1420,6 +1441,44 @@ app.post("/api/settings/lead-capture", async (req, res) => {
     }
 
     res.json({ success: true, requireLeadCapture });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ----------------------------------------------------
+// PAYMENT METHODS VISIBILITY SETTINGS
+// ----------------------------------------------------
+app.get("/api/settings/payment-methods-visibility", (req, res) => {
+  res.json({ visibility: paymentMethodsVisibility });
+});
+
+app.post("/api/settings/payment-methods-visibility", async (req, res) => {
+  try {
+    const { visibility } = req.body;
+    if (visibility && typeof visibility === "object") {
+      paymentMethodsVisibility = {
+        mercadopago: Boolean(visibility.mercadopago),
+        paypal: Boolean(visibility.paypal),
+        paypal_telegram: Boolean(visibility.paypal_telegram),
+        nequi_usa: Boolean(visibility.nequi_usa),
+      };
+
+      try {
+        const { error: vErr } = await supabase.from("payment_methods_visibility").upsert({
+          id: "default",
+          mercadopago: paymentMethodsVisibility.mercadopago,
+          paypal: paymentMethodsVisibility.paypal,
+          paypal_telegram: paymentMethodsVisibility.paypal_telegram,
+          nequi_usa: paymentMethodsVisibility.nequi_usa,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+        if (vErr) console.warn("[Supabase payment_methods_visibility Upsert Error]", vErr);
+      } catch (sErr) {
+        console.warn("[Supabase payment_methods_visibility Upsert Exception]", sErr);
+      }
+    }
+    res.json({ success: true, visibility: paymentMethodsVisibility });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
