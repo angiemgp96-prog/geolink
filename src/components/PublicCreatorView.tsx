@@ -57,6 +57,13 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     l => l.active && (!onlyfansLink || l.id !== onlyfansLink.id) && !l.title.toLowerCase().includes('onlyfans')
   );
 
+  // Precio dinámico para el Acceso Full: $20 USD más alto que el elemento más costoso de la tienda (o $50 por defecto)
+  const maxStorePrice = mediaItems
+    .filter(item => item.id !== 'acceso_full_cat_actual')
+    .reduce((max, item) => (item.price > max ? item.price : max), 0);
+
+  const fullAccessPrice = maxStorePrice > 0 ? Math.round(maxStorePrice + 20) : 50;
+
   // Helper icon renderer con íconos distintivos por plataforma
   const renderLinkIcon = (iconName: string, linkTitle: string = '') => {
     const combined = (iconName + ' ' + linkTitle).toLowerCase();
@@ -263,7 +270,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
         </div>
 
-        {/* Botón Acceso Full ($50 USD) — Desbloquear Catálogo Actual */}
+        {/* Botón Acceso Full (Dinámico: $20 USD más que el contenido más caro de la tienda) */}
         <div className="bg-gradient-to-r from-amber-950/40 via-indigo-950/40 to-purple-950/40 border border-amber-500/40 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl transition-all hover:border-amber-400/60">
           <div className="flex items-center gap-3 text-left">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-black text-xl shrink-0 shadow-lg shadow-amber-500/20">
@@ -272,7 +279,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             <div>
               <h3 className="font-black text-sm text-white flex items-center gap-2">
                 <span>{t.fullAccessTitle}</span>
-                <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">$50 USD</span>
+                <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">${fullAccessPrice} USD</span>
               </h3>
               <p className="text-[11px] text-zinc-400 mt-0.5">{t.fullAccessDesc}</p>
             </div>
@@ -287,7 +294,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               title: `👑 ${t.fullAccessTitle}`,
               description: t.fullAccessDesc,
               type: 'bundle',
-              price: 50,
+              price: fullAccessPrice,
               currency: 'USD',
               previewUrl: creator.avatar,
               downloadUrl: creator.avatar,
@@ -299,7 +306,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             })}
             className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 uppercase tracking-wider"
           >
-            <span>{t.fullAccessBtn}</span>
+            <span>{t.fullAccessBtn} ${fullAccessPrice} USD</span>
           </button>
         </div>
 

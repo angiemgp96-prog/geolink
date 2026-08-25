@@ -51,7 +51,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
 
     fullAccessTitle: 'Acceso Full — Catálogo Actual',
     fullAccessDesc: 'Desbloquea instantáneamente todas las fotos y videos publicados hasta la fecha.',
-    fullAccessBtn: 'Desbloquear Todo por $50 USD',
+    fullAccessBtn: 'Desbloquear Todo por',
     storeSectionTitle: 'Tienda Exclusiva',
     storeSectionSub: 'Fotos & Videos Desbloqueables',
     filterAll: 'Todos',
@@ -83,7 +83,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
 
     fullAccessTitle: 'Full Access — Current Catalog',
     fullAccessDesc: 'Instantly unlock all photos and videos published to date.',
-    fullAccessBtn: 'Unlock Everything for $50 USD',
+    fullAccessBtn: 'Unlock Everything for',
     storeSectionTitle: 'Exclusive Store',
     storeSectionSub: 'Unlockable Photos & Videos',
     filterAll: 'All',
@@ -115,7 +115,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
 
     fullAccessTitle: 'Acesso Total — Catálogo Atual',
     fullAccessDesc: 'Desbloqueie instantaneamente todas as fotos e vídeos publicados até o momento.',
-    fullAccessBtn: 'Desbloquear Tudo por $50 USD',
+    fullAccessBtn: 'Desbloquear Tudo por',
     storeSectionTitle: 'Loja Exclusiva',
     storeSectionSub: 'Fotos e Vídeos Desbloqueáveis',
     filterAll: 'Todos',
@@ -147,7 +147,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
 
     fullAccessTitle: 'Accès Complet — Catalogue Actuel',
     fullAccessDesc: 'Débloquez instantanément toutes les photos et vidéos publiées à ce jour.',
-    fullAccessBtn: 'Tout Débloquer pour $50 USD',
+    fullAccessBtn: 'Tout Débloquer pour',
     storeSectionTitle: 'Boutique Exclusive',
     storeSectionSub: 'Photos & Vidéos Déblocables',
     filterAll: 'Tous',
@@ -179,7 +179,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
 
     fullAccessTitle: 'Vollzugriff — Aktueller Katalog',
     fullAccessDesc: 'Schalten Sie sofort alle bisher veröffentlichten Fotos und Videos frei.',
-    fullAccessBtn: 'Alles Freischalten für $50 USD',
+    fullAccessBtn: 'Alles Freischalten für',
     storeSectionTitle: 'Exklusiver Shop',
     storeSectionSub: 'Freischaltbare Fotos & Videos',
     filterAll: 'Alle',
@@ -211,7 +211,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
 
     fullAccessTitle: 'Accesso Completo — Catalogo Attuale',
     fullAccessDesc: 'Sblocca all\'istante tutte le foto e i video pubblicati fino ad oggi.',
-    fullAccessBtn: 'Sblocca Tutto per $50 USD',
+    fullAccessBtn: 'Sblocca Tutto per',
     storeSectionTitle: 'Negozio Esclusivo',
     storeSectionSub: 'Foto & Video Sbloccabili',
     filterAll: 'Tutti',
