@@ -286,6 +286,9 @@ export const api = {
 
     if (isSupabaseConfigured()) {
       try {
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        await supabase.from('visitor_leads').delete().lt('created_at', oneDayAgo);
+
         const leadObj = {
           id: `lead_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
           contact_info: contactInfo.trim(),
@@ -308,9 +311,48 @@ export const api = {
   },
 
   async getVisitorLeads(): Promise<VisitorLead[]> {
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    if (isSupabaseConfigured()) {
+      try {
+        // 1. Purga automática de registros de más de 24 horas en Supabase
+        await supabase.from('visitor_leads').delete().lt('created_at', oneDayAgo);
+
+        // 2. Consulta directa de registros de las últimas 24 horas ordenados por fecha descendente
+        const { data, error } = await supabase
+          .from('visitor_leads')
+          .select('*')
+          .gte('created_at', oneDayAgo)
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          return data.map((row: any) => ({
+            id: row.id,
+            contactInfo: row.contact_info || '',
+            countryCode: row.country_code || '',
+            deviceHash: row.device_hash || '',
+            createdAt: row.created_at || new Date().toISOString(),
+            ip: row.ip || '',
+            vpnStatus: row.vpn_status || 'normal'
+          }));
+        }
+      } catch (err) {
+        console.warn('Supabase fetch visitor_leads error:', err);
+      }
+    }
+
     try {
       const res = await fetch('/api/visitor-leads');
-      if (res.ok) return await res.json();
+      if (res.ok) {
+        const list: VisitorLead[] = await res.json();
+        if (Array.isArray(list)) {
+          const oneDayAgoMs = Date.now() - 24 * 60 * 60 * 1000;
+          return list.filter(lead => {
+            const time = new Date(lead.createdAt || (lead as any).created_at).getTime();
+            return isNaN(time) || time >= oneDayAgoMs;
+          });
+        }
+      }
     } catch {}
     return [];
   },
