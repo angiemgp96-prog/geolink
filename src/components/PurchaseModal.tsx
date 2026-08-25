@@ -206,12 +206,11 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     }
   };
 
-  // ── PayPal vía Telegram: construye enlace paypal.me/[monto]USD + abre chat @Angelinaguzman69
+  // ── Pagar vía Telegram: construye enlace directo y abre chat @Angelinaguzman69
   const buildPayPalTelegramLink = () => {
-    const amountStr = `${Math.round(item.price)}USD`;
-    const paypalMeUrl = `https://paypal.me/angieG473/${amountStr}`;
+    const contactText = contactInfo ? `\n\nMi contacto: ${contactInfo}` : '';
     const msg = encodeURIComponent(
-      `¡Hola! Quiero comprar el contenido: "${item.title}" ($${item.price.toFixed(2)} ${item.currency}).\n\nMi contacto: ${contactInfo}\nRealizaré el pago por este enlace directo: ${paypalMeUrl}\n\nAquí te adjunto mi comprobante para la entrega 📎`
+      `¡Hola! Quiero comprar el contenido: "${item.title}" ($${item.price.toFixed(2)} ${item.currency}).${contactText}`
     );
     return `https://t.me/${TELEGRAM_USER}?text=${msg}`;
   };
@@ -343,7 +342,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                   </button>
                 )}
 
-                {/* PayPal vía Telegram Directo (PayPal.me/[monto]USD) */}
+                {/* Pagar vía Telegram Directo */}
                 {paymentVisibility.paypal_telegram && (
                   <a
                     id="pay-paypal-telegram-button"
@@ -358,8 +357,8 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                         <Send className="w-5 h-5 text-white" />
                       </div>
                       <div className="text-left">
-                        <div>Pagar vía Telegram (PayPal.me Directo)</div>
-                        <div className="text-[11px] font-normal text-emerald-100">paypal.me/angieG473/{Math.round(item.price)}USD · Chat @{TELEGRAM_USER}</div>
+                        <div>Pagar vía Telegram</div>
+                        <div className="text-[11px] font-normal text-emerald-100">Contacto directo · Chat @{TELEGRAM_USER}</div>
                       </div>
                     </div>
                     <ExternalLink className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />

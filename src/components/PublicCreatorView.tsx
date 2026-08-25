@@ -49,6 +49,14 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     return item.type === filterType;
   });
 
+  const onlyfansLink = creator.links.find(
+    l => l.active && (l.title.toLowerCase().includes('onlyfans') || l.icon.toLowerCase().includes('onlyfans'))
+  );
+
+  const otherLinks = creator.links.filter(
+    l => l.active && (!onlyfansLink || l.id !== onlyfansLink.id) && !l.title.toLowerCase().includes('onlyfans')
+  );
+
   // Helper icon renderer con íconos distintivos por plataforma
   const renderLinkIcon = (iconName: string, linkTitle: string = '') => {
     const combined = (iconName + ' ' + linkTitle).toLowerCase();
@@ -187,34 +195,71 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             </a>
           </div>
 
-          {/* Custom Links (Compact Section) */}
-          <div className="space-y-2 pt-2">
-            <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-left">
-              Enlaces Directos
-            </h3>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {creator.links.filter(l => l.active).map((link: CustomLink) => (
-                <a
-                  key={link.id}
-                  href={link.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-indigo-500/50 px-3 py-2 rounded-xl flex items-center justify-between transition-all group shadow-sm text-xs"
-                >
-                  <div className="flex items-center gap-2 truncate">
-                    <div className="w-6 h-6 rounded-lg bg-zinc-900/80 border border-white/10 flex items-center justify-center shrink-0">
-                      {renderLinkIcon(link.icon, link.title)}
-                    </div>
-                    <span className="font-bold text-xs text-white group-hover:text-indigo-300 transition-colors truncate">
-                      {link.title}
-                    </span>
+          {/* Botón Principal Destacado: OnlyFans Azul Cielo (#00AFF0) */}
+          {onlyfansLink && (
+            <div className="pt-3">
+              <a
+                id="onlyfans-featured-button"
+                href={onlyfansLink.url}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full py-4 px-5 sm:px-6 rounded-2xl bg-gradient-to-r from-[#00AFF0] via-[#009ee0] to-[#0088cc] hover:from-[#1ab8f2] hover:to-[#0099e6] text-white font-extrabold shadow-xl shadow-[#00AFF0]/35 border-2 border-sky-200/50 flex items-center justify-between transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-[1.01] group cursor-pointer"
+              >
+                <div className="flex items-center gap-3.5 text-left">
+                  <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/30 group-hover:rotate-6 transition-transform shadow-inner">
+                    <Flame className="w-6 h-6 text-white fill-white animate-pulse" />
                   </div>
-                  <ExternalLink className="w-3 h-3 text-zinc-400 group-hover:text-white transition-colors shrink-0 ml-1" />
-                </a>
-              ))}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-black tracking-wide text-white text-base sm:text-lg drop-shadow-sm">
+                        {onlyfansLink.title}
+                      </span>
+                      <span className="bg-white/25 text-white text-[10px] uppercase font-black px-2 py-0.5 rounded-full border border-white/40 backdrop-blur-md tracking-wider">
+                        VIP🔥
+                      </span>
+                    </div>
+                    <p className="text-xs text-sky-100 font-medium mt-0.5">
+                      Haz clic para ver fotos y videos sin censura en OnlyFans
+                    </p>
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-1 transition-transform shrink-0 border border-white/30">
+                  <ExternalLink className="w-5 h-5 text-white" />
+                </div>
+              </a>
             </div>
-          </div>
+          )}
+
+          {/* Custom Links (Sección Secundaria de Enlaces) */}
+          {otherLinks.length > 0 && (
+            <div className="space-y-2 pt-2">
+              <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-left">
+                Otros Enlaces Oficiales
+              </h3>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {otherLinks.map((link: CustomLink) => (
+                  <a
+                    key={link.id}
+                    href={link.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-indigo-500/50 px-3 py-2 rounded-xl flex items-center justify-between transition-all group shadow-sm text-xs"
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <div className="w-6 h-6 rounded-lg bg-zinc-900/80 border border-white/10 flex items-center justify-center shrink-0">
+                        {renderLinkIcon(link.icon, link.title)}
+                      </div>
+                      <span className="font-bold text-xs text-white group-hover:text-indigo-300 transition-colors truncate">
+                        {link.title}
+                      </span>
+                    </div>
+                    <ExternalLink className="w-3 h-3 text-zinc-400 group-hover:text-white transition-colors shrink-0 ml-1" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
         </div>
 
