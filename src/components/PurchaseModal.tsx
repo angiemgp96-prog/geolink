@@ -13,7 +13,7 @@ const NEQUI_USA_LINK = 'https://giros.nequi.com.co/l/Cc1Sv9Bz';
 const TELEGRAM_USER  = 'Angelinaguzman69'; // sin @
 // ─────────────────────────────────────────────────────────────────────
 
-type Screen = 'select' | 'contact_paypal' | 'contact_nequi' | 'mp_pending' | 'mp_success' | 'paypal_pending' | 'paypal_success';
+type Screen = 'select' | 'contact_paypal' | 'contact_nequi' | 'bank_mexico' | 'bank_usa' | 'bank_europe' | 'mp_pending' | 'mp_success' | 'paypal_pending' | 'paypal_success';
 
 interface PurchaseModalProps {
   item: MediaItem | null;
@@ -33,6 +33,23 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     }
   });
   const [contactError, setContactError] = useState('');
+  const [copiedField, setCopiedField]   = useState<string | null>(null);
+
+  const handleCopy = (text: string, fieldId: string) => {
+    try {
+      navigator.clipboard.writeText(text);
+    } catch {}
+    setCopiedField(fieldId);
+    setTimeout(() => setCopiedField(null), 1800);
+  };
+
+  const buildTransferTelegramLink = (methodName: string) => {
+    const contactText = contactInfo ? `\n\nMi contacto: ${contactInfo}` : '';
+    const msg = encodeURIComponent(
+      `¡Hola! Realizaré el pago por ${methodName} para comprar el contenido: "${item?.title || ''}" ($${item?.price.toFixed(2) || '0.00'} ${item?.currency || 'USD'}).${contactText}\n\nAquí te adjunto mi comprobante para la entrega 📎`
+    );
+    return `https://t.me/${TELEGRAM_USER}?text=${msg}`;
+  };
 
   // MercadoPago API state
   const [mpUnlockToken, setMpUnlockToken]         = useState<string | null>(null);
@@ -375,13 +392,70 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇨🇴</div>
                       <div className="text-left">
-                        <div>Nequi — Giro desde USA</div>
-                        <div className="text-[11px] font-normal text-purple-200">Envío fácil desde Estados Unidos</div>
+                        <div>Nequi — Giro desde USA / Colombia</div>
+                        <div className="text-[11px] font-normal text-purple-200">Envío directo de dinero</div>
                       </div>
                     </div>
                     <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
                   </button>
                 )}
+
+                {/* Transferencia Bancaria México */}
+                <button
+                  id="pay-bank-mexico-button"
+                  onClick={() => { setErrorMessage(''); setScreen('bank_mexico'); }}
+                  className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-emerald-800 via-teal-800 to-green-800 hover:from-emerald-700 hover:to-green-700 text-white font-bold text-sm shadow-lg shadow-emerald-950/40 flex items-center justify-between transition-all cursor-pointer group border border-emerald-500/30"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇲🇽</div>
+                    <div className="text-left">
+                      <div className="flex items-center gap-1.5">
+                        <span>México — Transferencia CLABE</span>
+                        <span className="bg-emerald-400/20 text-emerald-300 border border-emerald-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">Directo</span>
+                      </div>
+                      <div className="text-[11px] font-normal text-emerald-100">Depósito en Pesos MXN · NVIO Pagos</div>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+
+                {/* Transferencia Bancaria USA */}
+                <button
+                  id="pay-bank-usa-button"
+                  onClick={() => { setErrorMessage(''); setScreen('bank_usa'); }}
+                  className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-blue-800 via-indigo-800 to-sky-800 hover:from-blue-700 hover:to-sky-700 text-white font-bold text-sm shadow-lg shadow-blue-950/40 flex items-center justify-between transition-all cursor-pointer group border border-sky-500/30"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇺🇸</div>
+                    <div className="text-left">
+                      <div className="flex items-center gap-1.5">
+                        <span>Estados Unidos — Direct USD</span>
+                        <span className="bg-sky-400/20 text-sky-300 border border-sky-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">ACH / Wire</span>
+                      </div>
+                      <div className="text-[11px] font-normal text-blue-100">Cuenta de Cheques · Lead Bank</div>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+
+                {/* Transferencia Bancaria Europa */}
+                <button
+                  id="pay-bank-europe-button"
+                  onClick={() => { setErrorMessage(''); setScreen('bank_europe'); }}
+                  className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-amber-700 via-indigo-900 to-blue-900 hover:from-amber-600 hover:to-blue-800 text-white font-bold text-sm shadow-lg shadow-indigo-950/40 flex items-center justify-between transition-all cursor-pointer group border border-amber-400/30"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇪🇺</div>
+                    <div className="text-left">
+                      <div className="flex items-center gap-1.5">
+                        <span>Europa — Transferencia SEPA (EUR)</span>
+                        <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">IBAN</span>
+                      </div>
+                      <div className="text-[11px] font-normal text-indigo-200">ClearBank Europe N.V. · Euros</div>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                </button>
               </div>
             )}
 
@@ -450,6 +524,313 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
             <p className="text-[10px] text-zinc-600 text-center">
               Se abrirá el link de pago y serás redirigido a nuestro chat de Telegram automáticamente.
             </p>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            PANTALLA: Transferencia Bancaria México (CLABE)
+        ═══════════════════════════════════════════════════════*/}
+        {screen === 'bank_mexico' && (
+          <div className="p-5 sm:p-6 space-y-4">
+            <div>
+              <button onClick={() => setScreen('select')}
+                className="text-xs text-zinc-400 hover:text-white flex items-center gap-1 mb-2.5 cursor-pointer transition-colors">
+                ← Volver a métodos de pago
+              </button>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold mb-1.5">
+                <span>🇲🇽 México — Transferencia CLABE Directa</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-white leading-snug">{item.title}</h3>
+              <p className="text-xl font-black text-amber-300 mt-0.5">
+                ${item.price.toFixed(2)} <span className="text-sm font-semibold text-amber-400/70">{item.currency}</span>
+              </p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 text-xs text-left leading-relaxed">
+              🇲🇽 <strong className="text-white">Envía dinero en México utilizando estos detalles.</strong> Usa el botón <span className="text-emerald-300 font-bold">Copiar 📋</span> en cada dato y envíame el comprobante por Telegram.
+            </div>
+
+            <div className="space-y-2">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Nombre del beneficiario</div>
+                  <div className="text-xs font-mono font-bold text-white truncate select-all mt-0.5">Angie milena Guzman Patiño</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('Angie milena Guzman Patiño', 'mx_name')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'mx_name' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'mx_name' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">CLABE Interbancaria</div>
+                  <div className="text-xs font-mono font-bold text-amber-300 truncate select-all mt-0.5">710969000402393283</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('710969000402393283', 'mx_clabe')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'mx_clabe' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'mx_clabe' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Nombre de la institución</div>
+                  <div className="text-xs font-mono font-bold text-white truncate select-all mt-0.5">NVIO Pagos México</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('NVIO Pagos México', 'mx_bank')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'mx_bank' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'mx_bank' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+            </div>
+
+            <a
+              href={buildTransferTelegramLink('Transferencia México CLABE')}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer mt-2"
+            >
+              <Send className="w-4 h-4 text-white animate-pulse" />
+              <span>Enviar pantallazo a Telegram (@{TELEGRAM_USER})</span>
+            </a>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            PANTALLA: Transferencia Bancaria USA (Dollar)
+        ═══════════════════════════════════════════════════════*/}
+        {screen === 'bank_usa' && (
+          <div className="p-5 sm:p-6 space-y-4">
+            <div>
+              <button onClick={() => setScreen('select')}
+                className="text-xs text-zinc-400 hover:text-white flex items-center gap-1 mb-2.5 cursor-pointer transition-colors">
+                ← Volver a métodos de pago
+              </button>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/80 border border-sky-500/40 text-sky-300 text-xs font-bold mb-1.5">
+                <span>🇺🇸 Estados Unidos — Direct USD (ACH / Wire)</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-white leading-snug">{item.title}</h3>
+              <p className="text-xl font-black text-amber-300 mt-0.5">
+                ${item.price.toFixed(2)} <span className="text-sm font-semibold text-amber-400/70">{item.currency}</span>
+              </p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-blue-950/40 border border-sky-500/30 text-sky-200 text-xs text-left leading-relaxed">
+              💵 <strong className="text-white">Envía Dollar utilizando estos detalles.</strong> Copia los datos requeridos y envíame el comprobante por Telegram.
+            </div>
+
+            <div className="space-y-2 max-h-[38vh] overflow-y-auto pr-1">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Nombre del beneficiario</div>
+                  <div className="text-xs font-mono font-bold text-white truncate select-all mt-0.5">Angie milena Guzman Patino</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('Angie milena Guzman Patino', 'us_name')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'us_name' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'us_name' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Tipo de cuenta</div>
+                  <div className="text-xs font-mono font-bold text-white truncate select-all mt-0.5">Cuenta de cheques</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('Cuenta de cheques', 'us_type')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'us_type' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'us_type' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Número de cuenta</div>
+                  <div className="text-xs font-mono font-bold text-amber-300 truncate select-all mt-0.5">214880812209</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('214880812209', 'us_acc')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'us_acc' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'us_acc' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Número de ruta (Routing)</div>
+                  <div className="text-xs font-mono font-bold text-amber-300 truncate select-all mt-0.5">101019644</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('101019644', 'us_route')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'us_route' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'us_route' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Nombre del banco</div>
+                  <div className="text-xs font-mono font-bold text-white truncate select-all mt-0.5">Lead Bank</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('Lead Bank', 'us_bank')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'us_bank' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'us_bank' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Dirección del banco</div>
+                  <div className="text-xs font-mono font-bold text-white truncate select-all mt-0.5">1801 Main St., Kansas City, MO 64108</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('1801 Main St., Kansas City, MO 64108', 'us_addr')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'us_addr' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'us_addr' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+            </div>
+
+            <a
+              href={buildTransferTelegramLink('Transferencia USA Dollar')}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer mt-2"
+            >
+              <Send className="w-4 h-4 text-white animate-pulse" />
+              <span>Enviar pantallazo a Telegram (@{TELEGRAM_USER})</span>
+            </a>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            PANTALLA: Transferencia Bancaria Europa (EUR - SEPA)
+        ═══════════════════════════════════════════════════════*/}
+        {screen === 'bank_europe' && (
+          <div className="p-5 sm:p-6 space-y-4">
+            <div>
+              <button onClick={() => setScreen('select')}
+                className="text-xs text-zinc-400 hover:text-white flex items-center gap-1 mb-2.5 cursor-pointer transition-colors">
+                ← Volver a métodos de pago
+              </button>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/80 border border-amber-500/40 text-amber-300 text-xs font-bold mb-1.5">
+                <span>🇪🇺 Europa — Transferencia SEPA (Euros)</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-white leading-snug">{item.title}</h3>
+              <p className="text-xl font-black text-amber-300 mt-0.5">
+                ${item.price.toFixed(2)} <span className="text-sm font-semibold text-amber-400/70">{item.currency}</span>
+              </p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-indigo-950/40 border border-amber-500/30 text-amber-200 text-xs text-left leading-relaxed">
+              💶 <strong className="text-white">Envía dinero utilizando estos detalles.</strong> Usa el botón <span className="text-amber-300 font-bold">Copiar 📋</span> en cada dato y envíame el comprobante por Telegram.
+            </div>
+
+            <div className="space-y-2 max-h-[38vh] overflow-y-auto pr-1">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Nombre del beneficiario</div>
+                  <div className="text-xs font-mono font-bold text-white truncate select-all mt-0.5">Angie milena Guzman Patiño</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('Angie milena Guzman Patiño', 'eu_name')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'eu_name' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'eu_name' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">IBAN</div>
+                  <div className="text-xs font-mono font-bold text-amber-300 truncate select-all mt-0.5">NL21CLRB0044881567</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('NL21CLRB0044881567', 'eu_iban')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'eu_iban' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'eu_iban' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">BIC / SWIFT</div>
+                  <div className="text-xs font-mono font-bold text-amber-300 truncate select-all mt-0.5">CLRBNL2A053</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('CLRBNL2A053', 'eu_bic')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'eu_bic' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'eu_bic' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Nombre del banco</div>
+                  <div className="text-xs font-mono font-bold text-white truncate select-all mt-0.5">ClearBank Europe N.V.</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('ClearBank Europe N.V.', 'eu_bank')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'eu_bank' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'eu_bank' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Dirección del banco</div>
+                  <div className="text-xs font-mono font-bold text-white truncate select-all mt-0.5">Stadhouderskade 85, Amsterdam, 1073 AT</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('Stadhouderskade 85, Amsterdam, 1073 AT', 'eu_addr')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'eu_addr' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'eu_addr' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+            </div>
+
+            <a
+              href={buildTransferTelegramLink('Transferencia Europa SEPA')}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-600 via-indigo-700 to-blue-700 hover:from-amber-500 hover:to-blue-600 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer mt-2"
+            >
+              <Send className="w-4 h-4 text-white animate-pulse" />
+              <span>Enviar pantallazo a Telegram (@{TELEGRAM_USER})</span>
+            </a>
           </div>
         )}
 

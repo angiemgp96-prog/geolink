@@ -26,15 +26,23 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
   const t = TRANSLATIONS[lang] || TRANSLATIONS.es;
 
+  const [visitorCountry, setVisitorCountry] = useState<string>('');
+
   React.useEffect(() => {
     api.getVisitorLocation().then(loc => {
       if (loc && loc.countryCode) {
+        setVisitorCountry(loc.countryCode);
         setLang(detectLanguage(loc.countryCode));
       }
     }).catch(() => {
       setLang(detectLanguage());
     });
   }, []);
+
+  const isColombia = visitorCountry === 'CO';
+  const getItemPrice = (basePrice: number) => {
+    return isColombia ? Math.round(basePrice * 7) : basePrice;
+  };
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -62,7 +70,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     .filter(item => item.id !== 'acceso_full_cat_actual')
     .reduce((max, item) => (item.price > max ? item.price : max), 0);
 
-  const fullAccessPrice = maxStorePrice > 0 ? Math.round(maxStorePrice + 20) : 50;
+  const rawFullAccessPrice = maxStorePrice > 0 ? Math.round(maxStorePrice + 20) : 50;
+  const fullAccessPrice = getItemPrice(rawFullAccessPrice);
 
   // Helper icon renderer con íconos distintivos por plataforma
   const renderLinkIcon = (iconName: string, linkTitle: string = '') => {
@@ -412,13 +421,13 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       )}
                     </div>
 
-                    {/* Price Tag (Clean Backdrop Blur Label - NO Button Background) */}
+                    {/* Price Tag */}
                     <div className="absolute bottom-3 right-3 text-white font-extrabold text-sm px-3 py-1 rounded-xl backdrop-blur-md bg-black/70 border border-white/15 shadow-xl">
                       {isUnlocked ? (
                         <span className="text-emerald-400 text-xs font-bold flex items-center gap-1">✅ {t.purchasedBadge}</span>
                       ) : (
                         <span className="text-amber-300 font-extrabold text-sm drop-shadow-md">
-                          ${item.price.toFixed(2)} <span className="text-[10px] text-zinc-300 font-bold">{item.currency}</span>
+                          ${getItemPrice(item.price).toFixed(2)} <span className="text-[10px] text-zinc-300 font-bold">{item.currency}</span>
                         </span>
                       )}
                     </div>
@@ -473,11 +482,11 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                     ) : (
                       <button
                         id={`buy-media-${item.id}`}
-                        onClick={() => onOpenPurchaseModal(item)}
+                        onClick={() => onOpenPurchaseModal({ ...item, price: getItemPrice(item.price) })}
                         className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
                       >
                         <Lock className="w-4 h-4" />
-                        <span>{t.unlockNowBtn} (${item.price.toFixed(2)})</span>
+                        <span>{t.unlockNowBtn} (${getItemPrice(item.price).toFixed(2)})</span>
                       </button>
                     )}
 
