@@ -13,7 +13,7 @@ const NEQUI_USA_LINK = 'https://giros.nequi.com.co/l/Cc1Sv9Bz';
 const TELEGRAM_USER  = 'Angelinaguzman69'; // sin @
 // ─────────────────────────────────────────────────────────────────────
 
-type Screen = 'select' | 'contact_paypal' | 'contact_nequi' | 'bank_mexico' | 'bank_usa' | 'bank_europe' | 'mp_pending' | 'mp_success' | 'paypal_pending' | 'paypal_success';
+type Screen = 'select' | 'contact_paypal' | 'contact_nequi' | 'bank_mexico' | 'bank_usa' | 'bank_europe' | 'bank_colombia' | 'mp_pending' | 'mp_success' | 'paypal_pending' | 'paypal_success';
 
 interface PurchaseModalProps {
   item: MediaItem | null;
@@ -66,6 +66,28 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     paypal_telegram: true,
     nequi_usa: true,
   });
+
+  const [visitorCountry, setVisitorCountry] = useState<string>('');
+
+  useEffect(() => {
+    if (!item) return;
+    api.getVisitorLocation().then(loc => {
+      if (loc && loc.countryCode) {
+        setVisitorCountry(loc.countryCode.toUpperCase());
+      }
+    }).catch(() => {});
+  }, [item]);
+
+  const getDetectedRegion = (code: string) => {
+    const c = (code || '').toUpperCase();
+    if (c === 'MX') return 'MX';
+    if (c === 'US') return 'US';
+    if (['ES', 'FR', 'DE', 'IT', 'NL', 'PT', 'BE', 'AT', 'IE', 'FI', 'GR', 'EU'].includes(c)) return 'EU';
+    if (c === 'CO') return 'CO';
+    return 'OTHER';
+  };
+
+  const detectedRegion = getDetectedRegion(visitorCountry);
 
   useEffect(() => {
     if (!item) return;
@@ -382,80 +404,106 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                   </a>
                 )}
 
-                {/* Nequi USA */}
-                {paymentVisibility.nequi_usa && (
+                {/* Transferencia Bancaria por País Detectado por IP */}
+                {detectedRegion === 'CO' && (
                   <button
-                    id="pay-nequi-usa-button"
-                    onClick={() => { setErrorMessage(''); setScreen('contact_nequi'); }}
-                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#6a0dad] to-[#9b30d9] hover:from-[#5a0b99] hover:to-[#8525c5] text-white font-bold text-sm shadow-lg shadow-purple-900/30 flex items-center justify-between transition-all cursor-pointer group"
+                    id="pay-bank-colombia-button"
+                    onClick={() => { setErrorMessage(''); setScreen('bank_colombia'); }}
+                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#6a0dad] to-[#9b30d9] hover:from-[#5a0b99] hover:to-[#8525c5] text-white font-bold text-sm shadow-xl shadow-purple-950/40 flex items-center justify-between transition-all cursor-pointer group border-2 border-purple-400/50"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇨🇴</div>
                       <div className="text-left">
-                        <div>Nequi — Giro desde USA / Colombia</div>
-                        <div className="text-[11px] font-normal text-purple-200">Envío directo de dinero</div>
+                        <div className="flex items-center gap-1.5">
+                          <span>Colombia — Nequi / Llave Bre-B</span>
+                          <span className="bg-purple-400/20 text-purple-300 border border-purple-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">DIRECTO</span>
+                        </div>
+                        <div className="text-[11px] font-normal text-purple-200">Llave: @NEQUIANG05606</div>
                       </div>
                     </div>
                     <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
                   </button>
                 )}
 
-                {/* Transferencia Bancaria México */}
-                <button
-                  id="pay-bank-mexico-button"
-                  onClick={() => { setErrorMessage(''); setScreen('bank_mexico'); }}
-                  className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-emerald-800 via-teal-800 to-green-800 hover:from-emerald-700 hover:to-green-700 text-white font-bold text-sm shadow-lg shadow-emerald-950/40 flex items-center justify-between transition-all cursor-pointer group border border-emerald-500/30"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇲🇽</div>
-                    <div className="text-left">
-                      <div className="flex items-center gap-1.5">
-                        <span>México — Transferencia CLABE</span>
-                        <span className="bg-emerald-400/20 text-emerald-300 border border-emerald-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">Directo</span>
+                {detectedRegion === 'MX' && (
+                  <button
+                    id="pay-bank-mexico-button"
+                    onClick={() => { setErrorMessage(''); setScreen('bank_mexico'); }}
+                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-emerald-800 via-teal-800 to-green-800 hover:from-emerald-700 hover:to-green-700 text-white font-bold text-sm shadow-xl shadow-emerald-950/40 flex items-center justify-between transition-all cursor-pointer group border-2 border-emerald-400/50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇲🇽</div>
+                      <div className="text-left">
+                        <div className="flex items-center gap-1.5">
+                          <span>México — Transferencia CLABE</span>
+                          <span className="bg-emerald-400/20 text-emerald-300 border border-emerald-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">DIRECTO</span>
+                        </div>
+                        <div className="text-[11px] font-normal text-emerald-100">Depósito en Pesos MXN · NVIO Pagos</div>
                       </div>
-                      <div className="text-[11px] font-normal text-emerald-100">Depósito en Pesos MXN · NVIO Pagos</div>
                     </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
-                </button>
+                    <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                )}
 
-                {/* Transferencia Bancaria USA */}
-                <button
-                  id="pay-bank-usa-button"
-                  onClick={() => { setErrorMessage(''); setScreen('bank_usa'); }}
-                  className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-blue-800 via-indigo-800 to-sky-800 hover:from-blue-700 hover:to-sky-700 text-white font-bold text-sm shadow-lg shadow-blue-950/40 flex items-center justify-between transition-all cursor-pointer group border border-sky-500/30"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇺🇸</div>
-                    <div className="text-left">
-                      <div className="flex items-center gap-1.5">
-                        <span>Estados Unidos — Direct USD</span>
-                        <span className="bg-sky-400/20 text-sky-300 border border-sky-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">ACH / Wire</span>
+                {detectedRegion === 'US' && (
+                  <button
+                    id="pay-bank-usa-button"
+                    onClick={() => { setErrorMessage(''); setScreen('bank_usa'); }}
+                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-blue-800 via-indigo-800 to-sky-800 hover:from-blue-700 hover:to-sky-700 text-white font-bold text-sm shadow-xl shadow-blue-950/40 flex items-center justify-between transition-all cursor-pointer group border-2 border-sky-400/50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇺🇸</div>
+                      <div className="text-left">
+                        <div className="flex items-center gap-1.5">
+                          <span>Estados Unidos — Direct USD</span>
+                          <span className="bg-sky-400/20 text-sky-300 border border-sky-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">ACH / Wire</span>
+                        </div>
+                        <div className="text-[11px] font-normal text-blue-100">Cuenta de Cheques · Lead Bank</div>
                       </div>
-                      <div className="text-[11px] font-normal text-blue-100">Cuenta de Cheques · Lead Bank</div>
                     </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
-                </button>
+                    <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                )}
 
-                {/* Transferencia Bancaria Europa */}
-                <button
-                  id="pay-bank-europe-button"
-                  onClick={() => { setErrorMessage(''); setScreen('bank_europe'); }}
-                  className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-amber-700 via-indigo-900 to-blue-900 hover:from-amber-600 hover:to-blue-800 text-white font-bold text-sm shadow-lg shadow-indigo-950/40 flex items-center justify-between transition-all cursor-pointer group border border-amber-400/30"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇪🇺</div>
-                    <div className="text-left">
-                      <div className="flex items-center gap-1.5">
-                        <span>Europa — Transferencia SEPA (EUR)</span>
-                        <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">IBAN</span>
+                {detectedRegion === 'EU' && (
+                  <button
+                    id="pay-bank-europe-button"
+                    onClick={() => { setErrorMessage(''); setScreen('bank_europe'); }}
+                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-amber-700 via-indigo-900 to-blue-900 hover:from-amber-600 hover:to-blue-800 text-white font-bold text-sm shadow-xl shadow-indigo-950/40 flex items-center justify-between transition-all cursor-pointer group border-2 border-amber-400/50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇪🇺</div>
+                      <div className="text-left">
+                        <div className="flex items-center gap-1.5">
+                          <span>Europa — Transferencia SEPA (EUR)</span>
+                          <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">IBAN</span>
+                        </div>
+                        <div className="text-[11px] font-normal text-indigo-200">ClearBank Europe N.V. · Euros</div>
                       </div>
-                      <div className="text-[11px] font-normal text-indigo-200">ClearBank Europe N.V. · Euros</div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                )}
+
+                {detectedRegion === 'OTHER' && (
+                  <div className="space-y-2 pt-1 border-t border-white/10">
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider text-left">Transferencias Directas por País:</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button onClick={() => { setErrorMessage(''); setScreen('bank_mexico'); }} className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white flex items-center gap-2">
+                        <span>🇲🇽</span> <span>México</span>
+                      </button>
+                      <button onClick={() => { setErrorMessage(''); setScreen('bank_usa'); }} className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white flex items-center gap-2">
+                        <span>🇺🇸</span> <span>EE.UU.</span>
+                      </button>
+                      <button onClick={() => { setErrorMessage(''); setScreen('bank_europe'); }} className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white flex items-center gap-2">
+                        <span>🇪🇺</span> <span>Europa</span>
+                      </button>
+                      <button onClick={() => { setErrorMessage(''); setScreen('bank_colombia'); }} className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white flex items-center gap-2">
+                        <span>🇨🇴</span> <span>Colombia</span>
+                      </button>
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
-                </button>
+                )}
               </div>
             )}
 
@@ -463,6 +511,85 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
               <span>Comprobante por Telegram: <span className="text-sky-500">@{TELEGRAM_USER}</span></span>
             </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            PANTALLA: Transferencia Nequi Bre-B Colombia
+        ═══════════════════════════════════════════════════════*/}
+        {screen === 'bank_colombia' && (
+          <div className="p-5 sm:p-6 space-y-4">
+            <div>
+              <button onClick={() => setScreen('select')}
+                className="text-xs text-zinc-400 hover:text-white flex items-center gap-1 mb-2.5 cursor-pointer transition-colors">
+                ← Volver a métodos de pago
+              </button>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-950/80 border border-purple-500/40 text-purple-300 text-xs font-bold mb-1.5">
+                <span>🇨🇴 Colombia — Nequi / Llave Bre-B Directa</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-white leading-snug">{item.title}</h3>
+              <p className="text-xl font-black text-amber-300 mt-0.5">
+                ${item.price.toFixed(2)} <span className="text-sm font-semibold text-amber-400/70">{item.currency}</span>
+              </p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-purple-950/40 border border-purple-500/30 text-purple-200 text-xs text-left leading-relaxed">
+              🇨🇴 <strong className="text-white">Envía dinero en Colombia utilizando esta Llave Nequi / Bre-B.</strong> Usa el botón <span className="text-purple-300 font-bold">Copiar 📋</span> en la llave y envíame el comprobante por Telegram.
+            </div>
+
+            <div className="space-y-2">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Nombre del beneficiario</div>
+                  <div className="text-xs font-mono font-bold text-white truncate select-all mt-0.5">Angie milena Guzman Patiño</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('Angie milena Guzman Patiño', 'co_name')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'co_name' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'co_name' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-purple-300 uppercase tracking-wider">Llave Nequi / Bre-B</div>
+                  <div className="text-sm font-mono font-bold text-amber-300 truncate select-all mt-0.5">@NEQUIANG05606</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('@NEQUIANG05606', 'co_breb')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'co_breb' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-purple-600 hover:bg-purple-500 text-white border border-purple-400/40'}`}
+                >
+                  {copiedField === 'co_breb' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3">
+                <div className="text-left overflow-hidden">
+                  <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Plataforma / App</div>
+                  <div className="text-xs font-mono font-bold text-white truncate select-all mt-0.5">Nequi / Bre-B Colombia</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('Nequi / Bre-B Colombia', 'co_platform')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${copiedField === 'co_platform' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white border border-white/10'}`}
+                >
+                  {copiedField === 'co_platform' ? <><CheckCircle className="w-3.5 h-3.5 text-white" /><span>¡Copiado!</span></> : <><span>Copiar</span><span className="text-[10px]">📋</span></>}
+                </button>
+              </div>
+            </div>
+
+            <a
+              href={buildTransferTelegramLink('Nequi Llave Bre-B Colombia')}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer mt-2"
+            >
+              <Send className="w-4 h-4 text-white animate-pulse" />
+              <span>Enviar pantallazo a Telegram (@{TELEGRAM_USER})</span>
+            </a>
           </div>
         )}
 
