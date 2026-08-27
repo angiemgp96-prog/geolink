@@ -1591,6 +1591,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
             </table>
           </div>
         </div>
+      </div>
       )}
 
     </div>
