@@ -741,6 +741,9 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
     const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "https";
     const host = req.headers.host || "geolink-3tze.onrender.com";
     const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
+    const userCountry = await detectCountryCode(req);
+    let effectivePrice = customPrice && Number(customPrice) > 0 ? Number(customPrice) : Number(media.price);
+    if ((!customPrice || Number(customPrice) <= Number(media.price)) && userCountry === 'CO') { effectivePrice = Number(media.price) * 7; }
     const isUsd = media.currency === "USD";
     const copUnitPrice = isUsd ? Math.round(effectivePrice * 3500) : Math.round(effectivePrice);
     try {

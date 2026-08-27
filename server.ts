@@ -613,7 +613,7 @@ app.delete("/api/media/:id", async (req, res) => {
  */
 app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
   try {
-    const { mediaId, buyerEmail, buyerPhone } = req.body;
+    const { mediaId, buyerEmail, buyerPhone, price: customPrice } = req.body;
     let media = mediaItems.find((m) => m.id === mediaId);
     if (!media && (mediaId === 'acceso_full_cat_actual' || mediaId?.includes('acceso_full'))) {
       media = INITIAL_MEDIA_ITEMS.find(m => m.id === 'acceso_full_cat_actual') || {
@@ -660,7 +660,7 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
       creatorHandle: media.creatorHandle,
       buyerEmail: buyerEmail || "",
       buyerPhone: buyerPhone || "",
-      amount: media.price,
+      amount: (typeof customPrice !== " undefined\ && Number(customPrice) > 0) ? Number(customPrice) : media.price,
       currency: media.currency,
       paymentMethod: "mercadopago",
       paymentId: purchaseId,
@@ -682,7 +682,10 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
 
     // Convertir a Pesos Colombianos (COP) para la cuenta de Mercado Pago Colombia ($1 USD ≈ $4.000 COP)
     const isUsd = media.currency === "USD";
-    const copUnitPrice = isUsd ? Math.round(Number(media.price) * 4000) : Math.round(Number(media.price));
+    const userCountry = await detectCountryCode(req);
+    let effectivePrice = customPrice && Number(customPrice) > 0 ? Number(customPrice) : Number(media.price);
+    if ((!customPrice || Number(customPrice) <= Number(media.price)) && userCountry === 'CO') { effectivePrice = Number(media.price) * 7; }
+    const copUnitPrice = isUsd ? Math.round(effectivePrice * 3500) : Math.round(effectivePrice);
 
     // 1. Generar la preferencia oficial vía la API de Mercado Pago Colombia
     try {
@@ -823,7 +826,7 @@ async function getPayPalAccessToken(clientId: string, clientSecret: string): Pro
  */
 app.post("/api/payments/paypal/create-order", async (req, res) => {
   try {
-    const { mediaId, buyerEmail, buyerPhone } = req.body;
+    const { mediaId, buyerEmail, buyerPhone, price: customPrice } = req.body;
     let media = mediaItems.find((m) => m.id === mediaId);
     if (!media && (mediaId === 'acceso_full_cat_actual' || mediaId?.includes('acceso_full'))) {
       media = INITIAL_MEDIA_ITEMS.find(m => m.id === 'acceso_full_cat_actual') || {
@@ -870,7 +873,7 @@ app.post("/api/payments/paypal/create-order", async (req, res) => {
       creatorHandle: media.creatorHandle,
       buyerEmail: buyerEmail || "",
       buyerPhone: buyerPhone || "",
-      amount: media.price,
+      amount: (typeof customPrice !== " undefined\ && Number(customPrice) > 0) ? Number(customPrice) : media.price,
       currency: "USD",
       paymentMethod: "paypal",
       paymentId: purchaseId,
@@ -1086,7 +1089,7 @@ app.post("/api/payments/confirm-direct", async (req, res) => {
     creatorHandle: media.creatorHandle,
     buyerEmail: buyerEmail || "cliente@ejemplo.com",
     buyerPhone: buyerPhone || "+5491100000000",
-    amount: media.price,
+    amount: (typeof customPrice !== " undefined\ && Number(customPrice) > 0) ? Number(customPrice) : media.price,
     currency: media.currency,
     paymentMethod: paymentMethod || "link",
     paymentId: referenceNumber || purchaseId,
