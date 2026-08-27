@@ -376,8 +376,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                     isUnlocked ? 'border-emerald-500/50 bg-emerald-950/10' : 'border-white/10 hover:border-indigo-500/50'
                   }`}
                 >
-                  {/* Media Preview Card with Vertical Portrait Aspect Ratio */}
-                  <div className="relative aspect-[3/4] sm:aspect-[4/5] bg-zinc-900/80 overflow-hidden">
+                  {/* Media Preview Card with Vertical Portrait Aspect Ratio 9:16 */}
+                  <div className="relative aspect-[9/16] bg-zinc-900/80 overflow-hidden">
                     <img
                       src={item.previewUrl}
                       alt={item.title}

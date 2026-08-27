@@ -318,12 +318,13 @@ export const api = {
         // 1. Purga automática de registros de más de 24 horas en Supabase
         await supabase.from('visitor_leads').delete().lt('created_at', oneDayAgo);
 
-        // 2. Consulta directa de registros de las últimas 24 horas ordenados por fecha descendente
+        // 2. Consulta directa de registros de las últimas 24 horas ordenados por fecha descendente sin el tope de 1000
         const { data, error } = await supabase
           .from('visitor_leads')
           .select('*')
           .gte('created_at', oneDayAgo)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(50000);
 
         if (!error && data) {
           return data.map((row: any) => ({
