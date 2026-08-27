@@ -9,6 +9,7 @@ import { PurchaseModal } from './components/PurchaseModal';
 import { NewCreatorModal } from './components/NewCreatorModal';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { VisitorLeadModal } from './components/VisitorLeadModal';
+import { ColombiaAccessGate } from './components/ColombiaAccessGate';
 import { INITIAL_CREATORS, INITIAL_MEDIA_ITEMS } from './data/mockData';
 import { Lock } from 'lucide-react';
 
@@ -46,6 +47,8 @@ export default function App() {
   const [isNewCreatorModalOpen, setIsNewCreatorModalOpen] = useState<boolean>(false);
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
 
+  const [isColombiaPageUnlocked, setIsColombiaPageUnlocked] = useState<boolean>(false);
+
   useEffect(() => {
     try {
       const savedContact = localStorage.getItem('geolink_visitor_contact');
@@ -56,6 +59,14 @@ export default function App() {
 
     api.getLeadCaptureSetting().then(setRequireLeadCapture).catch(() => {});
   }, []);
+
+  // Check if Colombia page access has been approved for this device
+  useEffect(() => {
+    const isCo = (visitorLocation.countryCode === 'CO' || simulatedCountry === 'CO');
+    if (isCo) {
+      api.checkColombiaAccessApproved().then(setIsColombiaPageUnlocked).catch(() => {});
+    }
+  }, [visitorLocation.countryCode, simulatedCountry]);
 
   // Reactively trigger lead modal or perform silent IP capture
   useEffect(() => {
@@ -301,13 +312,20 @@ export default function App() {
             />
           ) : (
             /* Clean Public Link.me Profile & Photo/Video Store */
-            <PublicCreatorView
-              creator={currentCreator}
-              mediaItems={mediaItems}
-              unlockedMediaIds={unlockedMediaIds}
-              unlockedTokensMap={unlockedTokensMap}
-              onOpenPurchaseModal={(item) => setSelectedMediaForPurchase(item)}
-            />
+            ((visitorLocation.countryCode === 'CO' || simulatedCountry === 'CO') && !isColombiaPageUnlocked && !isAdminLoggedIn && !isBypassedWith0777) ? (
+              <ColombiaAccessGate
+                creator={currentCreator}
+                onUnlocked={() => setIsColombiaPageUnlocked(true)}
+              />
+            ) : (
+              <PublicCreatorView
+                creator={currentCreator}
+                mediaItems={mediaItems}
+                unlockedMediaIds={unlockedMediaIds}
+                unlockedTokensMap={unlockedTokensMap}
+                onOpenPurchaseModal={(item) => setSelectedMediaForPurchase(item)}
+              />
+            )
           )
         ) : (
           /* SaaS Admin Dashboard for Model */

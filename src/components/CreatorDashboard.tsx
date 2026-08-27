@@ -52,6 +52,21 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   const [testPhone, setTestPhone] = useState('');
   const [waTestResponse, setWaTestResponse] = useState<string | null>(null);
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
+  const [colombiaRequests, setColombiaRequests] = useState<any[]>([]);
+
+  const loadColombiaRequests = () => {
+    api.getColombiaAccessRequests().then(setColombiaRequests).catch(() => {});
+  };
+
+  useEffect(() => {
+    loadColombiaRequests();
+  }, []);
+
+  const handleApproveColombiaAccess = async (id: string) => {
+    await api.approveColombiaAccessRequest(id);
+    setColombiaRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
+  };
+
   const [paymentVisibility, setPaymentVisibility] = useState<PaymentMethodsVisibility>({
     mercadopago: true,
     paypal: true,
@@ -1346,7 +1361,77 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
 
       {/* TAB 7: PROSPECTOS / LEADS CAPTURADOS */}
       {activeTab === 'leads' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6">
+        <div className="space-y-6">
+          {/* Tarjeta de Aprobación de Acceso a la Página Colombia ($30 USD) */}
+          <div className="bg-gradient-to-r from-purple-950/80 via-slate-900 to-indigo-950/80 border-2 border-purple-500/50 rounded-3xl p-6 space-y-4 shadow-xl">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <span>🇨🇴 Solicitudes de Acceso Colombia ($30 USD / $105.000 COP)</span>
+                  <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                    Aprobación Nequi
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-300 mt-1 leading-snug">
+                  Usuarios en Colombia que pagaron o enviaron comprobante por Nequi Llave Bre-B para ingresar a la página web.
+                </p>
+              </div>
+              <button
+                onClick={loadColombiaRequests}
+                className="px-3 py-1.5 bg-purple-900/60 hover:bg-purple-800 border border-purple-500/40 text-purple-200 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shrink-0"
+              >
+                <RefreshCw className="w-3.5 h-3.5" /> Actualizar
+              </button>
+            </div>
+
+            {colombiaRequests.length === 0 ? (
+              <div className="text-center py-6 text-slate-400 text-xs bg-black/30 rounded-2xl border border-white/5">
+                Aún no hay solicitudes de acceso enviadas desde Colombia.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-300">
+                  <thead className="bg-black/40 text-purple-300 uppercase font-bold text-[10px]">
+                    <tr>
+                      <th className="p-2.5 rounded-l-xl">Fecha</th>
+                      <th className="p-2.5">Contacto (WhatsApp / Telegram)</th>
+                      <th className="p-2.5">Método</th>
+                      <th className="p-2.5">Estado</th>
+                      <th className="p-2.5 rounded-r-xl">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {colombiaRequests.map((req) => (
+                      <tr key={req.id}>
+                        <td className="p-2.5 text-slate-400">{new Date(req.createdAt).toLocaleDateString()} {new Date(req.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                        <td className="p-2.5 font-bold text-white">{req.contactInfo}</td>
+                        <td className="p-2.5 uppercase font-mono text-amber-300">{req.paymentMethod}</td>
+                        <td className="p-2.5">
+                          <span className={`px-2 py-0.5 rounded font-bold text-[10px] uppercase ${req.status === 'approved' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'}`}>
+                            {req.status === 'approved' ? '🟢 APROBADO' : '⏳ PENDIENTE'}
+                          </span>
+                        </td>
+                        <td className="p-2.5">
+                          {req.status !== 'approved' ? (
+                            <button
+                              onClick={() => handleApproveColombiaAccess(req.id)}
+                              className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-extrabold shadow transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" /> Aprobar Acceso
+                            </button>
+                          ) : (
+                            <span className="text-emerald-400 font-bold text-xs">Acceso Liberado ✅</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6">
           
           {/* Lead Capture Mode Switch ON / OFF Card */}
           <div className="bg-slate-800/80 border border-purple-500/40 rounded-2xl p-5 space-y-3 shadow-lg">

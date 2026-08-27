@@ -486,5 +486,129 @@ export const api = {
     } catch {}
 
     return visibility;
+  },
+
+  // 6. Colombia Page Access Control ($30 USD / $105.000 COP)
+  async saveColombiaAccessRequest(contactInfo: string, method: string = 'nequi'): Promise<boolean> {
+    let deviceHash = '';
+    try {
+      deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
+    } catch {}
+
+    const reqId = `co_acc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('colombia_page_access').insert({
+          id: reqId,
+          contact_info: contactInfo.trim(),
+          device_hash: deviceHash,
+          payment_method: method,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        });
+      } catch (err) {
+        console.warn('Supabase colombia_page_access save warning:', err);
+      }
+    }
+
+    try {
+      await fetch('/api/colombia-page-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: reqId, contactInfo, method, deviceHash })
+      });
+    } catch {}
+
+    return true;
+  },
+
+  async getColombiaAccessRequests(): Promise<any[]> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('colombia_page_access')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(100);
+
+        if (!error && data) {
+          return data.map((row: any) => ({
+            id: row.id,
+            contactInfo: row.contact_info || '',
+            ipAddress: row.ip_address || '',
+            deviceHash: row.device_hash || '',
+            paymentMethod: row.payment_method || 'nequi',
+            status: row.status || 'pending',
+            createdAt: row.created_at || new Date().toISOString()
+          }));
+        }
+      } catch (err) {
+        console.warn('Supabase colombia_page_access fetch error:', err);
+      }
+    }
+
+    try {
+      const res = await fetch('/api/colombia-page-access');
+      if (res.ok) return await res.json();
+    } catch {}
+
+    return [];
+  },
+
+  async approveColombiaAccessRequest(id: string): Promise<boolean> {
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase
+          .from('colombia_page_access')
+          .update({ status: 'approved', approved_at: new Date().toISOString() })
+          .eq('id', id);
+      } catch (err) {
+        console.warn('Supabase approve colombia_page_access warning:', err);
+      }
+    }
+
+    try {
+      const res = await fetch(`/api/colombia-page-access/${id}/approve`, { method: 'POST' });
+      return res.ok;
+    } catch {}
+
+    return true;
+  },
+
+  async checkColombiaAccessApproved(deviceHash?: string): Promise<boolean> {
+    try {
+      const localUnlocked = localStorage.getItem('geolink_colombia_page_unlocked');
+      if (localUnlocked === 'true') return true;
+    } catch {}
+
+    let hash = deviceHash || '';
+    if (!hash) {
+      try {
+        hash = localStorage.getItem('geolink_device_fingerprint') || '';
+      } catch {}
+    }
+
+    if (isSupabaseConfigured() && hash) {
+      try {
+        const { data } = await supabase
+          .from('colombia_page_access')
+          .select('id, status')
+          .eq('device_hash', hash)
+          .eq('status', 'approved')
+          .limit(1);
+
+        if (data && data.length > 0) {
+          try {
+            localStorage.setItem('geolink_colombia_page_unlocked', 'true');
+          } catch {}
+          return true;
+        }
+      } catch (err) {
+        console.warn('Supabase check Colombia access warning:', err);
+      }
+    }
+
+    return false;
   }
 };
