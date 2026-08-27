@@ -37,9 +37,6 @@ export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator 
     try {
       const data = await api.createMercadoPagoPreference('acceso_pagina_colombia', '', contactInfo || 'Pagina Colombia', 30);
       if (data.init_point) {
-        try {
-          localStorage.setItem('geolink_colombia_page_unlocked', 'true');
-        } catch {}
         window.location.href = data.init_point;
       } else {
         alert('No se pudo abrir Mercado Pago. Intenta nuevamente.');

@@ -577,11 +577,6 @@ export const api = {
   },
 
   async checkColombiaAccessApproved(deviceHash?: string): Promise<boolean> {
-    try {
-      const localUnlocked = localStorage.getItem('geolink_colombia_page_unlocked');
-      if (localUnlocked === 'true') return true;
-    } catch {}
-
     let hash = deviceHash || '';
     if (!hash) {
       try {
@@ -589,25 +584,44 @@ export const api = {
       } catch {}
     }
 
-    if (isSupabaseConfigured() && hash) {
+    // 1. Verificación en Supabase por dispositivo o aprobación previa
+    if (isSupabaseConfigured()) {
       try {
-        const { data } = await supabase
-          .from('colombia_page_access')
-          .select('id, status')
-          .eq('device_hash', hash)
-          .eq('status', 'approved')
-          .limit(1);
+        if (hash) {
+          const { data } = await supabase
+            .from('colombia_page_access')
+            .select('id, status')
+            .eq('device_hash', hash)
+            .eq('status', 'approved')
+            .limit(1);
 
-        if (data && data.length > 0) {
-          try {
-            localStorage.setItem('geolink_colombia_page_unlocked', 'true');
-          } catch {}
-          return true;
+          if (data && data.length > 0) {
+            try { localStorage.setItem('geolink_colombia_page_unlocked', 'true'); } catch {}
+            return true;
+          }
         }
       } catch (err) {
         console.warn('Supabase check Colombia access warning:', err);
       }
     }
+
+    // 2. Verificación si retornó con token verificado de Mercado Pago o PayPal
+    try {
+      const savedTokensRaw = localStorage.getItem('geolink_unlocked_tokens');
+      const savedTokens: string[] = savedTokensRaw ? JSON.parse(savedTokensRaw) : [];
+      if (savedTokens.length > 0) {
+        const res = await this.getUnlockedItems(savedTokens);
+        if (res.unlockedMediaIds?.includes('acceso_pagina_colombia')) {
+          try { localStorage.setItem('geolink_colombia_page_unlocked', 'true'); } catch {}
+          return true;
+        }
+      }
+    } catch {}
+
+    // Si no está verificado en Supabase ni por compra aprobada, eliminar cualquier marca local obsoleta
+    try {
+      localStorage.removeItem('geolink_colombia_page_unlocked');
+    } catch {}
 
     return false;
   }
