@@ -393,18 +393,20 @@ export default function App() {
         />
       )}
 
-      {/* Footer with Discreet Model Access Button */}
-      <footer className="relative z-10 py-6 px-8 bg-black/60 border-t border-white/5 text-[11px] text-zinc-500 uppercase tracking-widest flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div>Link.me VIP • {currentCreator.name}</div>
-        
-        <button
-          onClick={() => setIsAdminLoginModalOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-indigo-300 text-xs font-medium transition-all cursor-pointer"
-        >
-          <Lock className="w-3.5 h-3.5 text-indigo-400" />
-          <span>{isAdminLoggedIn ? 'Panel Creadora (Activo)' : '🔑 Acceso Exclusivo Creadora'}</span>
-        </button>
-      </footer>
+      {/* Footer with Discreet Model Access Button (Oculto cuando el Gate de Colombia está activo) */}
+      {!((visitorLocation.countryCode === 'CO' || simulatedCountry === 'CO') && !isColombiaPageUnlocked && !isAdminLoggedIn && !isBypassedWith0777) && (
+        <footer className="relative z-10 py-6 px-8 bg-black/60 border-t border-white/5 text-[11px] text-zinc-500 uppercase tracking-widest flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div>Link.me VIP • {currentCreator.name}</div>
+          
+          <button
+            onClick={() => setIsAdminLoginModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-indigo-300 text-xs font-medium transition-all cursor-pointer"
+          >
+            <Lock className="w-3.5 h-3.5 text-indigo-400" />
+            <span>{isAdminLoggedIn ? 'Panel Creadora (Activo)' : '🔑 Acceso Exclusivo Creadora'}</span>
+          </button>
+        </footer>
+      )}
 
       {/* Visitor Lead Capture Modal (Only for allowed countries and non-admins) */}
       {accessAllowed && !isAdminLoggedIn && (
