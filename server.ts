@@ -615,19 +615,19 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
   try {
     const { mediaId, buyerEmail, buyerPhone, price: customPrice } = req.body;
     let media = mediaItems.find((m) => m.id === mediaId);
-    if (!media && (mediaId === 'acceso_full_cat_actual' || mediaId?.includes('acceso_full'))) {
-      media = INITIAL_MEDIA_ITEMS.find(m => m.id === 'acceso_full_cat_actual') || {
-        id: 'acceso_full_cat_actual',
+    if (!media && (mediaId === 'acceso_full_cat_actual' || mediaId?.includes('acceso_full') || mediaId?.includes('acceso_pagina'))) {
+      media = {
+        id: mediaId || 'acceso_pagina_colombia',
         creatorId: 'creator_1',
         creatorHandle: 'angelina69',
-        title: '👑 ACCESO FULL — Desbloquear Catálogo Actual',
-        description: 'Acceso inmediato a todas las fotos y videos publicados hasta la fecha.',
+        title: mediaId?.includes('pagina') ? '🇨🇴 Pase de Entrada a la Página Web' : '🔑 ACCESO FULL - Desbloquear Catálogo Actual',
+        description: mediaId?.includes('pagina') ? 'Acceso a explorar la página web de la creadora.' : 'Acceso inmediato a todas las fotos y videos publicados hasta la fecha.',
         type: 'bundle',
-        price: 50,
+        price: mediaId?.includes('pagina') ? 30 : 50,
         currency: 'USD',
         previewUrl: 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg',
         downloadUrl: 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg',
-        fileSize: 'COMPLETO',
+        fileSize: 'ACCESO',
         duration: 'ILIMITADO',
         purchasesCount: 920,
         isFeatured: true,
@@ -829,19 +829,19 @@ app.post("/api/payments/paypal/create-order", async (req, res) => {
   try {
     const { mediaId, buyerEmail, buyerPhone, price: customPrice } = req.body;
     let media = mediaItems.find((m) => m.id === mediaId);
-    if (!media && (mediaId === 'acceso_full_cat_actual' || mediaId?.includes('acceso_full'))) {
-      media = INITIAL_MEDIA_ITEMS.find(m => m.id === 'acceso_full_cat_actual') || {
-        id: 'acceso_full_cat_actual',
+    if (!media && (mediaId === 'acceso_full_cat_actual' || mediaId?.includes('acceso_full') || mediaId?.includes('acceso_pagina'))) {
+      media = {
+        id: mediaId || 'acceso_pagina_colombia',
         creatorId: 'creator_1',
         creatorHandle: 'angelina69',
-        title: '👑 ACCESO FULL — Desbloquear Catálogo Actual',
-        description: 'Acceso inmediato a todas las fotos y videos publicados hasta la fecha.',
+        title: mediaId?.includes('pagina') ? '🇨🇴 Pase de Entrada a la Página Web' : '🔑 ACCESO FULL - Desbloquear Catálogo Actual',
+        description: mediaId?.includes('pagina') ? 'Acceso a explorar la página web de la creadora.' : 'Acceso inmediato a todas las fotos y videos publicados hasta la fecha.',
         type: 'bundle',
-        price: 50,
+        price: mediaId?.includes('pagina') ? 30 : 50,
         currency: 'USD',
         previewUrl: 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg',
         downloadUrl: 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg',
-        fileSize: 'COMPLETO',
+        fileSize: 'ACCESO',
         duration: 'ILIMITADO',
         purchasesCount: 920,
         isFeatured: true,
