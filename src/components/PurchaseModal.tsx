@@ -160,7 +160,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     setErrorMessage('');
     setIsLoading(true);
     try {
-      const data = await api.createMercadoPagoPreference(item.id, '', contactInfo);
+      const data = await api.createMercadoPagoPreference(item.id, '', contactInfo, item.price);
       if (data.error) {
         setErrorMessage(data.error);
         return;

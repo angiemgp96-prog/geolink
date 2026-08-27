@@ -157,11 +157,11 @@ export const api = {
   },
 
   // 4. Payment Integrations
-  async createMercadoPagoPreference(mediaId: string, buyerEmail: string, buyerPhone: string) {
+  async createMercadoPagoPreference(mediaId: string, buyerEmail: string, buyerPhone: string, price?: number) {
     const res = await fetch('/api/payments/mercadopago/create-preference', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mediaId, buyerEmail, buyerPhone })
+      body: JSON.stringify({ mediaId, buyerEmail, buyerPhone, price })
     });
     return await res.json();
   },
