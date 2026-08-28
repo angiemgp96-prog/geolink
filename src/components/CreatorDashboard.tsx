@@ -62,9 +62,23 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
     loadColombiaRequests();
   }, []);
 
-  const handleApproveColombiaAccess = async (id: string) => {
-    await api.approveColombiaAccessRequest(id);
-    setColombiaRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
+  const [newCustomLinkContact, setNewCustomLinkContact] = useState('');
+  const [newCustomLinkCode, setNewCustomLinkCode] = useState('');
+  const [generatedLinkResult, setGeneratedLinkResult] = useState<string | null>(null);
+  const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
+
+  const handleGenerateCustomLink = async () => {
+    const res = await api.createColombiaCustomAccessLink(newCustomLinkContact || 'Cliente Telegram', newCustomLinkCode);
+    setGeneratedLinkResult(res.link);
+    setNewCustomLinkContact('');
+    setNewCustomLinkCode('');
+    loadColombiaRequests();
+  };
+
+  const handleCopyCustomLink = (linkText: string, id: string) => {
+    try { navigator.clipboard.writeText(linkText); } catch {}
+    setCopiedLinkId(id);
+    setTimeout(() => setCopiedLinkId(null), 1800);
   };
 
   const [paymentVisibility, setPaymentVisibility] = useState<PaymentMethodsVisibility>({
@@ -1384,6 +1398,49 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
               </button>
             </div>
 
+            {/* Formulario Generador de Enlaces Únicos (?access=Axwkjl) */}
+            <div className="p-4 bg-black/40 border border-purple-500/30 rounded-2xl space-y-3">
+              <h4 className="font-bold text-xs text-purple-300 flex items-center gap-1.5">
+                <span>🔗 Generador de Enlaces Directos de Acceso para Telegram</span>
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <input
+                  type="text"
+                  placeholder="Teléfono / Contacto (Ej: 3132320534)"
+                  value={newCustomLinkContact}
+                  onChange={(e) => setNewCustomLinkContact(e.target.value)}
+                  className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-purple-400"
+                />
+                <input
+                  type="text"
+                  placeholder="Código Personalizado (Ej: Axwkjl o dejar en blanco)"
+                  value={newCustomLinkCode}
+                  onChange={(e) => setNewCustomLinkCode(e.target.value)}
+                  className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-purple-400"
+                />
+                <button
+                  onClick={handleGenerateCustomLink}
+                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Generar Enlace Único
+                </button>
+              </div>
+
+              {generatedLinkResult && (
+                <div className="p-3 bg-purple-950/60 border border-purple-400/40 rounded-xl flex items-center justify-between gap-2 flex-wrap">
+                  <div className="text-xs text-purple-200 font-mono break-all">
+                    👉 <strong className="text-amber-300">{generatedLinkResult}</strong>
+                  </div>
+                  <button
+                    onClick={() => handleCopyCustomLink(generatedLinkResult, 'gen_link')}
+                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1 shrink-0 ${copiedLinkId === 'gen_link' ? 'bg-emerald-500 text-white' : 'bg-purple-600 text-white hover:bg-purple-500'}`}
+                  >
+                    {copiedLinkId === 'gen_link' ? '¡Enlace Copiado!' : 'Copiar Enlace 📋'}
+                  </button>
+                </div>
+              )}
+            </div>
+
             {colombiaRequests.length === 0 ? (
               <div className="text-center py-6 text-slate-400 text-xs bg-black/30 rounded-2xl border border-white/5">
                 Aún no hay solicitudes de acceso enviadas desde Colombia.
@@ -1395,36 +1452,58 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                     <tr>
                       <th className="p-2.5 rounded-l-xl">Fecha</th>
                       <th className="p-2.5">Contacto (WhatsApp / Telegram)</th>
+                      <th className="p-2.5">Código / Enlace VIP</th>
                       <th className="p-2.5">Método</th>
                       <th className="p-2.5">Estado</th>
                       <th className="p-2.5 rounded-r-xl">Acción</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800">
-                    {colombiaRequests.map((req) => (
-                      <tr key={req.id}>
-                        <td className="p-2.5 text-slate-400">{new Date(req.createdAt).toLocaleDateString()} {new Date(req.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                        <td className="p-2.5 font-bold text-white">{req.contactInfo}</td>
-                        <td className="p-2.5 uppercase font-mono text-amber-300">{req.paymentMethod}</td>
-                        <td className="p-2.5">
-                          <span className={`px-2 py-0.5 rounded font-bold text-[10px] uppercase ${req.status === 'approved' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'}`}>
-                            {req.status === 'approved' ? '🟢 APROBADO' : '⏳ PENDIENTE'}
-                          </span>
-                        </td>
-                        <td className="p-2.5">
-                          {req.status !== 'approved' ? (
-                            <button
-                              onClick={() => handleApproveColombiaAccess(req.id)}
-                              className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-extrabold shadow transition-all cursor-pointer flex items-center gap-1 shrink-0"
-                            >
-                              <CheckCircle className="w-3.5 h-3.5" /> Aprobar Acceso
-                            </button>
-                          ) : (
-                            <span className="text-emerald-400 font-bold text-xs">Acceso Liberado ✅</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                    {colombiaRequests.map((req) => {
+                      const hostUrl = typeof window !== 'undefined' ? window.location.origin : 'https://geolink-1.onrender.com';
+                      const linkUrl = req.custom_code ? `${hostUrl}/?access=${req.custom_code}` : null;
+                      return (
+                        <tr key={req.id}>
+                          <td className="p-2.5 text-slate-400">{new Date(req.createdAt).toLocaleDateString()} {new Date(req.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                          <td className="p-2.5 font-bold text-white">{req.contactInfo}</td>
+                          <td className="p-2.5">
+                            {linkUrl ? (
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-mono text-amber-300 text-[11px] font-bold bg-amber-950/60 border border-amber-500/30 px-1.5 py-0.5 rounded">
+                                  {req.custom_code}
+                                </span>
+                                <button
+                                  onClick={() => handleCopyCustomLink(linkUrl, req.id)}
+                                  className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${copiedLinkId === req.id ? 'bg-emerald-500 text-white' : 'bg-white/10 hover:bg-white/20 text-purple-300'}`}
+                                >
+                                  {copiedLinkId === req.id ? '¡Copiado!' : 'Copiar Link 📋'}
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-slate-500 text-[10px]">Sin código</span>
+                            )}
+                          </td>
+                          <td className="p-2.5 uppercase font-mono text-amber-300">{req.paymentMethod}</td>
+                          <td className="p-2.5">
+                            <span className={`px-2 py-0.5 rounded font-bold text-[10px] uppercase ${req.status === 'approved' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'}`}>
+                              {req.status === 'approved' ? '🟢 APROBADO' : '⏳ PENDIENTE'}
+                            </span>
+                          </td>
+                          <td className="p-2.5">
+                            {req.status !== 'approved' ? (
+                              <button
+                                onClick={() => handleApproveColombiaAccess(req.id)}
+                                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-extrabold shadow transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                              >
+                                <CheckCircle className="w-3.5 h-3.5" /> Aprobar Acceso
+                              </button>
+                            ) : (
+                              <span className="text-emerald-400 font-bold text-xs">Acceso Liberado ✅</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

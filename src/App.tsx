@@ -180,8 +180,21 @@ export default function App() {
       const loc = await api.getVisitorLocation();
       setVisitorLocation(loc);
 
-      // Check for returning payment redirect parameters (Mercado Pago or PayPal)
+      // Check for returning payment redirect parameters or direct VIP access codes (?access=Axwkjl)
       const params = new URLSearchParams(window.location.search);
+      const accessCode = params.get('access') || params.get('code') || params.get('pass');
+      if (accessCode) {
+        try {
+          const isValidCode = await api.checkColombiaCustomCode(accessCode);
+          if (isValidCode) {
+            setIsColombiaPageUnlocked(true);
+            try {
+              window.history.replaceState({}, document.title, window.location.pathname);
+            } catch {}
+          }
+        } catch {}
+      }
+
       const token = params.get('token') || params.get('unlock');
       const isMpReturn = params.get('payment') === 'success' || params.get('collection_status') === 'approved' || params.get('status') === 'approved';
       const isPpReturn = params.get('payment') === 'paypal_success';
