@@ -603,7 +603,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
               </div>
               <h3 className="text-base sm:text-lg font-bold text-white leading-snug">{item.title}</h3>
               <p className="text-xl font-black text-amber-300 mt-0.5">
-                ${item.price.toFixed(2)} <span className="text-sm font-semibold text-amber-400/70">{item.currency}</span>
+                {getFormattedModalPrice()}
               </p>
             </div>
 
@@ -743,7 +743,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
               </div>
               <h3 className="text-base sm:text-lg font-bold text-white leading-snug">{item.title}</h3>
               <p className="text-xl font-black text-amber-300 mt-0.5">
-                ${item.price.toFixed(2)} <span className="text-sm font-semibold text-amber-400/70">{item.currency}</span>
+                {getFormattedModalPrice()}
               </p>
             </div>
 
@@ -822,7 +822,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
               </div>
               <h3 className="text-base sm:text-lg font-bold text-white leading-snug">{item.title}</h3>
               <p className="text-xl font-black text-amber-300 mt-0.5">
-                ${item.price.toFixed(2)} <span className="text-sm font-semibold text-amber-400/70">{item.currency}</span>
+                {getFormattedModalPrice()}
               </p>
             </div>
 
@@ -943,7 +943,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
               </div>
               <h3 className="text-base sm:text-lg font-bold text-white leading-snug">{item.title}</h3>
               <p className="text-xl font-black text-amber-300 mt-0.5">
-                ${item.price.toFixed(2)} <span className="text-sm font-semibold text-amber-400/70">{item.currency}</span>
+                {getFormattedModalPrice()}
               </p>
             </div>
 
@@ -1058,7 +1058,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
               </div>
               <div className="flex justify-between text-zinc-300">
                 <span className="text-zinc-500">Monto</span>
-                <span className="text-amber-400 font-bold">${item.price.toFixed(2)} {item.currency}</span>
+                <span className="text-amber-400 font-bold">{getFormattedModalPrice()}</span>
               </div>
               <div className="flex justify-between text-zinc-300">
                 <span className="text-zinc-500">Estado</span>
