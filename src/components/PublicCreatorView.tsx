@@ -593,21 +593,6 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
         </div>
       )}
 
-        </div>
-      </div>
     </div>
-
-    {/* Flotante del recorrido automático */}
-    {isAutoScrolling && (
-      <div
-        onClick={() => setIsAutoScrolling(false)}
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-purple-900/90 to-indigo-900/90 border border-purple-400/50 text-white text-xs font-extrabold px-4 py-2 rounded-full shadow-2xl backdrop-blur-md flex items-center gap-2 cursor-pointer animate-bounce"
-      >
-        <Sparkles className="w-4 h-4 text-amber-300 animate-spin" />
-        <span>✨ Recorrido del catálogo... (Toca para detener)</span>
-      </div>
-    )}
-
-  </div>
   );
 };
