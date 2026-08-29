@@ -135,7 +135,7 @@ export const api = {
           file_size: item.fileSize,
           duration: item.duration,
           sales_count: item.purchasesCount || 0,
-          data: item
+          data: { ...item, isExtraPremium: Boolean(item.isExtraPremium) }
         });
       } catch (err) {
         console.warn('Supabase sync warning:', err);

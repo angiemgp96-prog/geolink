@@ -102,6 +102,7 @@ function fromSupabaseMedia(row: any): MediaItem {
     duration: row.duration || '',
     purchasesCount: row.sales_count || row.data?.purchasesCount || 0,
     isFeatured: row.data?.isFeatured || false,
+    isExtraPremium: Boolean(row.is_extra_premium ?? row.data?.isExtraPremium ?? false),
     createdAt: row.created_at || new Date().toISOString()
   };
 }
@@ -125,7 +126,8 @@ function toSupabaseMedia(item: MediaItem): any {
       previewUrl: item.previewUrl,
       downloadUrl: item.downloadUrl,
       purchasesCount: item.purchasesCount,
-      isFeatured: item.isFeatured
+      isFeatured: item.isFeatured,
+      isExtraPremium: Boolean(item.isExtraPremium)
     }
   };
 }
