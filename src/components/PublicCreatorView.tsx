@@ -78,27 +78,27 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     window.addEventListener('keydown', cancelAutoScroll, { passive: true });
 
     const runTour = async () => {
-      const targetScroll = Math.min(window.innerHeight * 0.75, document.body.scrollHeight - window.innerHeight);
-      if (targetScroll <= 100 || isCancelled) {
+      const maxScroll = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) - window.innerHeight;
+      if (maxScroll <= 100 || isCancelled) {
         cancelAutoScroll();
         return;
       }
 
-      // 1. Desplazamiento inmediato hacia la tienda
-      window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+      // 1. Desplazamiento fluido hasta el fondo absoluto de la tienda (último video)
+      window.scrollTo({ top: maxScroll, behavior: 'smooth' });
 
-      // Tiempo de desplazamiento suave
-      await new Promise((r) => setTimeout(r, 600));
+      // Tiempo de recorrido completo hasta abajo
+      await new Promise((r) => setTimeout(r, 1200));
       if (isCancelled) return;
 
-      // 2. Pausa corta de medio segundo (500 ms) para mostrar los videos
+      // 2. Pausa corta de medio segundo (500 ms) al llegar al final del catálogo
       await new Promise((r) => setTimeout(r, 500));
       if (isCancelled) return;
 
       // 3. Desplazamiento de retorno hacia arriba
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => setTimeout(r, 1000));
       cancelAutoScroll();
     };
 
