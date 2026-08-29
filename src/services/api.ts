@@ -719,17 +719,21 @@ export const api = {
     return { code, link };
   },
 
-  async getGlobalDiscount(handle: string = 'angelina69'): Promise<number> {
+  async getGlobalDiscount(handle: string = 'angelina69'): Promise<{ discountPercentage: number; colombiaMultiplier: number }> {
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase
           .from('global_discounts')
-          .select('discount_percentage, is_active')
+          .select('discount_percentage, colombia_multiplier, is_active')
           .eq('creator_handle', handle)
           .limit(1);
 
-        if (!error && data && data.length > 0 && data[0].is_active) {
-          return Number(data[0].discount_percentage) || 0;
+        if (!error && data && data.length > 0) {
+          const row = data[0];
+          return {
+            discountPercentage: row.is_active ? (Number(row.discount_percentage) || 0) : 0,
+            colombiaMultiplier: row.colombia_multiplier !== null && row.colombia_multiplier !== undefined ? Number(row.colombia_multiplier) : 7
+          };
         }
       } catch (err) {
         console.warn('Supabase getGlobalDiscount warning:', err);
@@ -740,28 +744,29 @@ export const api = {
       const res = await fetch(`/api/creators/${encodeURIComponent(handle)}/discount`);
       if (res.ok) {
         const result = await res.json();
-        return Number(result.discountPercentage) || 0;
+        return {
+          discountPercentage: Number(result.discountPercentage) || 0,
+          colombiaMultiplier: result.colombiaMultiplier !== undefined ? Number(result.colombiaMultiplier) : 7
+        };
       }
     } catch {}
 
-    return 0;
+    return { discountPercentage: 0, colombiaMultiplier: 7 };
   },
 
-  async saveGlobalDiscount(percentage: number | null, handle: string = 'angelina69'): Promise<boolean> {
+  async saveGlobalDiscount(percentage: number | null, multiplier: number | null = 7, handle: string = 'angelina69'): Promise<boolean> {
     const cleanPercentage = percentage && Number(percentage) > 0 ? Number(percentage) : 0;
+    const cleanMultiplier = multiplier !== null && multiplier !== undefined && Number(multiplier) > 0 ? Number(multiplier) : null;
 
     if (isSupabaseConfigured()) {
       try {
-        if (cleanPercentage <= 0) {
-          await supabase.from('global_discounts').delete().eq('creator_handle', handle);
-        } else {
-          await supabase.from('global_discounts').upsert({
-            creator_handle: handle,
-            discount_percentage: cleanPercentage,
-            is_active: true,
-            updated_at: new Date().toISOString()
-          });
-        }
+        await supabase.from('global_discounts').upsert({
+          creator_handle: handle,
+          discount_percentage: cleanPercentage,
+          colombia_multiplier: cleanMultiplier,
+          is_active: cleanPercentage > 0,
+          updated_at: new Date().toISOString()
+        });
       } catch (err) {
         console.warn('Supabase saveGlobalDiscount warning:', err);
       }
@@ -771,7 +776,7 @@ export const api = {
       await fetch(`/api/creators/${encodeURIComponent(handle)}/discount`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ discountPercentage: cleanPercentage })
+        body: JSON.stringify({ discountPercentage: cleanPercentage, colombiaMultiplier: cleanMultiplier })
       });
     } catch {}
 

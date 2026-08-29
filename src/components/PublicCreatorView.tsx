@@ -40,20 +40,27 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   }, []);
 
   const [globalDiscount, setGlobalDiscount] = useState<number>(0);
+  const [colombiaMultiplier, setColombiaMultiplier] = useState<number>(7);
 
   React.useEffect(() => {
-    api.getGlobalDiscount().then(setGlobalDiscount).catch(() => {});
+    api.getGlobalDiscount().then((res) => {
+      setGlobalDiscount(res.discountPercentage);
+      if (res.colombiaMultiplier !== undefined && res.colombiaMultiplier !== null) {
+        setColombiaMultiplier(res.colombiaMultiplier);
+      }
+    }).catch(() => {});
   }, []);
 
   const isColombia = visitorCountry === 'CO';
 
-  // Helper de cálculo preciso de precios con y sin descuento
+  // Helper de cálculo preciso de precios con y sin descuento usando el multiplicador dinámico
   const getCalculatedPrices = (basePrice: number) => {
+    const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
     if (isColombia) {
-      const origCop = Math.round(basePrice * 7 * 3500);
+      const origCop = Math.round(basePrice * activeMult * 3500);
       if (globalDiscount > 0) {
         const rawDiscountedBase = Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100;
-        const discCop = Math.round(rawDiscountedBase * 7 * 3500);
+        const discCop = Math.round(rawDiscountedBase * activeMult * 3500);
         return {
           originalFormatted: `$${origCop.toLocaleString('es-CO')} COP`,
           discountedFormatted: `$${discCop.toLocaleString('es-CO')} COP`,
@@ -89,7 +96,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
   const getItemPrice = (basePrice: number) => {
     const rawDiscountedBase = globalDiscount > 0 ? Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100 : basePrice;
-    return isColombia ? Math.round(rawDiscountedBase * 7) : rawDiscountedBase;
+    const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
+    return isColombia ? Math.round(rawDiscountedBase * activeMult) : rawDiscountedBase;
   };
 
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);

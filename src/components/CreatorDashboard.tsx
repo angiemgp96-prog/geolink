@@ -82,21 +82,27 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   };
 
   const [globalDiscountInput, setGlobalDiscountInput] = useState<string>('');
+  const [colombiaMultiplierInput, setColombiaMultiplierInput] = useState<string>('7');
   const [savedDiscountActive, setSavedDiscountActive] = useState<number>(0);
 
   useEffect(() => {
-    api.getGlobalDiscount().then((d) => {
-      setSavedDiscountActive(d);
-      setGlobalDiscountInput(d > 0 ? String(d) : '');
+    api.getGlobalDiscount().then((res) => {
+      setSavedDiscountActive(res.discountPercentage);
+      setGlobalDiscountInput(res.discountPercentage > 0 ? String(res.discountPercentage) : '');
+      setColombiaMultiplierInput(res.colombiaMultiplier !== undefined && res.colombiaMultiplier !== null ? String(res.colombiaMultiplier) : '7');
     });
   }, []);
 
   const handleSaveDiscount = async () => {
-    const val = Number(globalDiscountInput);
-    const cleanVal = val > 0 ? val : 0;
-    await api.saveGlobalDiscount(cleanVal);
-    setSavedDiscountActive(cleanVal);
-    if (cleanVal <= 0) setGlobalDiscountInput('');
+    const dVal = Number(globalDiscountInput);
+    const cleanDiscount = dVal > 0 ? dVal : 0;
+
+    const mVal = Number(colombiaMultiplierInput);
+    const cleanMultiplier = colombiaMultiplierInput.trim() !== '' && mVal > 0 ? mVal : null;
+
+    await api.saveGlobalDiscount(cleanDiscount, cleanMultiplier);
+    setSavedDiscountActive(cleanDiscount);
+    if (cleanDiscount <= 0) setGlobalDiscountInput('');
   };
 
   const [paymentVisibility, setPaymentVisibility] = useState<PaymentMethodsVisibility>({
@@ -952,38 +958,62 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="relative flex-1 max-w-xs">
-                  <input
-                    type="number"
-                    min="0"
-                    max="99"
-                    placeholder="Ej: 20 (para 20% OFF)"
-                    value={globalDiscountInput}
-                    onChange={(e) => setGlobalDiscountInput(e.target.value)}
-                    className="w-full bg-slate-900 border border-amber-500/40 rounded-xl px-4 py-2.5 text-sm font-bold text-white outline-none focus:border-amber-400 font-mono"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 font-black text-xs">% OFF</span>
+              <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+                {/* Descuento % OFF */}
+                <div className="relative flex-1">
+                  <label className="block text-[10px] uppercase font-bold text-amber-300 mb-1">Descuento Global (% OFF):</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      max="99"
+                      placeholder="Ej: 20 (para 20% OFF)"
+                      value={globalDiscountInput}
+                      onChange={(e) => setGlobalDiscountInput(e.target.value)}
+                      className="w-full bg-slate-900 border border-amber-500/40 rounded-xl px-4 py-2.5 text-sm font-bold text-white outline-none focus:border-amber-400 font-mono"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 font-black text-xs">% OFF</span>
+                  </div>
                 </div>
 
-                <button
-                  onClick={handleSaveDiscount}
-                  className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
-                >
-                  <Save className="w-4 h-4" /> Guardar Descuento
-                </button>
+                {/* Multiplicador Colombia (x) */}
+                <div className="relative flex-1">
+                  <label className="block text-[10px] uppercase font-bold text-sky-300 mb-1">🇨🇴 Multiplicador Colombia (x):</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="1"
+                      max="50"
+                      placeholder="Ej: 7, 5, 2 o en blanco"
+                      value={colombiaMultiplierInput}
+                      onChange={(e) => setColombiaMultiplierInput(e.target.value)}
+                      className="w-full bg-slate-900 border border-sky-500/40 rounded-xl px-4 py-2.5 text-sm font-bold text-white outline-none focus:border-sky-400 font-mono"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sky-400 font-black text-xs">x MULT</span>
+                  </div>
+                </div>
 
-                {savedDiscountActive > 0 && (
+                {/* Acciones */}
+                <div className="flex items-center gap-2 pt-4 md:pt-0">
                   <button
-                    onClick={() => {
-                      setGlobalDiscountInput('');
-                      api.saveGlobalDiscount(0).then(() => setSavedDiscountActive(0));
-                    }}
-                    className="px-4 py-2.5 bg-rose-900/60 hover:bg-rose-800 border border-rose-500/40 text-rose-200 font-bold text-xs rounded-xl transition-all cursor-pointer shrink-0"
+                    onClick={handleSaveDiscount}
+                    className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
                   >
-                    Quitar Descuento 🗑️
+                    <Save className="w-4 h-4" /> Guardar Ajustes
                   </button>
-                )}
+
+                  {savedDiscountActive > 0 && (
+                    <button
+                      onClick={() => {
+                        setGlobalDiscountInput('');
+                        api.saveGlobalDiscount(0, Number(colombiaMultiplierInput) || 7).then(() => setSavedDiscountActive(0));
+                      }}
+                      className="px-3.5 py-2.5 bg-rose-900/60 hover:bg-rose-800 border border-rose-500/40 text-rose-200 font-bold text-xs rounded-xl transition-all cursor-pointer shrink-0"
+                    >
+                      Quitar Descuento 🗑️
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
