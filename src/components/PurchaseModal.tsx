@@ -533,12 +533,6 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                     <ExternalLink className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
                   </a>
                 )}
-                        <div className="text-[11px] font-normal text-indigo-200">ClearBank Europe N.V. · Euros</div>
-                      </div>
-                    </div>
-                    <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-                )}
 
                 {detectedRegion === 'OTHER' && (
                   <div className="space-y-2 pt-1 border-t border-white/10">
