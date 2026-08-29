@@ -23,6 +23,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 let creators: CreatorProfile[] = [...INITIAL_CREATORS];
 let mediaItems: MediaItem[] = [...INITIAL_MEDIA_ITEMS];
 let purchases: PurchaseRecord[] = [];
+let globalDiscountPercentage = 0;
 
 let paymentMethodsVisibility = {
   mercadopago: true,
@@ -494,6 +495,33 @@ app.get("/api/creators", (req, res) => {
 });
 
 // Get creator profile by handle with active media items
+app.get("/api/creators/:handle/discount", (req, res) => {
+  res.json({ discountPercentage: globalDiscountPercentage });
+});
+
+app.post("/api/creators/:handle/discount", async (req, res) => {
+  const { discountPercentage } = req.body;
+  const percentage = Number(discountPercentage) || 0;
+  globalDiscountPercentage = percentage > 0 ? percentage : 0;
+
+  try {
+    if (globalDiscountPercentage <= 0) {
+      await supabase.from("global_discounts").delete().eq("creator_handle", "angelina69");
+    } else {
+      await supabase.from("global_discounts").upsert({
+        creator_handle: "angelina69",
+        discount_percentage: globalDiscountPercentage,
+        is_active: true,
+        updated_at: new Date().toISOString()
+      });
+    }
+  } catch (err) {
+    console.warn("[Supabase discount save warning]", err);
+  }
+
+  res.json({ success: true, discountPercentage: globalDiscountPercentage });
+});
+
 app.get("/api/creators/:handle", (req, res) => {
   const { handle } = req.params;
   const creator = creators.find((c) => c.handle.toLowerCase() === handle.toLowerCase());
@@ -684,8 +712,12 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
 
     // Convertir a Pesos Colombianos (COP) para la cuenta de Mercado Pago Colombia ($1 USD ≈ $4.000 COP)
     const userCountry = await detectCountryCode(req);
-    let effectivePrice = customPrice && Number(customPrice) > 0 ? Number(customPrice) : Number(media.price);
-    if (!mediaId?.includes('pagina') && (!customPrice || Number(customPrice) <= Number(media.price)) && userCountry === 'CO') { effectivePrice = Number(media.price) * 7; }
+    let rawBasePrice = customPrice && Number(customPrice) > 0 ? Number(customPrice) : Number(media.price);
+    if (globalDiscountPercentage > 0) {
+      rawBasePrice = Math.round(rawBasePrice * (1 - globalDiscountPercentage / 100) * 100) / 100;
+    }
+    let effectivePrice = rawBasePrice;
+    if (!mediaId?.includes('pagina') && (!customPrice || Number(customPrice) <= Number(media.price)) && userCountry === 'CO') { effectivePrice = rawBasePrice * 7; }
     const isUsd = media.currency === "USD";
     
     const copUnitPrice = isUsd ? Math.round(effectivePrice * 3500) : Math.round(effectivePrice);

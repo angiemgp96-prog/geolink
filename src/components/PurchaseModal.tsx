@@ -339,90 +339,50 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
               </div>
             ) : (
               <div className="space-y-3">
-                {/* Mercado Pago — Redirección Directa */}
-                {paymentVisibility.mercadopago && (
-                  <button
-                    id="pay-mercadopago-button"
-                    disabled={isLoading}
-                    onClick={handleMercadoPagoDirect}
-                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-sky-600/20 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-                        <CreditCard className="w-5 h-5" />
-                      </div>
-                      <div className="text-left">
-                        <div>Mercado Pago</div>
-                        <div className="text-[11px] font-normal text-sky-100">Tarjetas · Nequi · PSE · Débito</div>
-                      </div>
-                    </div>
-                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
-                  </button>
-                )}
-
-                {/* PayPal Live API Direct */}
-                {paymentVisibility.paypal && (
-                  <button
-                    id="pay-paypal-button"
-                    disabled={isLoading}
-                    onClick={handlePayPalDirect}
-                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#003087] to-[#009cde] hover:from-[#00256a] hover:to-[#0082c2] text-white font-bold text-sm shadow-lg shadow-blue-900/30 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-                        <span className="font-extrabold italic text-base leading-none">P</span>
-                      </div>
-                      <div className="text-left">
-                        <div>PayPal (Oficial Live API)</div>
-                        <div className="text-[11px] font-normal text-blue-200">Tarjetas internacionales · USD (Verificación Directa)</div>
-                      </div>
-                    </div>
-                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
-                  </button>
-                )}
-
-                {/* Pagar vía Telegram Directo */}
-                {paymentVisibility.paypal_telegram && (
-                  <a
-                    id="pay-paypal-telegram-button"
-                    href={buildPayPalTelegramLink()}
-                    onClick={handlePayPalTelegramClick}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-between transition-all cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-                        <Send className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="text-left">
-                        <div>Pagar vía Telegram</div>
-                        <div className="text-[11px] font-normal text-emerald-100">Contacto directo · Chat @{TELEGRAM_USER}</div>
-                      </div>
-                    </div>
-                    <ExternalLink className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
-                  </a>
-                )}
-
-                {/* Transferencia Bancaria por País Detectado por IP */}
+                {/* 1. MÉTODOS LOCALES PRIORITARIOS POR PAÍS */}
                 {detectedRegion === 'CO' && (
-                  <button
-                    id="pay-bank-colombia-button"
-                    onClick={() => { setErrorMessage(''); setScreen('bank_colombia'); }}
-                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#6a0dad] to-[#9b30d9] hover:from-[#5a0b99] hover:to-[#8525c5] text-white font-bold text-sm shadow-xl shadow-purple-950/40 flex items-center justify-between transition-all cursor-pointer group border-2 border-purple-400/50"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇨🇴</div>
-                      <div className="text-left">
-                        <div className="flex items-center gap-1.5">
-                          <span>Colombia — Nequi / Llave Bre-B</span>
-                          <span className="bg-purple-400/20 text-purple-300 border border-purple-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">DIRECTO</span>
+                  <>
+                    {/* Mercado Pago Colombia */}
+                    {paymentVisibility.mercadopago && (
+                      <button
+                        id="pay-mercadopago-button"
+                        disabled={isLoading}
+                        onClick={handleMercadoPagoDirect}
+                        className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-sky-600/20 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group border-2 border-sky-400/50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇨🇴</div>
+                          <div className="text-left">
+                            <div className="flex items-center gap-1.5">
+                              <span>Mercado Pago Colombia</span>
+                              <span className="bg-sky-400/20 text-sky-200 border border-sky-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">RECOMENDADO</span>
+                            </div>
+                            <div className="text-[11px] font-normal text-sky-100">Tarjetas · Nequi · PSE · Débito</div>
+                          </div>
                         </div>
-                        <div className="text-[11px] font-normal text-purple-200">Llave: @NEQUIANG05606</div>
+                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
+                      </button>
+                    )}
+
+                    {/* Nequi Llave Bre-B Directo */}
+                    <button
+                      id="pay-bank-colombia-button"
+                      onClick={() => { setErrorMessage(''); setScreen('bank_colombia'); }}
+                      className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#6a0dad] to-[#9b30d9] hover:from-[#5a0b99] hover:to-[#8525c5] text-white font-bold text-sm shadow-xl shadow-purple-950/40 flex items-center justify-between transition-all cursor-pointer group border-2 border-purple-400/50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇨🇴</div>
+                        <div className="text-left">
+                          <div className="flex items-center gap-1.5">
+                            <span>Colombia — Nequi / Llave Bre-B</span>
+                            <span className="bg-purple-400/20 text-purple-300 border border-purple-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">DIRECTO</span>
+                          </div>
+                          <div className="text-[11px] font-normal text-purple-200">Llave: @NEQUIANG05606</div>
+                        </div>
                       </div>
-                    </div>
-                    <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
+                      <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                    </button>
+                  </>
                 )}
 
                 {detectedRegion === 'MX' && (
@@ -478,6 +438,101 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                           <span>Europa — Transferencia SEPA (EUR)</span>
                           <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">IBAN</span>
                         </div>
+                        <div className="text-[11px] font-normal text-indigo-200">Transferencia bancaria en Euros</div>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                )}
+
+                {/* 2. PAYPAL LIVE API (PRIORITARIO PARA EE.UU. E INTERNACIONAL) */}
+                {paymentVisibility.paypal && detectedRegion !== 'CO' && (
+                  <button
+                    id="pay-paypal-button"
+                    disabled={isLoading}
+                    onClick={handlePayPalDirect}
+                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#003087] to-[#009cde] hover:from-[#00256a] hover:to-[#0082c2] text-white font-bold text-sm shadow-lg shadow-blue-900/30 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group border-2 border-blue-400/40"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                        <span className="font-extrabold italic text-base leading-none">P</span>
+                      </div>
+                      <div className="text-left">
+                        <div className="flex items-center gap-1.5">
+                          <span>PayPal (Oficial Live API)</span>
+                          <span className="bg-blue-400/20 text-blue-200 border border-blue-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">RECOMENDADO</span>
+                        </div>
+                        <div className="text-[11px] font-normal text-blue-200">Tarjetas internacionales · USD (Verificación Directa)</div>
+                      </div>
+                    </div>
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
+                  </button>
+                )}
+
+                {/* Mercado Pago fuera de Colombia */}
+                {paymentVisibility.mercadopago && detectedRegion !== 'CO' && (
+                  <button
+                    id="pay-mercadopago-button"
+                    disabled={isLoading}
+                    onClick={handleMercadoPagoDirect}
+                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-sky-600/20 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                        <CreditCard className="w-5 h-5" />
+                      </div>
+                      <div className="text-left">
+                        <div>Mercado Pago</div>
+                        <div className="text-[11px] font-normal text-sky-100">Tarjetas de Crédito / Débito</div>
+                      </div>
+                    </div>
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
+                  </button>
+                )}
+
+                {/* PayPal dentro de Colombia como alternativa */}
+                {paymentVisibility.paypal && detectedRegion === 'CO' && (
+                  <button
+                    id="pay-paypal-button"
+                    disabled={isLoading}
+                    onClick={handlePayPalDirect}
+                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#003087] to-[#009cde] hover:from-[#00256a] hover:to-[#0082c2] text-white font-bold text-sm shadow-lg shadow-blue-900/30 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                        <span className="font-extrabold italic text-base leading-none">P</span>
+                      </div>
+                      <div className="text-left">
+                        <div>PayPal (Internacional USD)</div>
+                        <div className="text-[11px] font-normal text-blue-200">Tarjetas de crédito en Dólares</div>
+                      </div>
+                    </div>
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
+                  </button>
+                )}
+
+                {/* Pagar vía Telegram Directo */}
+                {paymentVisibility.paypal_telegram && (
+                  <a
+                    id="pay-paypal-telegram-button"
+                    href={buildPayPalTelegramLink()}
+                    onClick={handlePayPalTelegramClick}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-between transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                        <Send className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="text-left">
+                        <div>Pagar vía Telegram</div>
+                        <div className="text-[11px] font-normal text-emerald-100">Contacto directo · Chat @{TELEGRAM_USER}</div>
+                      </div>
+                    </div>
+                    <ExternalLink className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                  </a>
+                )}
                         <div className="text-[11px] font-normal text-indigo-200">ClearBank Europe N.V. · Euros</div>
                       </div>
                     </div>

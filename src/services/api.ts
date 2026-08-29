@@ -717,5 +717,64 @@ export const api = {
     const host = typeof window !== 'undefined' ? window.location.origin : 'https://geolink-1.onrender.com';
     const link = `${host}/?access=${code}`;
     return { code, link };
+  },
+
+  async getGlobalDiscount(handle: string = 'angelina69'): Promise<number> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('global_discounts')
+          .select('discount_percentage, is_active')
+          .eq('creator_handle', handle)
+          .limit(1);
+
+        if (!error && data && data.length > 0 && data[0].is_active) {
+          return Number(data[0].discount_percentage) || 0;
+        }
+      } catch (err) {
+        console.warn('Supabase getGlobalDiscount warning:', err);
+      }
+    }
+
+    try {
+      const res = await fetch(`/api/creators/${encodeURIComponent(handle)}/discount`);
+      if (res.ok) {
+        const result = await res.json();
+        return Number(result.discountPercentage) || 0;
+      }
+    } catch {}
+
+    return 0;
+  },
+
+  async saveGlobalDiscount(percentage: number | null, handle: string = 'angelina69'): Promise<boolean> {
+    const cleanPercentage = percentage && Number(percentage) > 0 ? Number(percentage) : 0;
+
+    if (isSupabaseConfigured()) {
+      try {
+        if (cleanPercentage <= 0) {
+          await supabase.from('global_discounts').delete().eq('creator_handle', handle);
+        } else {
+          await supabase.from('global_discounts').upsert({
+            creator_handle: handle,
+            discount_percentage: cleanPercentage,
+            is_active: true,
+            updated_at: new Date().toISOString()
+          });
+        }
+      } catch (err) {
+        console.warn('Supabase saveGlobalDiscount warning:', err);
+      }
+    }
+
+    try {
+      await fetch(`/api/creators/${encodeURIComponent(handle)}/discount`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ discountPercentage: cleanPercentage })
+      });
+    } catch {}
+
+    return true;
   }
 };

@@ -81,6 +81,24 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
     setTimeout(() => setCopiedLinkId(null), 1800);
   };
 
+  const [globalDiscountInput, setGlobalDiscountInput] = useState<string>('');
+  const [savedDiscountActive, setSavedDiscountActive] = useState<number>(0);
+
+  useEffect(() => {
+    api.getGlobalDiscount().then((d) => {
+      setSavedDiscountActive(d);
+      setGlobalDiscountInput(d > 0 ? String(d) : '');
+    });
+  }, []);
+
+  const handleSaveDiscount = async () => {
+    const val = Number(globalDiscountInput);
+    const cleanVal = val > 0 ? val : 0;
+    await api.saveGlobalDiscount(cleanVal);
+    setSavedDiscountActive(cleanVal);
+    if (cleanVal <= 0) setGlobalDiscountInput('');
+  };
+
   const [paymentVisibility, setPaymentVisibility] = useState<PaymentMethodsVisibility>({
     mercadopago: true,
     paypal: true,
@@ -915,6 +933,59 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
               <CreditCard className="w-5 h-5 text-sky-400" />
               <span>Configuración de Pasarelas de Pago API</span>
             </h3>
+
+            {/* TARJETA DE DESCUENTO GLOBAL (% OFF) */}
+            <div className="bg-gradient-to-r from-amber-950/70 via-slate-900 to-amber-950/70 border-2 border-amber-500/50 rounded-2xl p-5 space-y-4 shadow-xl">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <h4 className="font-bold text-sm text-amber-300 flex items-center gap-2">
+                    <span>🏷️ Descuento Global Promocional (% OFF)</span>
+                    {savedDiscountActive > 0 && (
+                      <span className="bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">
+                        {savedDiscountActive}% OFF ACTIVO
+                      </span>
+                    )}
+                  </h4>
+                  <p className="text-xs text-slate-300 mt-1 leading-snug">
+                    Aplica un porcentaje de descuento a todas las fotos, videos, Acceso Full y Pase Colombia. Déjalo en blanco para eliminar el descuento.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1 max-w-xs">
+                  <input
+                    type="number"
+                    min="0"
+                    max="99"
+                    placeholder="Ej: 20 (para 20% OFF)"
+                    value={globalDiscountInput}
+                    onChange={(e) => setGlobalDiscountInput(e.target.value)}
+                    className="w-full bg-slate-900 border border-amber-500/40 rounded-xl px-4 py-2.5 text-sm font-bold text-white outline-none focus:border-amber-400 font-mono"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 font-black text-xs">% OFF</span>
+                </div>
+
+                <button
+                  onClick={handleSaveDiscount}
+                  className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+                >
+                  <Save className="w-4 h-4" /> Guardar Descuento
+                </button>
+
+                {savedDiscountActive > 0 && (
+                  <button
+                    onClick={() => {
+                      setGlobalDiscountInput('');
+                      api.saveGlobalDiscount(0).then(() => setSavedDiscountActive(0));
+                    }}
+                    className="px-4 py-2.5 bg-rose-900/60 hover:bg-rose-800 border border-rose-500/40 text-rose-200 font-bold text-xs rounded-xl transition-all cursor-pointer shrink-0"
+                  >
+                    Quitar Descuento 🗑️
+                  </button>
+                )}
+              </div>
+            </div>
 
             {/* VISIBILIDAD DE MÉTODOS DE PAGO */}
             <div className="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-5 space-y-4">

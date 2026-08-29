@@ -39,9 +39,36 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     });
   }, []);
 
+  const [globalDiscount, setGlobalDiscount] = useState<number>(0);
+
+  React.useEffect(() => {
+    api.getGlobalDiscount().then(setGlobalDiscount).catch(() => {});
+  }, []);
+
   const isColombia = visitorCountry === 'CO';
+
+  // Helper de cálculo preciso de precios con y sin descuento
+  const getCalculatedPrices = (basePrice: number) => {
+    const rawOrig = isColombia ? Math.round(basePrice * 7 * 3500) : basePrice;
+    if (globalDiscount > 0) {
+      const rawDiscountedBase = Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100;
+      const rawDisc = isColombia ? Math.round(rawDiscountedBase * 7 * 3500) : rawDiscountedBase;
+      return {
+        originalPrice: rawOrig,
+        discountedPrice: rawDisc,
+        currencyLabel: isColombia ? 'COP' : 'USD'
+      };
+    }
+    return {
+      originalPrice: rawOrig,
+      discountedPrice: rawOrig,
+      currencyLabel: isColombia ? 'COP' : 'USD'
+    };
+  };
+
   const getItemPrice = (basePrice: number) => {
-    return isColombia ? Math.round(basePrice * 7) : basePrice;
+    const rawDiscountedBase = globalDiscount > 0 ? Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100 : basePrice;
+    return isColombia ? Math.round(rawDiscountedBase * 7) : rawDiscountedBase;
   };
 
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
