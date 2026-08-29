@@ -51,9 +51,15 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  // Identificar los 2 videos más recientes para ponerlos en las posiciones #1 y #2 con insignia 🔥 NUEVO
+  // Identificar los 2 videos más recientemente subidos evaluando su fecha de creación o posición de subida
   const allVideos = mediaItems.filter((item) => item.type === 'video' && item.id !== 'acceso_full_cat_actual');
-  const latest2VideoIds = allVideos.slice(0, 2).map((v) => v.id);
+  const sortedVideos = [...allVideos].sort((a, b) => {
+    const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    if (tA && tB && tA !== tB) return tB - tA;
+    return mediaItems.indexOf(b) - mediaItems.indexOf(a);
+  });
+  const latest2VideoIds = sortedVideos.slice(0, 2).map((v) => v.id);
 
   const baseFiltered = mediaItems.filter((item) => {
     if (item.id === 'acceso_full_cat_actual') return false;
