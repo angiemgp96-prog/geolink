@@ -53,17 +53,21 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  // Recorrido guiado automático ultra rápido e inmediato al abrir la tienda
+  // Recorrido guiado automático paso a paso (deslizamiento fluido continuo sin saltos)
   React.useEffect(() => {
     if (isPageLoading) return;
 
     let isCancelled = false;
+    let animFrameId: number | null = null;
     setIsAutoScrolling(true);
 
     const cancelAutoScroll = () => {
       if (isCancelled) return;
       isCancelled = true;
       setIsAutoScrolling(false);
+      if (animFrameId !== null) {
+        cancelAnimationFrame(animFrameId);
+      }
       window.removeEventListener('touchstart', cancelAutoScroll);
       window.removeEventListener('touchmove', cancelAutoScroll);
       window.removeEventListener('wheel', cancelAutoScroll);
@@ -77,32 +81,48 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     window.addEventListener('mousedown', cancelAutoScroll, { passive: true });
     window.addEventListener('keydown', cancelAutoScroll, { passive: true });
 
-    const runTour = async () => {
+    let startTime: number | null = null;
+
+    const runTourStep = (timestamp: number) => {
+      if (isCancelled) return;
+      if (!startTime) startTime = timestamp;
+
       const maxScroll = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) - window.innerHeight;
-      if (maxScroll <= 100 || isCancelled) {
+      if (maxScroll <= 100) {
         cancelAutoScroll();
         return;
       }
 
-      // 1. Desplazamiento fluido hasta el fondo absoluto de la tienda (último video)
-      window.scrollTo({ top: maxScroll, behavior: 'smooth' });
+      const elapsed = timestamp - startTime;
+      const durationDown = Math.max(1200, Math.min(2500, maxScroll * 1.2));
+      const pauseDuration = 500;
+      const durationUp = Math.max(1000, Math.min(2000, maxScroll * 1.0));
 
-      // Tiempo de recorrido completo hasta abajo
-      await new Promise((r) => setTimeout(r, 1200));
-      if (isCancelled) return;
-
-      // 2. Pausa corta de medio segundo (500 ms) al llegar al final del catálogo
-      await new Promise((r) => setTimeout(r, 500));
-      if (isCancelled) return;
-
-      // 3. Desplazamiento de retorno hacia arriba
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      await new Promise((r) => setTimeout(r, 1000));
-      cancelAutoScroll();
+      if (elapsed < durationDown) {
+        // Fase 1: Deslizamiento continuo fluido hacia abajo paso a paso
+        const progress = elapsed / durationDown;
+        const currentY = progress * maxScroll;
+        window.scrollTo(0, currentY);
+        animFrameId = requestAnimationFrame(runTourStep);
+      } else if (elapsed < durationDown + pauseDuration) {
+        // Fase 2: Pausa de medio segundo (500 ms) en el fondo absoluto (último video)
+        window.scrollTo(0, maxScroll);
+        animFrameId = requestAnimationFrame(runTourStep);
+      } else if (elapsed < durationDown + pauseDuration + durationUp) {
+        // Fase 3: Deslizamiento continuo fluido de retorno hacia arriba
+        const upElapsed = elapsed - (durationDown + pauseDuration);
+        const progressUp = upElapsed / durationUp;
+        const currentY = maxScroll * (1 - progressUp);
+        window.scrollTo(0, currentY);
+        animFrameId = requestAnimationFrame(runTourStep);
+      } else {
+        // Fase 4: Recorrido finalizado
+        window.scrollTo(0, 0);
+        cancelAutoScroll();
+      }
     };
 
-    runTour();
+    animFrameId = requestAnimationFrame(runTourStep);
 
     return () => {
       cancelAutoScroll();
