@@ -510,6 +510,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               const isUnlocked = unlockedMediaIds.includes(item.id);
               const downloadToken = unlockedTokensMap[item.id];
               const isNewVideo = latest2VideoIds.includes(item.id);
+              const itemPrices = getCalculatedPrices(item.price);
 
               return (
                 <div
