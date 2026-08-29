@@ -135,6 +135,7 @@ export const api = {
           file_size: item.fileSize,
           duration: item.duration,
           sales_count: item.purchasesCount || 0,
+            is_extra_premium: Boolean(item.isExtraPremium),
           data: { ...item, isExtraPremium: Boolean(item.isExtraPremium) }
         });
       } catch (err) {

@@ -124,6 +124,7 @@ function toSupabaseMedia(item: MediaItem): any {
     file_size: item.fileSize,
     duration: item.duration,
     sales_count: item.purchasesCount || 0,
+    is_extra_premium: Boolean(item.isExtraPremium),
     data: {
       previewUrl: item.previewUrl,
       downloadUrl: item.downloadUrl,
@@ -287,6 +288,14 @@ async function syncFromSupabase() {
     if (!mErr && dbMedia && dbMedia.length > 0) {
       mediaItems = dbMedia.map(fromSupabaseMedia);
       console.log(`[Supabase DB] Loaded ${mediaItems.length} media items from Supabase.`);
+      // Auto-heal is_extra_premium column in Supabase
+      for (const item of mediaItems) {
+        if (item.isExtraPremium) {
+          try {
+            await supabase.from("media_items").update({ is_extra_premium: true }).eq("id", item.id);
+          } catch (err) {}
+        }
+      }
     }
 
     const { data: dbPurchases, error: pErr } = await supabase.from("purchases").select("*");
@@ -713,7 +722,7 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
     const userCountry = await detectCountryCode(req);
     let rawBasePrice = Number(media.price);
     if (globalDiscountPercentage > 0) {
-      rawBasePrice = Math.round(rawBasePrice * (1 - globalDiscount / 100 || 1 - globalDiscountPercentage / 100) * 100) / 100;
+      rawBasePrice = Math.round(rawBasePrice * (1 - globalDiscountPercentage / 100) * 100) / 100;
     }
     let effectivePrice = rawBasePrice;
     const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
