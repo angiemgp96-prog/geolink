@@ -49,21 +49,42 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
   // Helper de cálculo preciso de precios con y sin descuento
   const getCalculatedPrices = (basePrice: number) => {
-    const rawOrig = isColombia ? Math.round(basePrice * 7 * 3500) : basePrice;
-    if (globalDiscount > 0) {
-      const rawDiscountedBase = Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100;
-      const rawDisc = isColombia ? Math.round(rawDiscountedBase * 7 * 3500) : rawDiscountedBase;
+    if (isColombia) {
+      const origCop = Math.round(basePrice * 7 * 3500);
+      if (globalDiscount > 0) {
+        const rawDiscountedBase = Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100;
+        const discCop = Math.round(rawDiscountedBase * 7 * 3500);
+        return {
+          originalFormatted: `$${origCop.toLocaleString('es-CO')} COP`,
+          discountedFormatted: `$${discCop.toLocaleString('es-CO')} COP`,
+          hasDiscount: true,
+          discountPercent: globalDiscount
+        };
+      }
       return {
-        originalPrice: rawOrig,
-        discountedPrice: rawDisc,
-        currencyLabel: isColombia ? 'COP' : 'USD'
+        originalFormatted: `$${origCop.toLocaleString('es-CO')} COP`,
+        discountedFormatted: `$${origCop.toLocaleString('es-CO')} COP`,
+        hasDiscount: false,
+        discountPercent: 0
+      };
+    } else {
+      const origUsd = basePrice;
+      if (globalDiscount > 0) {
+        const discUsd = Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100;
+        return {
+          originalFormatted: `$${origUsd.toFixed(2)} USD`,
+          discountedFormatted: `$${discUsd.toFixed(2)} USD`,
+          hasDiscount: true,
+          discountPercent: globalDiscount
+        };
+      }
+      return {
+        originalFormatted: `$${origUsd.toFixed(2)} USD`,
+        discountedFormatted: `$${origUsd.toFixed(2)} USD`,
+        hasDiscount: false,
+        discountPercent: 0
       };
     }
-    return {
-      originalPrice: rawOrig,
-      discountedPrice: rawOrig,
-      currencyLabel: isColombia ? 'COP' : 'USD'
-    };
   };
 
   const getItemPrice = (basePrice: number) => {
@@ -532,9 +553,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       </div>
                     )}
 
-                    {/* Type Badge & Extra Premium Tag */}
-                    <div className="absolute top-3 left-3 flex items-center gap-2">
-                      <div className="bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full text-[11px] font-semibold text-white flex items-center gap-1.5">
+                    {/* Type Badge, Extra Premium Tag & Discount Badge */}
+                    <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 z-30">
+                      <div className="bg-black/60 backdrop-blur-md border border-white/20 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white flex items-center gap-1">
                         {item.type === 'video' && <Film className="w-3.5 h-3.5 text-indigo-400" />}
                         {item.type === 'photo' && <ImageIcon className="w-3.5 h-3.5 text-indigo-300" />}
                         {item.type === 'bundle' && <Layers className="w-3.5 h-3.5 text-amber-400" />}
@@ -547,15 +568,30 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                           <span>{t.extraPremiumBadge}</span>
                         </div>
                       )}
+
+                      {itemPrices.hasDiscount && (
+                        <div className="bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 text-white font-black text-[10px] px-2.5 py-1 rounded-full shadow-lg shadow-rose-950/80 border border-amber-300/60 flex items-center gap-1 animate-pulse uppercase tracking-wider">
+                          <span>🏷️ -{itemPrices.discountPercent}% OFF</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Price Tag */}
-                    <div className="absolute bottom-3 right-3 text-white font-extrabold text-sm px-3 py-1 rounded-xl backdrop-blur-md bg-black/70 border border-white/15 shadow-xl">
+                    <div className="absolute bottom-3 right-3 text-white font-extrabold text-sm px-3 py-1.5 rounded-xl backdrop-blur-md bg-black/80 border border-white/20 shadow-2xl z-30">
                       {isUnlocked ? (
                         <span className="text-emerald-400 text-xs font-bold flex items-center gap-1">✅ {t.purchasedBadge}</span>
+                      ) : itemPrices.hasDiscount ? (
+                        <div className="flex flex-col items-end leading-tight">
+                          <span className="line-through text-rose-400 opacity-80 text-[10px] font-bold">
+                            {itemPrices.originalFormatted}
+                          </span>
+                          <span className="text-emerald-300 font-black text-sm drop-shadow-md tracking-tight">
+                            {itemPrices.discountedFormatted}
+                          </span>
+                        </div>
                       ) : (
                         <span className="text-amber-300 font-extrabold text-sm drop-shadow-md">
-                          ${getItemPrice(item.price).toFixed(2)} <span className="text-[10px] text-zinc-300 font-bold">{item.currency}</span>
+                          {itemPrices.discountedFormatted}
                         </span>
                       )}
                     </div>
@@ -611,10 +647,12 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       <button
                         id={`buy-media-${item.id}`}
                         onClick={() => onOpenPurchaseModal({ ...item, price: getItemPrice(item.price) })}
-                        className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                        className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer border border-indigo-400/40"
                       >
-                        <Lock className="w-4 h-4" />
-                        <span>{t.unlockNowBtn} (${getItemPrice(item.price).toFixed(2)})</span>
+                        <Lock className="w-4 h-4 text-amber-300" />
+                        <span>
+                          {t.unlockNowBtn} ({itemPrices.discountedFormatted})
+                        </span>
                       </button>
                     )}
 
