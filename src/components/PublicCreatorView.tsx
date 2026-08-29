@@ -100,6 +100,20 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     return <LinkIcon className="w-5 h-5 text-indigo-400" />;
   };
 
+  // Identificar los 2 videos más recientes para ponerlos en las posiciones #1 y #2 con insignia 🔥 NUEVO
+  const allVideos = mediaItems.filter((item) => item.type === 'video');
+  const latest2VideoIds = allVideos.slice(0, 2).map((v) => v.id);
+
+  const baseFiltered = mediaItems.filter((item) => {
+    if (filterType === 'photo') return item.type === 'photo';
+    if (filterType === 'video') return item.type === 'video';
+    return true;
+  });
+
+  const top2LatestVideos = baseFiltered.filter((item) => latest2VideoIds.includes(item.id));
+  const remainingItems = baseFiltered.filter((item) => !latest2VideoIds.includes(item.id));
+  const filteredItems = [...top2LatestVideos, ...remainingItems];
+
   if (isPageLoading) {
     return (
       <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center p-6 text-center space-y-6">
@@ -368,6 +382,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             {filteredItems.map((item) => {
               const isUnlocked = unlockedMediaIds.includes(item.id);
               const downloadToken = unlockedTokensMap[item.id];
+              const isNewVideo = latest2VideoIds.includes(item.id);
 
               return (
                 <div
@@ -378,6 +393,13 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                 >
                   {/* Media Preview Card with Vertical Portrait Aspect Ratio 9:16 */}
                   <div className="relative aspect-[9/16] bg-zinc-900/80 overflow-hidden">
+                    {/* Insignia 🔥 NUEVO para los 2 videos más recientes */}
+                    {isNewVideo && (
+                      <div className="absolute top-3 left-3 z-30 bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 text-white text-[11px] font-black uppercase px-3 py-1 rounded-full shadow-lg shadow-rose-950/80 border border-rose-400/50 flex items-center gap-1 animate-pulse">
+                        <span>🔥 NUEVO</span>
+                      </div>
+                    )}
+
                     <img
                       src={item.previewUrl}
                       alt={item.title}
