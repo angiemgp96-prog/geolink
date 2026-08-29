@@ -44,12 +44,70 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     return isColombia ? Math.round(basePrice * 7) : basePrice;
   };
 
+  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
+
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setIsPageLoading(false);
     }, 2000);
     return () => clearTimeout(timer);
   }, []);
+
+  // Recorrido guiado automático ultra rápido e inmediato al abrir la tienda
+  React.useEffect(() => {
+    if (isPageLoading) return;
+
+    let isCancelled = false;
+    setIsAutoScrolling(true);
+
+    const cancelAutoScroll = () => {
+      if (isCancelled) return;
+      isCancelled = true;
+      setIsAutoScrolling(false);
+      window.removeEventListener('touchstart', cancelAutoScroll);
+      window.removeEventListener('touchmove', cancelAutoScroll);
+      window.removeEventListener('wheel', cancelAutoScroll);
+      window.removeEventListener('mousedown', cancelAutoScroll);
+      window.removeEventListener('keydown', cancelAutoScroll);
+    };
+
+    window.addEventListener('touchstart', cancelAutoScroll, { passive: true });
+    window.addEventListener('touchmove', cancelAutoScroll, { passive: true });
+    window.addEventListener('wheel', cancelAutoScroll, { passive: true });
+    window.addEventListener('mousedown', cancelAutoScroll, { passive: true });
+    window.addEventListener('keydown', cancelAutoScroll, { passive: true });
+
+    const runTour = async () => {
+      const targetScroll = Math.min(window.innerHeight * 0.75, document.body.scrollHeight - window.innerHeight);
+      if (targetScroll <= 100 || isCancelled) {
+        cancelAutoScroll();
+        return;
+      }
+
+      // 1. Desplazamiento inmediato hacia la tienda
+      window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+
+      // Tiempo de desplazamiento suave
+      await new Promise((r) => setTimeout(r, 600));
+      if (isCancelled) return;
+
+      // 2. Pausa corta de medio segundo (500 ms) para mostrar los videos
+      await new Promise((r) => setTimeout(r, 500));
+      if (isCancelled) return;
+
+      // 3. Desplazamiento de retorno hacia arriba
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      await new Promise((r) => setTimeout(r, 600));
+      cancelAutoScroll();
+    };
+
+    runTour();
+
+    return () => {
+      cancelAutoScroll();
+    };
+  }, [isPageLoading]);
 
   // Identificar los 2 videos más recientemente subidos evaluando su fecha de creación o posición de subida
   const allVideos = mediaItems.filter((item) => item.type === 'video' && item.id !== 'acceso_full_cat_actual');
@@ -522,7 +580,16 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
         </div>
 
-      </div>
+      {/* Flotante del recorrido automático */}
+      {isAutoScrolling && (
+        <div
+          onClick={() => setIsAutoScrolling(false)}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-purple-900/90 to-indigo-900/90 border border-purple-400/50 text-white text-xs font-extrabold px-4 py-2 rounded-full shadow-2xl backdrop-blur-md flex items-center gap-2 cursor-pointer animate-bounce"
+        >
+          <Sparkles className="w-4 h-4 text-amber-300 animate-spin" />
+          <span>✨ Recorrido del catálogo... (Toca para detener)</span>
+        </div>
+      )}
 
     </div>
   );
