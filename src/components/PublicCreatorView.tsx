@@ -51,11 +51,20 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  const filteredItems = mediaItems.filter((item) => {
+  // Identificar los 2 videos más recientes para ponerlos en las posiciones #1 y #2 con insignia 🔥 NUEVO
+  const allVideos = mediaItems.filter((item) => item.type === 'video' && item.id !== 'acceso_full_cat_actual');
+  const latest2VideoIds = allVideos.slice(0, 2).map((v) => v.id);
+
+  const baseFiltered = mediaItems.filter((item) => {
     if (item.id === 'acceso_full_cat_actual') return false;
-    if (filterType === 'all') return true;
-    return item.type === filterType;
+    if (filterType === 'photo') return item.type === 'photo';
+    if (filterType === 'video') return item.type === 'video';
+    return true;
   });
+
+  const top2LatestVideos = baseFiltered.filter((item) => latest2VideoIds.includes(item.id));
+  const remainingItems = baseFiltered.filter((item) => !latest2VideoIds.includes(item.id));
+  const filteredItems = [...top2LatestVideos, ...remainingItems];
 
   const onlyfansLink = creator.links.find(
     l => l.active && (l.title.toLowerCase().includes('onlyfans') || l.icon.toLowerCase().includes('onlyfans'))
@@ -99,20 +108,6 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     }
     return <LinkIcon className="w-5 h-5 text-indigo-400" />;
   };
-
-  // Identificar los 2 videos más recientes para ponerlos en las posiciones #1 y #2 con insignia 🔥 NUEVO
-  const allVideos = mediaItems.filter((item) => item.type === 'video');
-  const latest2VideoIds = allVideos.slice(0, 2).map((v) => v.id);
-
-  const baseFiltered = mediaItems.filter((item) => {
-    if (filterType === 'photo') return item.type === 'photo';
-    if (filterType === 'video') return item.type === 'video';
-    return true;
-  });
-
-  const top2LatestVideos = baseFiltered.filter((item) => latest2VideoIds.includes(item.id));
-  const remainingItems = baseFiltered.filter((item) => !latest2VideoIds.includes(item.id));
-  const filteredItems = [...top2LatestVideos, ...remainingItems];
 
   if (isPageLoading) {
     return (
