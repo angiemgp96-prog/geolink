@@ -633,25 +633,49 @@ export const api = {
     let deviceHash = '';
     try {
       deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
+      if (!deviceHash && typeof window !== 'undefined') {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+        const rawFp = [navigator.userAgent, screen.width, screen.height, screen.colorDepth, navigator.language, tz].join('|');
+        let hash = 0;
+        for (let i = 0; i < rawFp.length; i++) {
+          hash = (hash << 5) - hash + rawFp.charCodeAt(i);
+          hash |= 0;
+        }
+        deviceHash = `dev_${Math.abs(hash).toString(36)}`;
+        localStorage.setItem('geolink_device_fingerprint', deviceHash);
+      }
     } catch {}
 
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase
           .from('colombia_page_access')
-          .select('id, status, custom_code')
+          .select('id, status, custom_code, device_hash')
           .eq('custom_code', cleanCode)
           .limit(1);
 
         if (!error && data && data.length > 0) {
           const row = data[0];
-          // Marcar como aprobado y vincular dispositivo
+
+          // CANDADO ESTRICTO DE 1 SOLO DISPOSITIVO:
+          // Si el código ya fue vinculado a otro dispositivo anterior y no coincide con el actual, DENEGAR ACCESO.
+          if (row.device_hash && row.device_hash.trim() !== '') {
+            if (deviceHash && row.device_hash.trim() !== deviceHash.trim()) {
+              console.warn('Acceso VIP denegado: Este enlace ya fue utilizado en otro dispositivo.', {
+                boundDevice: row.device_hash,
+                currentDevice: deviceHash
+              });
+              return false;
+            }
+          }
+
+          // Si es el primer clic, vincular permanentemente la huella digital del dispositivo actual
           try {
             await supabase
               .from('colombia_page_access')
               .update({
                 status: 'approved',
-                device_hash: deviceHash || row.device_hash,
+                device_hash: row.device_hash || deviceHash,
                 approved_at: new Date().toISOString()
               })
               .eq('id', row.id);
@@ -666,17 +690,6 @@ export const api = {
         console.warn('Supabase checkColombiaCustomCode warning:', err);
       }
     }
-
-    try {
-      const res = await fetch(`/api/colombia-page-access/verify-code?code=${encodeURIComponent(cleanCode)}`);
-      if (res.ok) {
-        const result = await res.json();
-        if (result.valid) {
-          try { localStorage.setItem('geolink_colombia_page_unlocked', 'true'); } catch {}
-          return true;
-        }
-      }
-    } catch {}
 
     return false;
   },
