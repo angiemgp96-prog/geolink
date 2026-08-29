@@ -68,6 +68,8 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   });
 
   const [visitorCountry, setVisitorCountry] = useState<string>('');
+  const [globalDiscount, setGlobalDiscount] = useState<number>(0);
+  const [colombiaMultiplier, setColombiaMultiplier] = useState<number>(7);
 
   useEffect(() => {
     if (!item) return;
@@ -76,7 +78,30 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
         setVisitorCountry(loc.countryCode.toUpperCase());
       }
     }).catch(() => {});
+    api.getGlobalDiscount().then(res => {
+      setGlobalDiscount(res.discountPercentage);
+      if (res.colombiaMultiplier !== undefined && res.colombiaMultiplier !== null) {
+        setColombiaMultiplier(res.colombiaMultiplier);
+      }
+    }).catch(() => {});
   }, [item]);
+
+  const isColombia = visitorCountry === 'CO';
+
+  const getFormattedModalPrice = () => {
+    if (!item) return '';
+    const basePrice = Number(item.price);
+    const rawDiscounted = globalDiscount > 0 ? Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100 : basePrice;
+    const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
+
+    if (isColombia) {
+      const isPageAccess = item.id?.includes('pagina');
+      const copPrice = isPageAccess ? Math.round(rawDiscounted * 3500) : Math.round(rawDiscounted * activeMult * 3500);
+      return `$${copPrice.toLocaleString('es-CO')} COP`;
+    } else {
+      return `$${rawDiscounted.toFixed(2)} USD`;
+    }
+  };
 
   const getDetectedRegion = (code: string) => {
     const c = (code || '').toUpperCase();
@@ -298,7 +323,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                   <Lock className="w-5 h-5 text-indigo-300" />
                 </div>
                 <div className="text-2xl font-black text-amber-300 drop-shadow-lg">
-                  ${item.price.toFixed(2)} <span className="text-base font-semibold text-amber-400/80">{item.currency}</span>
+                  {getFormattedModalPrice()}
                 </div>
               </div>
             </div>

@@ -428,45 +428,59 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
         </div>
 
-        {/* Botón Acceso Full (Dinámico: $20 USD más que el contenido más caro de la tienda) */}
-        <div className="bg-gradient-to-r from-amber-950/40 via-indigo-950/40 to-purple-950/40 border border-amber-500/40 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl transition-all hover:border-amber-400/60">
-          <div className="flex items-center gap-3 text-left">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-black text-xl shrink-0 shadow-lg shadow-amber-500/20">
-              👑
-            </div>
-            <div>
-              <h3 className="font-black text-sm text-white flex items-center gap-2">
-                <span>{t.fullAccessTitle}</span>
-                <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">${fullAccessPrice} USD</span>
-              </h3>
-              <p className="text-[11px] text-zinc-400 mt-0.5">{t.fullAccessDesc}</p>
-            </div>
-          </div>
+        {/* Botón Acceso Full */}
+        {(() => {
+          const fullPrices = getCalculatedPrices(fullAccessPrice);
+          return (
+            <div className="bg-gradient-to-r from-amber-950/40 via-indigo-950/40 to-purple-950/40 border border-amber-500/40 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl transition-all hover:border-amber-400/60">
+              <div className="flex items-center gap-3 text-left">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-black text-xl shrink-0 shadow-lg shadow-amber-500/20">
+                  👑
+                </div>
+                <div>
+                  <h3 className="font-black text-sm text-white flex items-center gap-2">
+                    <span>{t.fullAccessTitle}</span>
+                    {fullPrices.hasDiscount ? (
+                      <span className="flex flex-wrap items-center gap-1.5">
+                        <span className="line-through text-rose-400 opacity-80 text-[10px] font-bold">{fullPrices.originalFormatted}</span>
+                        <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 px-2 py-0.5 rounded text-[10px] uppercase font-black tracking-wider">
+                          {fullPrices.discountedFormatted} ({fullPrices.discountPercent}% OFF)
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">{fullPrices.discountedFormatted}</span>
+                    )}
+                  </h3>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">{t.fullAccessDesc}</p>
+                </div>
+              </div>
 
-          <button
-            id="acceso-full-button"
-            onClick={() => onOpenPurchaseModal({
-              id: 'acceso_full_cat_actual',
-              creatorId: creator.id,
-              creatorHandle: creator.handle,
-              title: `👑 ${t.fullAccessTitle}`,
-              description: t.fullAccessDesc,
-              type: 'bundle',
-              price: fullAccessPrice,
-              currency: 'USD',
-              previewUrl: creator.avatar,
-              downloadUrl: creator.avatar,
-              fileSize: 'COMPLETO',
-              duration: 'ILIMITADO',
-              purchasesCount: 920,
-              isFeatured: true,
-              createdAt: new Date().toISOString()
-            })}
-            className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 uppercase tracking-wider"
-          >
-            <span>{t.fullAccessBtn} ${fullAccessPrice} USD</span>
-          </button>
-        </div>
+              <button
+                id="acceso-full-button"
+                onClick={() => onOpenPurchaseModal({
+                  id: 'acceso_full_cat_actual',
+                  creatorId: creator.id,
+                  creatorHandle: creator.handle,
+                  title: `👑 ${t.fullAccessTitle}`,
+                  description: t.fullAccessDesc,
+                  type: 'bundle',
+                  price: fullAccessPrice,
+                  currency: 'USD',
+                  previewUrl: creator.avatar,
+                  downloadUrl: creator.avatar,
+                  fileSize: 'COMPLETO',
+                  duration: 'ILIMITADO',
+                  purchasesCount: 920,
+                  isFeatured: true,
+                  createdAt: new Date().toISOString()
+                })}
+                className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 uppercase tracking-wider"
+              >
+                <span>{t.fullAccessBtn} ({fullPrices.discountedFormatted})</span>
+              </button>
+            </div>
+          );
+        })()}
 
         {/* Digital Store Section (Fotos & Videos Exclusivos) */}
         <div className="space-y-6">
@@ -562,19 +576,11 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       </div>
                     )}
 
-                    {/* Type Badge, Extra Premium Tag & Discount Badge */}
+                    {/* Top Left Badges: NUEVO & PROMO DISCOUNT */}
                     <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 z-30">
-                      <div className="bg-black/60 backdrop-blur-md border border-white/20 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white flex items-center gap-1">
-                        {item.type === 'video' && <Film className="w-3.5 h-3.5 text-indigo-400" />}
-                        {item.type === 'photo' && <ImageIcon className="w-3.5 h-3.5 text-indigo-300" />}
-                        {item.type === 'bundle' && <Layers className="w-3.5 h-3.5 text-amber-400" />}
-                        <span className="capitalize">{item.type}</span>
-                      </div>
-
-                      {item.isExtraPremium && (
-                        <div className="bg-gradient-to-r from-amber-500 via-rose-600 to-amber-600 border border-amber-300/80 px-2.5 py-1 rounded-full text-[10px] font-black text-white flex items-center gap-1 shadow-lg shadow-amber-500/30 uppercase tracking-wider">
-                          <Sparkles className="w-3 h-3 text-amber-200 fill-amber-200" />
-                          <span>{t.extraPremiumBadge}</span>
+                      {isNewVideo && (
+                        <div className="bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg shadow-rose-950/80 border border-rose-400/50 flex items-center gap-1 animate-pulse">
+                          <span>🔥 NUEVO</span>
                         </div>
                       )}
 
@@ -585,8 +591,25 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       )}
                     </div>
 
-                    {/* Price Tag */}
-                    <div className="absolute bottom-3 right-3 text-white font-extrabold text-sm px-3 py-1.5 rounded-xl backdrop-blur-md bg-black/80 border border-white/20 shadow-2xl z-30">
+                    {/* Top Right Badges: TYPE & EXTRA PREMIUM */}
+                    <div className="absolute top-3 right-3 flex flex-wrap items-center gap-1.5 z-30">
+                      <div className="bg-black/70 backdrop-blur-md border border-white/20 px-2.5 py-1 rounded-full text-[10px] font-bold text-white flex items-center gap-1">
+                        {item.type === 'video' && <Film className="w-3 h-3 text-indigo-400" />}
+                        {item.type === 'photo' && <ImageIcon className="w-3 h-3 text-indigo-300" />}
+                        {item.type === 'bundle' && <Layers className="w-3 h-3 text-amber-400" />}
+                        <span className="capitalize">{item.type}</span>
+                      </div>
+
+                      {item.isExtraPremium && (
+                        <div className="bg-gradient-to-r from-amber-500 via-rose-600 to-amber-600 border border-amber-300/80 px-2 py-1 rounded-full text-[9px] font-black text-white flex items-center gap-1 shadow-lg shadow-amber-500/30 uppercase tracking-wider">
+                          <Sparkles className="w-3 h-3 text-amber-200 fill-amber-200" />
+                          <span>{t.extraPremiumBadge}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Price Tag (Bottom Right) */}
+                    <div className="absolute bottom-3 right-3 text-white font-extrabold text-sm px-3 py-1.5 rounded-xl backdrop-blur-md bg-black/85 border border-white/20 shadow-2xl z-30">
                       {isUnlocked ? (
                         <span className="text-emerald-400 text-xs font-bold flex items-center gap-1">✅ {t.purchasedBadge}</span>
                       ) : itemPrices.hasDiscount ? (
@@ -655,7 +678,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                     ) : (
                       <button
                         id={`buy-media-${item.id}`}
-                        onClick={() => onOpenPurchaseModal({ ...item, price: getItemPrice(item.price) })}
+                        onClick={() => onOpenPurchaseModal(item)}
                         className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer border border-indigo-400/40"
                       >
                         <Lock className="w-4 h-4 text-amber-300" />
