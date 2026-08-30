@@ -88,6 +88,15 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
 
   const isColombia = visitorCountry === 'CO';
 
+  const getExactCopPriceNumber = (): number => {
+    if (!item) return 0;
+    const basePrice = Number(item.price);
+    const rawDiscounted = globalDiscount > 0 ? Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100 : basePrice;
+    const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
+    const isPageAccess = item.id?.includes('pagina');
+    return isPageAccess ? Math.round(rawDiscounted * 3500) : Math.round(rawDiscounted * activeMult * 3500);
+  };
+
   const getFormattedModalPrice = () => {
     if (!item) return '';
     const basePrice = Number(item.price);
@@ -185,7 +194,8 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     setErrorMessage('');
     setIsLoading(true);
     try {
-      const data = await api.createMercadoPagoPreference(item.id, '', contactInfo, item.price);
+      const calculatedCop = isColombia ? getExactCopPriceNumber() : item.price;
+      const data = await api.createMercadoPagoPreference(item.id, '', contactInfo, calculatedCop);
       if (data.error) {
         setErrorMessage(data.error);
         return;

@@ -576,23 +576,17 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       </div>
                     )}
 
-                    {/* Top Left Badges: NUEVO & PROMO DISCOUNT */}
+                    {/* Top Left Badges: NUEVO */}
                     <div className="absolute top-3 left-3 flex items-center gap-1.5 z-30">
                       {isNewVideo && (
                         <div className="bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg shadow-rose-950/80 border border-rose-400/50 flex items-center gap-1 animate-pulse shrink-0">
                           <span>🔥 NUEVO</span>
                         </div>
                       )}
-
-                      {itemPrices.hasDiscount && (
-                        <div className="bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 text-white font-black text-[10px] px-2.5 py-1 rounded-full shadow-lg shadow-rose-950/80 border border-amber-300/60 flex items-center gap-1 animate-pulse uppercase tracking-wider shrink-0">
-                          <span>🏷️ -{itemPrices.discountPercent}% OFF</span>
-                        </div>
-                      )}
                     </div>
 
-                    {/* Top Right Badges: TYPE (Top) & EXTRA PREMIUM (Stacked Below) */}
-                    <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5 z-30 pointer-events-none">
+                    {/* Top Right Badges: TYPE & EXTRA PREMIUM (Side-by-side in 1 clean row) */}
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5 z-30">
                       <div className="bg-black/75 backdrop-blur-md border border-white/20 px-2.5 py-1 rounded-full text-[10px] font-bold text-white flex items-center gap-1 shadow-md shrink-0">
                         {item.type === 'video' && <Film className="w-3 h-3 text-indigo-400" />}
                         {item.type === 'photo' && <ImageIcon className="w-3 h-3 text-indigo-300" />}
@@ -601,31 +595,39 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       </div>
 
                       {item.isExtraPremium && (
-                        <div className="bg-gradient-to-r from-amber-500 via-rose-600 to-amber-600 border border-amber-300/80 px-2.5 py-0.5 rounded-full text-[9px] font-black text-white flex items-center gap-1 shadow-lg shadow-amber-500/40 uppercase tracking-wider shrink-0">
+                        <div className="bg-gradient-to-r from-amber-500 via-rose-600 to-amber-600 border border-amber-300/80 px-2.5 py-1 rounded-full text-[9px] font-black text-white flex items-center gap-1 shadow-lg shadow-amber-500/40 uppercase tracking-wider shrink-0">
                           <Sparkles className="w-3 h-3 text-amber-200 fill-amber-200" />
                           <span>{t.extraPremiumBadge}</span>
                         </div>
                       )}
                     </div>
 
-                    {/* Price Tag (Bottom Right) */}
-                    <div className="absolute bottom-3 right-3 text-white font-extrabold text-sm px-3 py-1.5 rounded-xl backdrop-blur-md bg-black/85 border border-white/20 shadow-2xl z-30">
-                      {isUnlocked ? (
-                        <span className="text-emerald-400 text-xs font-bold flex items-center gap-1">✅ {t.purchasedBadge}</span>
-                      ) : itemPrices.hasDiscount ? (
-                        <div className="flex flex-col items-end leading-tight">
-                          <span className="line-through text-rose-400 opacity-80 text-[10px] font-bold">
-                            {itemPrices.originalFormatted}
-                          </span>
-                          <span className="text-emerald-300 font-black text-sm drop-shadow-md tracking-tight">
+                    {/* Price & Promo Tag (Bottom Right) */}
+                    <div className="absolute bottom-3 right-3 flex flex-col items-end gap-1 z-30">
+                      {itemPrices.hasDiscount && (
+                        <div className="bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 text-white font-black text-[9px] px-2 py-0.5 rounded-full shadow-md border border-amber-300/60 flex items-center gap-1 uppercase tracking-wider shrink-0">
+                          <span>🏷️ -{itemPrices.discountPercent}% OFF</span>
+                        </div>
+                      )}
+
+                      <div className="text-white font-extrabold text-sm px-3 py-1.5 rounded-xl backdrop-blur-md bg-black/85 border border-white/20 shadow-2xl">
+                        {isUnlocked ? (
+                          <span className="text-emerald-400 text-xs font-bold flex items-center gap-1">✅ {t.purchasedBadge}</span>
+                        ) : itemPrices.hasDiscount ? (
+                          <div className="flex flex-col items-end leading-tight">
+                            <span className="line-through text-rose-400 opacity-80 text-[10px] font-bold">
+                              {itemPrices.originalFormatted}
+                            </span>
+                            <span className="text-emerald-300 font-black text-sm drop-shadow-md tracking-tight">
+                              {itemPrices.discountedFormatted}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-amber-300 font-extrabold text-sm drop-shadow-md">
                             {itemPrices.discountedFormatted}
                           </span>
-                        </div>
-                      ) : (
-                        <span className="text-amber-300 font-extrabold text-sm drop-shadow-md">
-                          {itemPrices.discountedFormatted}
-                        </span>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
 
