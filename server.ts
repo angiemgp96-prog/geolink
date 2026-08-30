@@ -1233,6 +1233,36 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
  * Manual Purchase Approval Endpoint
  * POST /api/purchases/approve-manual
  */
+
+/**
+ * POST /api/purchases/pending-direct
+ * Registrar compras pendientes por Nequi, Telegram o Métodos Directos
+ */
+app.post("/api/purchases/pending-direct", (req, res) => {
+  try {
+    const { id, token, mediaId, mediaTitle, buyerPhone, buyerEmail, paymentMethod, amount } = req.body;
+    const record: PurchaseRecord = {
+      id: id || `dir_${Date.now()}`,
+      token: token || `unlock_${Date.now()}`,
+      mediaId: mediaId || 'media_1',
+      mediaTitle: mediaTitle || 'Contenido Digital',
+      creatorHandle: 'angelina69',
+      buyerEmail: buyerEmail || '',
+      buyerPhone: buyerPhone || '',
+      amount: typeof amount === 'number' ? amount : 50,
+      currency: typeof amount === 'string' && amount.includes('COP') ? 'COP' : 'USD',
+      paymentMethod: (paymentMethod || 'DIRECT').toUpperCase(),
+      status: 'pending',
+      downloadCount: 0,
+      createdAt: new Date().toISOString()
+    };
+    purchases.unshift(record);
+    return res.json({ success: true, record });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 app.post("/api/purchases/approve-manual", async (req, res) => {
   try {
     const { token, purchaseId } = req.body;

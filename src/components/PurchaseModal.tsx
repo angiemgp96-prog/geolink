@@ -310,6 +310,23 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   // ════════════════════════════════════════════════════════════════
   // NEQUI USA — abre Nequi + redirige esta ventana a Telegram
   // ════════════════════════════════════════════════════════════════
+  const handleDirectTelegramRedirect = async (methodName: string, linkUrl: string) => {
+    if (!validateContact()) return;
+    const formattedPrice = getFormattedModalPrice();
+    try {
+      await api.createPendingDirectPurchase({
+        mediaId: item.id,
+        mediaTitle: item.title,
+        paymentMethod: methodName,
+        amount: formattedPrice,
+        contactInfo: contactInfo
+      });
+    } catch (err) {
+      console.warn('Error registrando compra pendiente directa:', err);
+    }
+    window.open(linkUrl, '_blank');
+  };
+
   const handleNequiConfirm = () => {
     if (!validateContact()) return;
     window.open(NEQUI_USA_LINK, '_blank');
@@ -562,8 +579,15 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 {paymentVisibility.paypal_telegram && (
                   <a
                     id="pay-paypal-telegram-button"
+                    onClick={(e) => {
+                      if (!validateContact()) {
+                        e.preventDefault();
+                        return;
+                      }
+                      e.preventDefault();
+                      handleDirectTelegramRedirect("PAYPAL_TELEGRAM", buildPayPalTelegramLink());
+                    }}
                     href={buildPayPalTelegramLink()}
-                    onClick={handlePayPalTelegramClick}
                     target="_blank"
                     rel="noreferrer"
                     className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-between transition-all cursor-pointer group"

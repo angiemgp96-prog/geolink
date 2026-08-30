@@ -490,6 +490,50 @@ export const api = {
   },
 
 
+
+  async createPendingDirectPurchase(data: { mediaId: string; mediaTitle: string; paymentMethod: string; amount: string; contactInfo: string }) {
+    const purchaseId = `dir_purch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const unlockToken = `unlock_dir_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('purchases').insert({
+          id: purchaseId,
+          token: unlockToken,
+          media_id: data.mediaId,
+          buyer_email: data.contactInfo.trim(),
+          buyer_phone: data.contactInfo.trim(),
+          payment_method: data.paymentMethod.toLowerCase(),
+          amount: data.amount,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        });
+      } catch (err) {
+        console.warn('Supabase createPendingDirectPurchase warning:', err);
+      }
+    }
+
+    try {
+      await fetch('/api/purchases/pending-direct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: purchaseId,
+          token: unlockToken,
+          mediaId: data.mediaId,
+          mediaTitle: data.mediaTitle,
+          buyerPhone: data.contactInfo,
+          buyerEmail: data.contactInfo,
+          paymentMethod: data.paymentMethod,
+          amount: data.amount,
+          status: 'pending'
+        })
+      });
+    } catch {}
+
+    return { purchaseId, unlockToken };
+  },
+
   // Telegram VIP Unlock Links & Manual Approvals
   async createCustomMediaUnlockLink(mediaId: string, contactInfo: string, customCode?: string): Promise<{ code: string; link: string; token: string }> {
     const code = customCode && customCode.trim() ? customCode.trim() : Math.random().toString(36).substring(2, 8);
