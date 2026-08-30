@@ -847,7 +847,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
             </div>
 
             <a
-              href={buildTransferTelegramLink('Transferencia México CLABE')}
+              href={buildTransferTelegramLink('Transferencia México CLABE')} onClick={(e) => { e.preventDefault(); handleDirectTelegramRedirect('MEXICO_CLABE', buildTransferTelegramLink('Transferencia México CLABE')); }}
               target="_blank"
               rel="noreferrer"
               className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer mt-2"
@@ -968,7 +968,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
             </div>
 
             <a
-              href={buildTransferTelegramLink('Transferencia USA Dollar')}
+              href={buildTransferTelegramLink('Transferencia USA Dollar')} onClick={(e) => { e.preventDefault(); handleDirectTelegramRedirect('USA_ACH', buildTransferTelegramLink('Transferencia USA Dollar')); }}
               target="_blank"
               rel="noreferrer"
               className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer mt-2"
@@ -1075,7 +1075,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
             </div>
 
             <a
-              href={buildTransferTelegramLink('Transferencia Europa SEPA')}
+              href={buildTransferTelegramLink('Transferencia Europa SEPA')} onClick={(e) => { e.preventDefault(); handleDirectTelegramRedirect('EUROPE_SEPA', buildTransferTelegramLink('Transferencia Europa SEPA')); }}
               target="_blank"
               rel="noreferrer"
               className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-600 via-indigo-700 to-blue-700 hover:from-amber-500 hover:to-blue-600 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer mt-2"

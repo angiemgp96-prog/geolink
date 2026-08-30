@@ -1238,9 +1238,25 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
  * POST /api/purchases/pending-direct
  * Registrar compras pendientes por Nequi, Telegram o Métodos Directos
  */
-app.post("/api/purchases/pending-direct", (req, res) => {
+app.post("/api/purchases/pending-direct", async (req, res) => {
   try {
     const { id, token, mediaId, mediaTitle, buyerPhone, buyerEmail, paymentMethod, amount } = req.body;
+
+    let parsedAmount = 50;
+    let currency = 'USD';
+
+    if (typeof amount === 'number') {
+      parsedAmount = amount;
+    } else if (typeof amount === 'string') {
+      const cleanNum = amount.replace(/[^0-9]/g, '');
+      if (cleanNum) {
+        parsedAmount = Number(cleanNum);
+      }
+      if (amount.toUpperCase().includes('COP')) {
+        currency = 'COP';
+      }
+    }
+
     const record: PurchaseRecord = {
       id: id || `dir_${Date.now()}`,
       token: token || `unlock_${Date.now()}`,
@@ -1249,14 +1265,22 @@ app.post("/api/purchases/pending-direct", (req, res) => {
       creatorHandle: 'angelina69',
       buyerEmail: buyerEmail || '',
       buyerPhone: buyerPhone || '',
-      amount: typeof amount === 'number' ? amount : 50,
-      currency: typeof amount === 'string' && amount.includes('COP') ? 'COP' : 'USD',
+      amount: parsedAmount,
+      currency: currency,
       paymentMethod: (paymentMethod || 'DIRECT').toUpperCase(),
       status: 'pending',
       downloadCount: 0,
       createdAt: new Date().toISOString()
     };
+
     purchases.unshift(record);
+
+    try {
+      await syncPurchaseToSupabase(record);
+    } catch (err) {
+      console.warn('[Supabase Sync Direct Pending Purchase Error]', err);
+    }
+
     return res.json({ success: true, record });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
