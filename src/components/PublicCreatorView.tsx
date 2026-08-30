@@ -431,7 +431,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
         {/* Botón Acceso Full */}
         {(() => {
-          const fullPrices = getCalculatedPrices(fullAccessPrice, "acceso_full_cat_actual");
+          const fullPrices = getCalculatedPrices(fullAccessBasePrice, "acceso_full_cat_actual");
           return (
             <div className="bg-gradient-to-r from-amber-950/40 via-indigo-950/40 to-purple-950/40 border border-amber-500/40 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl transition-all hover:border-amber-400/60">
               <div className="flex items-center gap-3 text-left">
@@ -465,7 +465,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                   title: `👑 ${t.fullAccessTitle}`,
                   description: t.fullAccessDesc,
                   type: 'bundle',
-                  price: fullAccessPrice,
+                  price: fullAccessBasePrice,
                   currency: 'USD',
                   previewUrl: creator.avatar,
                   downloadUrl: creator.avatar,
