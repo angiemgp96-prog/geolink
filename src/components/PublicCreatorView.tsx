@@ -52,6 +52,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   }, []);
 
   const isColombia = visitorCountry === 'CO';
+  const mostExpensiveItemPrice = mediaItems.reduce((max, item) => Number(item.price) > max ? Number(item.price) : max, 0);
+  const fullAccessBasePrice = mostExpensiveItemPrice > 0 ? mostExpensiveItemPrice + 20 : 50;
 
   // Helper de cálculo preciso de precios con y sin descuento usando el multiplicador dinámico
   const getCalculatedPrices = (basePrice: number, itemId?: string) => {

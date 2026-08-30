@@ -489,6 +489,44 @@ export const api = {
     return visibility;
   },
 
+
+  // Telegram VIP Unlock Links & Manual Approvals
+  async createCustomMediaUnlockLink(mediaId: string, contactInfo: string, customCode?: string): Promise<{ code: string; link: string; token: string }> {
+    const code = customCode && customCode.trim() ? customCode.trim() : Math.random().toString(36).substring(2, 8);
+    const unlockToken = `unlock_tg_${code}_${Date.now()}`;
+    const reqId = `tg_purch_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('purchases').insert({
+          id: reqId,
+          token: unlockToken,
+          media_id: mediaId,
+          buyer_email: contactInfo.trim() || 'Telegram VIP',
+          buyer_phone: contactInfo.trim(),
+          payment_method: 'telegram_manual',
+          status: 'approved',
+          created_at: new Date().toISOString(),
+          approved_at: new Date().toISOString()
+        });
+      } catch (err) {
+        console.warn('Supabase createCustomMediaUnlockLink warning:', err);
+      }
+    }
+
+    try {
+      await fetch('/api/purchases/approve-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: unlockToken, purchaseId: reqId, mediaId, buyerEmail: contactInfo })
+      });
+    } catch {}
+
+    const host = typeof window !== 'undefined' ? window.location.origin : 'https://geolink-1.onrender.com';
+    const link = `${host}/?unlock=${unlockToken}`;
+    return { code, link, token: unlockToken };
+  },
+
   // 6. Colombia Page Access Control ($30 USD / $105.000 COP)
   async saveColombiaAccessRequest(contactInfo: string, method: string = 'nequi'): Promise<boolean> {
     let deviceHash = '';

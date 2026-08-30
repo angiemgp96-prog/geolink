@@ -49,6 +49,23 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
 
   // Sales History
   const [purchasesHistory, setPurchasesHistory] = useState<PurchaseRecord[]>([]);
+  const [tgMediaId, setTgMediaId] = useState<string>('acceso_full_cat_actual');
+  const [tgContactInfo, setTgContactInfo] = useState<string>('');
+  const [tgGeneratedLink, setTgGeneratedLink] = useState<string>('');
+  const [isGeneratingTgLink, setIsGeneratingTgLink] = useState<boolean>(false);
+
+  const handleGenerateTgMediaLink = async () => {
+    if (!tgContactInfo.trim()) return;
+    setIsGeneratingTgLink(true);
+    try {
+      const res = await api.createCustomMediaUnlockLink(tgMediaId, tgContactInfo);
+      setTgGeneratedLink(res.link);
+    } catch (err) {
+      console.error('Error generando enlace de Telegram:', err);
+    } finally {
+      setIsGeneratingTgLink(false);
+    }
+  };
   const [testPhone, setTestPhone] = useState('');
   const [waTestResponse, setWaTestResponse] = useState<string | null>(null);
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
