@@ -576,23 +576,13 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       </div>
                     )}
 
-                    {/* Top Left Badges: NUEVO */}
+                    {/* Top Left Badges: NUEVO & EXTRA PREMIUM */}
                     <div className="absolute top-3 left-3 flex items-center gap-1.5 z-30">
                       {isNewVideo && (
                         <div className="bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg shadow-rose-950/80 border border-rose-400/50 flex items-center gap-1 animate-pulse shrink-0">
                           <span>🔥 NUEVO</span>
                         </div>
                       )}
-                    </div>
-
-                    {/* Top Right Badges: TYPE & EXTRA PREMIUM (Side-by-side in 1 clean row) */}
-                    <div className="absolute top-3 right-3 flex items-center gap-1.5 z-30">
-                      <div className="bg-black/75 backdrop-blur-md border border-white/20 px-2.5 py-1 rounded-full text-[10px] font-bold text-white flex items-center gap-1 shadow-md shrink-0">
-                        {item.type === 'video' && <Film className="w-3 h-3 text-indigo-400" />}
-                        {item.type === 'photo' && <ImageIcon className="w-3 h-3 text-indigo-300" />}
-                        {item.type === 'bundle' && <Layers className="w-3 h-3 text-amber-400" />}
-                        <span className="capitalize">{item.type}</span>
-                      </div>
 
                       {item.isExtraPremium && (
                         <div className="bg-gradient-to-r from-amber-500 via-rose-600 to-amber-600 border border-amber-300/80 px-2.5 py-1 rounded-full text-[9px] font-black text-white flex items-center gap-1 shadow-lg shadow-amber-500/40 uppercase tracking-wider shrink-0">
@@ -600,6 +590,16 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                           <span>{t.extraPremiumBadge}</span>
                         </div>
                       )}
+                    </div>
+
+                    {/* Top Right Badges: TYPE (Video / Photo alone on the right) */}
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5 z-30">
+                      <div className="bg-black/75 backdrop-blur-md border border-white/20 px-2.5 py-1 rounded-full text-[10px] font-bold text-white flex items-center gap-1 shadow-md shrink-0">
+                        {item.type === 'video' && <Film className="w-3 h-3 text-indigo-400" />}
+                        {item.type === 'photo' && <ImageIcon className="w-3 h-3 text-indigo-300" />}
+                        {item.type === 'bundle' && <Layers className="w-3 h-3 text-amber-400" />}
+                        <span className="capitalize">{item.type}</span>
+                      </div>
                     </div>
 
                     {/* Price & Promo Tag (Bottom Right) */}

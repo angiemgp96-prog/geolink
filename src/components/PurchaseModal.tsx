@@ -194,8 +194,8 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     setErrorMessage('');
     setIsLoading(true);
     try {
-      const calculatedCop = isColombia ? getExactCopPriceNumber() : item.price;
-      const data = await api.createMercadoPagoPreference(item.id, '', contactInfo, calculatedCop);
+      const calculatedCop = getExactCopPriceNumber();
+      const data = await api.createMercadoPagoPreference(item.id, '', contactInfo, calculatedCop || item.price);
       if (data.error) {
         setErrorMessage(data.error);
         return;
