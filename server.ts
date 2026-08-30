@@ -720,16 +720,19 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
 
     // Convertir a Pesos Colombianos (COP) para la cuenta de Mercado Pago Colombia ($1 USD ≈ $4.000 COP)
     const userCountry = await detectCountryCode(req);
-    let rawBasePrice = Number(media.price);
-    if (globalDiscountPercentage > 0) {
-      rawBasePrice = Math.round(rawBasePrice * (1 - globalDiscountPercentage / 100) * 100) / 100;
+    let copUnitPrice = 0;
+    if (customPrice && Number(customPrice) > 100) {
+      copUnitPrice = Math.round(Number(customPrice));
+    } else {
+      let rawBasePrice = Number(media.price);
+      if (globalDiscountPercentage > 0) {
+        rawBasePrice = Math.round(rawBasePrice * (1 - globalDiscountPercentage / 100) * 100) / 100;
+      }
+      const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
+      const effectivePrice = (!mediaId?.includes('pagina') && userCountry === 'CO') ? rawBasePrice * activeMult : rawBasePrice;
+      const isUsd = media.currency === "USD";
+      copUnitPrice = isUsd ? Math.round(effectivePrice * 3500) : Math.round(effectivePrice);
     }
-    let effectivePrice = rawBasePrice;
-    const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
-    if (!mediaId?.includes('pagina') && userCountry === 'CO') { effectivePrice = rawBasePrice * activeMult; }
-    const isUsd = media.currency === "USD";
-    
-    const copUnitPrice = isUsd ? Math.round(effectivePrice * 3500) : Math.round(effectivePrice);
 
     // 1. Generar la preferencia oficial vía la API de Mercado Pago Colombia
     try {
