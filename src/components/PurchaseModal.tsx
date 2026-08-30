@@ -453,7 +453,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 {detectedRegion === 'MX' && (
                   <button
                     id="pay-bank-mexico-button"
-                    onClick={() => { setErrorMessage(''); setScreen('bank_mexico'); }}
+                    onClick={() => { if (!validateContact()) return; setErrorMessage(''); setScreen('bank_mexico'); }}
                     className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-emerald-800 via-teal-800 to-green-800 hover:from-emerald-700 hover:to-green-700 text-white font-bold text-sm shadow-xl shadow-emerald-950/40 flex items-center justify-between transition-all cursor-pointer group border-2 border-emerald-400/50"
                   >
                     <div className="flex items-center gap-3">
@@ -473,7 +473,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 {detectedRegion === 'US' && (
                   <button
                     id="pay-bank-usa-button"
-                    onClick={() => { setErrorMessage(''); setScreen('bank_usa'); }}
+                    onClick={() => { if (!validateContact()) return; setErrorMessage(''); setScreen('bank_usa'); }}
                     className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-blue-800 via-indigo-800 to-sky-800 hover:from-blue-700 hover:to-sky-700 text-white font-bold text-sm shadow-xl shadow-blue-950/40 flex items-center justify-between transition-all cursor-pointer group border-2 border-sky-400/50"
                   >
                     <div className="flex items-center gap-3">
@@ -493,7 +493,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 {detectedRegion === 'EU' && (
                   <button
                     id="pay-bank-europe-button"
-                    onClick={() => { setErrorMessage(''); setScreen('bank_europe'); }}
+                    onClick={() => { if (!validateContact()) return; setErrorMessage(''); setScreen('bank_europe'); }}
                     className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-amber-700 via-indigo-900 to-blue-900 hover:from-amber-600 hover:to-blue-800 text-white font-bold text-sm shadow-xl shadow-indigo-950/40 flex items-center justify-between transition-all cursor-pointer group border-2 border-amber-400/50"
                   >
                     <div className="flex items-center gap-3">

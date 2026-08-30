@@ -495,16 +495,28 @@ export const api = {
     const purchaseId = `dir_purch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const unlockToken = `unlock_dir_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
+    let numericAmount = 50;
+    let currency = 'USD';
+
+    if (typeof data.amount === 'string') {
+      const digits = data.amount.replace(/[^0-9]/g, '');
+      if (digits) numericAmount = Number(digits);
+      if (data.amount.toUpperCase().includes('COP')) currency = 'COP';
+    }
+
     if (isSupabaseConfigured()) {
       try {
         await supabase.from('purchases').insert({
           id: purchaseId,
           token: unlockToken,
           media_id: data.mediaId,
+          media_title: data.mediaTitle,
+          creator_handle: 'angelina69',
           buyer_email: data.contactInfo.trim(),
           buyer_phone: data.contactInfo.trim(),
-          payment_method: data.paymentMethod.toLowerCase(),
-          amount: data.amount,
+          payment_method: data.paymentMethod.toUpperCase(),
+          amount: numericAmount,
+          currency: currency,
           status: 'pending',
           created_at: new Date().toISOString()
         });

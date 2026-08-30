@@ -189,6 +189,14 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
       if (res.success) {
         await loadPurchases();
         if (onRefreshData) onRefreshData();
+        const unlockToken = res.purchase?.token || tokenOrId;
+        const unlockUrl = `${window.location.origin}/?unlock=${unlockToken}`;
+        try {
+          await navigator.clipboard.writeText(unlockUrl);
+          alert(`✅ ¡Compra Aprobada Exitosamente!\n\nSe ha copiado al portapapeles el Enlace VIP de Desbloqueo:\n${unlockUrl}\n\nEnvíalo a tu cliente por Telegram si lo requiere.`);
+        } catch {
+          alert(`✅ ¡Compra Aprobada Exitosamente!\n\nEnlace VIP de Desbloqueo:\n${unlockUrl}`);
+        }
       } else {
         alert(res.error || 'Error al aprobar la venta');
       }

@@ -1269,6 +1269,7 @@ app.post("/api/purchases/pending-direct", async (req, res) => {
       currency: currency,
       paymentMethod: (paymentMethod || 'DIRECT').toUpperCase(),
       status: 'pending',
+      ipAddress: getClientIp(req),
       downloadCount: 0,
       createdAt: new Date().toISOString()
     };
