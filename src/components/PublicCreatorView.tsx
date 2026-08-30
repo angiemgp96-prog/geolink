@@ -54,42 +54,43 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   const isColombia = visitorCountry === 'CO';
 
   // Helper de cálculo preciso de precios con y sin descuento usando el multiplicador dinámico
-  const getCalculatedPrices = (basePrice: number) => {
+  const getCalculatedPrices = (basePrice: number, itemId?: string) => {
     const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
+    const isFullAccess = itemId === 'acceso_full_cat_actual' || itemId?.includes('acceso_full');
+
     if (isColombia) {
-      const origCop = Math.round(basePrice * activeMult * 3500);
-      if (globalDiscount > 0) {
-        const rawDiscountedBase = Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100;
-        const discCop = Math.round(rawDiscountedBase * activeMult * 3500);
-        return {
-          originalFormatted: `$${origCop.toLocaleString('es-CO')} COP`,
-          discountedFormatted: `$${discCop.toLocaleString('es-CO')} COP`,
-          hasDiscount: true,
-          discountPercent: globalDiscount
-        };
+      let origCop = 0;
+      let discCop = 0;
+
+      if (isFullAccess) {
+        // Regla Colombia: Acceso Full = 2x el producto más caro de la tienda en COP
+        const maxItemBase = mediaItems.reduce((max, item) => item.price > max ? item.price : max, 0) || basePrice;
+        const maxOrigCop = Math.round(maxItemBase * activeMult * 3500);
+        const maxRawDiscounted = globalDiscount > 0 ? Math.round(maxItemBase * (1 - globalDiscount / 100) * 100) / 100 : maxItemBase;
+        const maxDiscCop = Math.round(maxRawDiscounted * activeMult * 3500);
+
+        origCop = maxOrigCop * 2;
+        discCop = maxDiscCop * 2;
+      } else {
+        origCop = Math.round(basePrice * activeMult * 3500);
+        const rawDiscountedBase = globalDiscount > 0 ? Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100 : basePrice;
+        discCop = Math.round(rawDiscountedBase * activeMult * 3500);
       }
+
       return {
-        originalFormatted: `$${origCop.toLocaleString('es-CO')} COP`,
-        discountedFormatted: `$${origCop.toLocaleString('es-CO')} COP`,
-        hasDiscount: false,
-        discountPercent: 0
+        originalFormatted: `${origCop.toLocaleString('es-CO')} COP`,
+        discountedFormatted: `${discCop.toLocaleString('es-CO')} COP`,
+        hasDiscount: globalDiscount > 0,
+        discountPercent: globalDiscount
       };
     } else {
       const origUsd = basePrice;
-      if (globalDiscount > 0) {
-        const discUsd = Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100;
-        return {
-          originalFormatted: `$${origUsd.toFixed(2)} USD`,
-          discountedFormatted: `$${discUsd.toFixed(2)} USD`,
-          hasDiscount: true,
-          discountPercent: globalDiscount
-        };
-      }
+      const discUsd = globalDiscount > 0 ? Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100 : basePrice;
       return {
-        originalFormatted: `$${origUsd.toFixed(2)} USD`,
-        discountedFormatted: `$${origUsd.toFixed(2)} USD`,
-        hasDiscount: false,
-        discountPercent: 0
+        originalFormatted: `${origUsd.toFixed(2)} USD`,
+        discountedFormatted: `${discUsd.toFixed(2)} USD`,
+        hasDiscount: globalDiscount > 0,
+        discountPercent: globalDiscount
       };
     }
   };
@@ -430,7 +431,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
         {/* Botón Acceso Full */}
         {(() => {
-          const fullPrices = getCalculatedPrices(fullAccessPrice);
+          const fullPrices = getCalculatedPrices(fullAccessPrice, "acceso_full_cat_actual");
           return (
             <div className="bg-gradient-to-r from-amber-950/40 via-indigo-950/40 to-purple-950/40 border border-amber-500/40 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl transition-all hover:border-amber-400/60">
               <div className="flex items-center gap-3 text-left">

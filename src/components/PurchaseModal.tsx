@@ -94,8 +94,16 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     const rawDiscounted = globalDiscount > 0 ? Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100 : basePrice;
     const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
     const isPageAccess = item.id?.includes('pagina');
+    const isFullAccess = item.id === 'acceso_full_cat_actual' || item.id?.includes('acceso_full');
+
     if (isColombia) {
-      return isPageAccess ? Math.round(rawDiscounted * 3500) : Math.round(rawDiscounted * activeMult * 3500);
+      if (isPageAccess) {
+        return Math.round(rawDiscounted * 3500);
+      }
+      if (isFullAccess) {
+        return Math.round(rawDiscounted * activeMult * 3500 * 2);
+      }
+      return Math.round(rawDiscounted * activeMult * 3500);
     } else {
       return Math.round(rawDiscounted * 3500);
     }
