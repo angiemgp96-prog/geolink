@@ -43,13 +43,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     setTimeout(() => setCopiedField(null), 1800);
   };
 
-  const buildTransferTelegramLink = (methodName: string) => {
-    const contactText = contactInfo ? `\n\nMi contacto: ${contactInfo}` : '';
-    const msg = encodeURIComponent(
-      `¡Hola! Realizaré el pago por ${methodName} para comprar el contenido: "${item?.title || ''}" ($${item?.price.toFixed(2) || '0.00'} ${item?.currency || 'USD'}).${contactText}\n\nAquí te adjunto mi comprobante para la entrega 📎`
-    );
-    return `https://t.me/${TELEGRAM_USER}?text=${msg}`;
-  };
+
 
   // MercadoPago API state
   const [mpUnlockToken, setMpUnlockToken]         = useState<string | null>(null);
@@ -191,9 +185,11 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   };
 
   // ── Telegram: link con mensaje pre-llenado ────────────────────────
-  const telegramLink = (method: string) => {
+  const buildTransferTelegramLink = (method: string) => {
+    const formattedPrice = getFormattedModalPrice();
+    const contactText = contactInfo ? `\n\nMi contacto: ${contactInfo}` : '';
     const msg = encodeURIComponent(
-      `Hola! Acabo de pagar "${item.title}" ($${item.price.toFixed(2)} ${item.currency}) vía ${method}.\n\nMi contacto: ${contactInfo}\n\nTe envío mi comprobante 📎`
+      `¡Hola! Realizaré el pago por ${method} para comprar el contenido: "${item.title}" (${formattedPrice}).${contactText}\n\nAquí te adjunto mi comprobante para la entrega 📎`
     );
     return `https://t.me/${TELEGRAM_USER}?text=${msg}`;
   };
@@ -295,8 +291,9 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   // ── Pagar vía Telegram: construye enlace directo y abre chat @Angelinaguzman69
   const buildPayPalTelegramLink = () => {
     const contactText = contactInfo ? `\n\nMi contacto: ${contactInfo}` : '';
+    const formattedPrice = getFormattedModalPrice();
     const msg = encodeURIComponent(
-      `¡Hola! Quiero comprar el contenido: "${item.title}" ($${item.price.toFixed(2)} ${item.currency}).${contactText}`
+      `¡Hola! Quiero comprar el contenido: "${item.title}" (${formattedPrice}).${contactText}\n\nAquí te adjunto mi comprobante para la entrega 📎`
     );
     return `https://t.me/${TELEGRAM_USER}?text=${msg}`;
   };
@@ -703,6 +700,10 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
 
             <a
               href={buildTransferTelegramLink('Nequi Llave Bre-B Colombia')}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDirectTelegramRedirect('NEQUI', buildTransferTelegramLink('Nequi Llave Bre-B Colombia'));
+              }}
               target="_blank"
               rel="noreferrer"
               className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer mt-2"
