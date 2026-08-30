@@ -428,7 +428,11 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                     {/* Nequi Llave Bre-B Directo */}
                     <button
                       id="pay-bank-colombia-button"
-                      onClick={() => { setErrorMessage(''); setScreen('bank_colombia'); }}
+                      onClick={() => {
+                        if (!validateContact()) return;
+                        setErrorMessage('');
+                        setScreen('bank_colombia');
+                      }}
                       className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#6a0dad] to-[#9b30d9] hover:from-[#5a0b99] hover:to-[#8525c5] text-white font-bold text-sm shadow-xl shadow-purple-950/40 flex items-center justify-between transition-all cursor-pointer group border-2 border-purple-400/50"
                     >
                       <div className="flex items-center gap-3">
