@@ -1051,7 +1051,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                     <span>Visibilidad de Botones de Pago en Checkout</span>
                   </h4>
                   <p className="text-xs text-slate-400 mt-1">
-                    Oculta o muestra los botones de pago que verán tus clientes en la pantalla de compra. No altera tus credenciales API ni el procesamiento.
+                    Oculta o muestra los botones de pago que verán tus clientes internacionales. (En Colombia Mercado Pago y Nequi permanecen siempre visibles). No altera tus credenciales API ni el procesamiento.
                   </p>
                 </div>
               </div>
@@ -1129,7 +1129,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                     <CreditCard className="w-5 h-5 text-sky-400 shrink-0" />
                     <div>
                       <div className="text-xs font-bold text-white">Mercado Pago</div>
-                      <div className="text-[10px] text-slate-400">Tarjetas · Nequi · PSE</div>
+                      <div className="text-[10px] text-slate-400">Tarjetas fuera de Colombia (en CO siempre visible)</div>
                     </div>
                   </div>
                   <button
