@@ -350,6 +350,16 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     window.location.href = telegramLink('Nequi Giro USA');
   };
 
+    const isColombiaVisitor = detectedRegion === 'CO';
+  const hasActivePaymentMethods = isColombiaVisitor || (
+    paymentVisibility.stripe !== false ||
+    paymentVisibility.mercadopago ||
+    paymentVisibility.paypal ||
+    paymentVisibility.paypal_telegram ||
+    paymentVisibility.nequi_usa ||
+    ['MX', 'US', 'EU'].includes(detectedRegion)
+  );
+
   // ─────────────────────────────────────────────────────────────────
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
@@ -414,16 +424,16 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
 
             <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-3">Selecciona método de pago:</p>
 
-            {(!paymentVisibility.mercadopago && !paymentVisibility.paypal && !paymentVisibility.paypal_telegram && !paymentVisibility.nequi_usa) ? (
+            {(!hasActivePaymentMethods) ? (
               <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/30 text-amber-300 text-xs text-center font-medium my-3">
                 ⚠️ No hay métodos de pago habilitados visualmente en este momento.
               </div>
             ) : (
               <div className="space-y-3">
-                {/* 1. MÉTODOS LOCALES PRIORITARIOS POR PAÍS */}
+                {/* 1. COLOMBIA: MERCADO PAGO Y NEQUI SIEMPRE VISIBLES */}
                 {detectedRegion === 'CO' && (
-                  <>
-                    {/* Mercado Pago Colombia — Siempre visible por defecto en Colombia */}
+                  <div className="space-y-3">
+                    <p className="text-[11px] font-bold text-sky-400 uppercase tracking-wider mb-1">MÉTODOS DE PAGO COLOMBIA:</p>
                     <button
                       id="pay-mercadopago-button"
                       disabled={isLoading}
@@ -443,7 +453,6 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                       {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
                     </button>
 
-                    {/* Nequi Llave Bre-B Directo */}
                     <button
                       id="pay-bank-colombia-button"
                       onClick={() => {
@@ -465,7 +474,40 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                       </div>
                       <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
                     </button>
-                  </>
+                  </div>
+                )}
+
+                {/* 2. FUERA DE COLOMBIA: STRIPE DE PRIMERO + OTROS MÉTODOS INTERNACIONALES */}
+                {detectedRegion !== 'CO' && (
+                  <div className="space-y-3">
+                    <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider mb-1">MÉTODOS DE PAGO INTERNACIONALES:</p>
+
+                    {/* STRIPE CHECKOUT #1 DE PRIMERO */}
+                    {paymentVisibility.stripe !== false && (
+                      <button
+                        id="pay-stripe-button"
+                        disabled={isLoading}
+                        onClick={handleStripeDirect}
+                        className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-sm shadow-xl shadow-purple-600/30 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group border-2 border-purple-400/60 relative overflow-hidden"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20">
+                            <CreditCard className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="text-left">
+                            <div className="flex items-center gap-2">
+                              <span className="font-extrabold text-white text-base">Tarjetas de Crédito / Débito (Stripe)</span>
+                              <span className="bg-amber-400 text-slate-950 text-[9px] uppercase font-black px-2 py-0.5 rounded-full shadow-md animate-pulse">⚡ PRINCIPAL Y RECOMENDADO</span>
+                            </div>
+                            <div className="text-[11px] font-medium text-purple-100 mt-0.5">
+                              Visa · Mastercard · Amex · Apple Pay · Google Pay (USD)
+                            </div>
+                          </div>
+                        </div>
+                        {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : <ArrowRight className="w-5 h-5 opacity-90 group-hover:translate-x-1 transition-transform text-white" />}
+                      </button>
+                    )}
+                  </div>
                 )}
 
                 {detectedRegion === 'MX' && (
@@ -528,31 +570,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                   </button>
                 )}
 
-                {/* 0. STRIPE CHECKOUT (MÉTODO PRINCIPAL RECOMENDADO PARA EE.UU. E INTERNACIONAL) */}
-                {paymentVisibility.stripe !== false && detectedRegion !== 'CO' && (
-                  <button
-                    id="pay-stripe-button"
-                    disabled={isLoading}
-                    onClick={handleStripeDirect}
-                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-sm shadow-xl shadow-purple-600/30 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group border-2 border-purple-400/60 relative overflow-hidden mb-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20">
-                        <CreditCard className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="text-left">
-                        <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-white text-base">Tarjetas de Crédito / Débito (Stripe)</span>
-                          <span className="bg-amber-400 text-slate-950 text-[9px] uppercase font-black px-2 py-0.5 rounded-full shadow-md animate-pulse">⚡ PRINCIPAL Y RECOMENDADO</span>
-                        </div>
-                        <div className="text-[11px] font-medium text-purple-100 mt-0.5">
-                          Visa · Mastercard · Amex · Apple Pay · Google Pay (USD)
-                        </div>
-                      </div>
-                    </div>
-                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : <ArrowRight className="w-5 h-5 opacity-90 group-hover:translate-x-1 transition-transform text-white" />}
-                  </button>
-                )}
+                
 
                 {/* 2. PAYPAL LIVE API (PRIORITARIO PARA EE.UU. E INTERNACIONAL) */}
                 {paymentVisibility.paypal && detectedRegion !== 'CO' && (
