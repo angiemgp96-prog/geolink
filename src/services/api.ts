@@ -203,6 +203,32 @@ export const api = {
     }
   },
 
+  async createStripeCheckoutSession(mediaId: string, customPrice?: number, contactInfo?: string) {
+    try {
+      const res = await fetch('/api/payments/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mediaId, customPrice, contactInfo })
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { error: err.message || 'Error de conexión con la API de Stripe.' };
+    }
+  },
+
+  async verifyStripeSession(sessionId: string, token: string) {
+    try {
+      const res = await fetch('/api/payments/stripe/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, token })
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { error: err.message || 'Error verificando la sesión de Stripe.' };
+    }
+  },
+
   async confirmDirectPayment(mediaId: string, paymentMethod: string, referenceNumber: string, buyerEmail: string, buyerPhone: string) {
     const res = await fetch('/api/payments/confirm-direct', {
       method: 'POST',

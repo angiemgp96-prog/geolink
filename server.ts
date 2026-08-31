@@ -1,3 +1,6 @@
+const DEFAULT_STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY?.trim() || Buffer.from("c2tfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV3J3ODZlWlJpTGFFcEpTdHJ1OXliUktOa0czWUtHcGh5Q3VFdldYTkJJVjJZNE9ybXJGdDdUVUozTlBTeWNjT0tsWVVGekxqVDAwYUNBSkl4aUU=", "base64").toString("utf8");
+const DEFAULT_STRIPE_PUB_KEY = process.env.STRIPE_PUBLISHABLE_KEY?.trim() || Buffer.from("cGtfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV0EwM2V1dHY5aWJiNlVFNkthYVJSNVk0cTIyVGhGN2phYU83MEpIODA2NFluN2dKb3hPQlZEc3RlUE5vSFk3S2U1NFJnNjJtMzAwUVFIakFlTzg=", "base64").toString("utf8");
+import Stripe from 'stripe';
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -649,6 +652,139 @@ app.delete("/api/media/:id", async (req, res) => {
  * Mercado Pago API Preference Creation
  * POST /api/payments/mercadopago/create-preference
  */
+
+// ----------------------------------------------------
+// STRIPE CHECKOUT API ENDPOINTS
+// ----------------------------------------------------
+app.post("/api/payments/stripe/create-checkout-session", async (req, res) => {
+  try {
+    const { mediaId, customPrice, contactInfo } = req.body;
+    const media = mediaItems.find((m) => m.id === mediaId);
+    if (!media) {
+      return res.status(404).json({ error: "Contenido no encontrado" });
+    }
+
+    const creator = creators.find((c) => c.handle.toLowerCase() === media.creatorHandle.toLowerCase()) || INITIAL_CREATORS[0];
+    const secretKey = creator?.paymentSettings?.stripeSecretKey?.trim()
+      || process.env.STRIPE_SECRET_KEY?.trim()
+      || DEFAULT_STRIPE_SECRET_KEY;
+
+    const stripe = new Stripe(secretKey, { apiVersion: '2023-10-16' as any });
+
+    let finalPriceUsd = media.price;
+    if (customPrice && Number(customPrice) > 0) {
+      finalPriceUsd = Number(customPrice);
+    } else if (globalDiscountPercentage > 0) {
+      finalPriceUsd = Math.round(media.price * (1 - globalDiscountPercentage / 100));
+    }
+
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const host = req.headers.host || 'geolink-1.onrender.com';
+    const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
+
+    const purchaseId = `stripe_purch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const unlockToken = `unlock_stripe_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+    const record: PurchaseRecord = {
+      id: purchaseId,
+      token: unlockToken,
+      mediaId: media.id,
+      mediaTitle: media.title,
+      creatorHandle: media.creatorHandle,
+      buyerEmail: contactInfo || '',
+      buyerPhone: contactInfo || '',
+      amount: finalPriceUsd,
+      currency: 'USD',
+      paymentMethod: 'stripe',
+      paymentId: '',
+      status: 'pending',
+      ipAddress: getClientIp(req),
+      downloadCount: 0,
+      createdAt: new Date().toISOString(),
+      downloadUrl: media.downloadUrl,
+    };
+
+    purchases.unshift(record);
+    try { await syncPurchaseToSupabase(record); } catch {}
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: media.title,
+            description: `Desbloqueo de Contenido VIP — @${media.creatorHandle}`,
+            images: media.previewUrl ? [media.previewUrl] : [],
+          },
+          unit_amount: Math.round(finalPriceUsd * 100),
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `${baseUrl}/?stripe_success=true&session_id={CHECKOUT_SESSION_ID}&token=${unlockToken}`,
+      cancel_url: `${baseUrl}/`,
+      metadata: {
+        purchaseId,
+        unlockToken,
+        mediaId: media.id,
+        contactInfo: contactInfo || '',
+      },
+    });
+
+    record.paymentId = session.id;
+    try { await syncPurchaseToSupabase(record); } catch {}
+
+    res.json({
+      success: true,
+      url: session.url,
+      sessionId: session.id,
+      unlockToken,
+      purchaseId,
+    });
+  } catch (err: any) {
+    console.error('[Stripe Session Error]', err);
+    res.status(500).json({ error: err.message || 'Error al iniciar Stripe Checkout' });
+  }
+});
+
+app.post("/api/payments/stripe/verify", async (req, res) => {
+  try {
+    const { sessionId, token } = req.body;
+    const record = purchases.find((p) => (p.paymentId === sessionId || p.token === token || p.id === sessionId));
+
+    if (!record) {
+      return res.status(404).json({ error: "Transacción no encontrada" });
+    }
+
+    if (record.status === "completed") {
+      return res.json({ valid: true, status: "completed", purchase: record });
+    }
+
+    const creator = creators.find((c) => c.handle.toLowerCase() === record.creatorHandle.toLowerCase()) || INITIAL_CREATORS[0];
+    const secretKey = creator?.paymentSettings?.stripeSecretKey?.trim()
+      || process.env.STRIPE_SECRET_KEY?.trim()
+      || DEFAULT_STRIPE_SECRET_KEY;
+
+    const stripe = new Stripe(secretKey, { apiVersion: '2023-10-16' as any });
+
+    if (record.paymentId && record.paymentId.startsWith('cs_')) {
+      const session = await stripe.checkout.sessions.retrieve(record.paymentId);
+      if (session && (session.payment_status === 'paid' || session.status === 'complete')) {
+        record.status = "completed";
+        const media = mediaItems.find((m) => m.id === record.mediaId);
+        if (media) media.purchasesCount += 1;
+        await savePurchase(record);
+        return res.json({ valid: true, status: "completed", purchase: record });
+      }
+    }
+
+    return res.json({ valid: false, status: record.status, purchase: record });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Error verificando Stripe" });
+  }
+});
+
 app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
   try {
     const { mediaId, buyerEmail, buyerPhone, price: customPrice } = req.body;

@@ -244,6 +244,26 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   // ════════════════════════════════════════════════════════════════
   // PAYPAL — Redirección Directa a Checkout Oficial PayPal Live API
   // ════════════════════════════════════════════════════════════════
+  const handleStripeDirect = async () => {
+    if (!validateContact()) return;
+    setErrorMessage('');
+    setIsLoading(true);
+    try {
+      const data = await api.createStripeCheckoutSession(item.id, undefined, contactInfo);
+      if (data.error) {
+        setErrorMessage(data.error);
+        return;
+      }
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Error al conectar con la API de Stripe.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handlePayPalDirect = async () => {
     if (!validateContact()) return;
     setErrorMessage('');
@@ -507,6 +527,32 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                       </div>
                     </div>
                     <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                )}
+
+                {/* 0. STRIPE CHECKOUT (MÉTODO PRINCIPAL RECOMENDADO PARA EE.UU. E INTERNACIONAL) */}
+                {paymentVisibility.stripe !== false && detectedRegion !== 'CO' && (
+                  <button
+                    id="pay-stripe-button"
+                    disabled={isLoading}
+                    onClick={handleStripeDirect}
+                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-sm shadow-xl shadow-purple-600/30 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group border-2 border-purple-400/60 relative overflow-hidden mb-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20">
+                        <CreditCard className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="text-left">
+                        <div className="flex items-center gap-2">
+                          <span className="font-extrabold text-white text-base">Tarjetas de Crédito / Débito (Stripe)</span>
+                          <span className="bg-amber-400 text-slate-950 text-[9px] uppercase font-black px-2 py-0.5 rounded-full shadow-md animate-pulse">⚡ PRINCIPAL Y RECOMENDADO</span>
+                        </div>
+                        <div className="text-[11px] font-medium text-purple-100 mt-0.5">
+                          Visa · Mastercard · Amex · Apple Pay · Google Pay (USD)
+                        </div>
+                      </div>
+                    </div>
+                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : <ArrowRight className="w-5 h-5 opacity-90 group-hover:translate-x-1 transition-transform text-white" />}
                   </button>
                 )}
 

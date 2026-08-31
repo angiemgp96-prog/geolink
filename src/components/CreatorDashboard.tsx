@@ -1057,7 +1057,73 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                {/* Mercado Pago */}
+                {/* Stripe (Tarjetas Internacionales) */}
+                <div className="flex items-center justify-between p-3.5 bg-slate-900/80 border border-slate-700/60 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <span className="text-base shrink-0">💳</span>
+                    <div>
+                      <div className="text-xs font-bold text-white">Stripe (Tarjetas Internacionales)</div>
+                      <div className="text-[10px] text-slate-400">Checkout Oficial Directo · Visa, Mastercard, Apple/Google Pay</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePaymentVisibility('stripe', !paymentVisibility.stripe)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentVisibility.stripe !== false ? 'bg-purple-500' : 'bg-slate-700'}`}
+                  >
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${paymentVisibility.stripe !== false ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+
+                {/* Stripe Credentials */}
+            <div className="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-sm text-purple-300">Stripe Live API Credentials</h4>
+                <span className="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded font-semibold">
+                  Stripe Live API
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Stripe Publishable Key:</label>
+                  <input
+                    id="stripe-publishable-key-input"
+                    type="text"
+                    placeholder="pk_live_..."
+                    value={profile.paymentSettings?.stripePublishableKey || ''}
+                    onChange={(e) => setProfile({
+                      ...profile,
+                      paymentSettings: {
+                        ...profile.paymentSettings,
+                        stripePublishableKey: e.target.value
+                      }
+                    })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Stripe Secret Key:</label>
+                  <input
+                    id="stripe-secret-key-input"
+                    type="password"
+                    placeholder="sk_live_..."
+                    value={profile.paymentSettings?.stripeSecretKey || ''}
+                    onChange={(e) => setProfile({
+                      ...profile,
+                      paymentSettings: {
+                        ...profile.paymentSettings,
+                        stripeSecretKey: e.target.value
+                      }
+                    })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Mercado Pago */}
                 <div className="flex items-center justify-between p-3.5 bg-slate-900/80 border border-slate-700/60 rounded-xl">
                   <div className="flex items-center gap-3">
                     <CreditCard className="w-5 h-5 text-sky-400 shrink-0" />

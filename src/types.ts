@@ -8,6 +8,7 @@ export interface CustomLink {
 }
 
 export interface PaymentMethodsVisibility {
+  stripe?: boolean;
   mercadopago: boolean;
   paypal: boolean;
   paypal_telegram: boolean;
@@ -15,6 +16,8 @@ export interface PaymentMethodsVisibility {
 }
 
 export interface PaymentSettings {
+  stripePublishableKey?: string;
+  stripeSecretKey?: string;
   mercadoPagoAccessToken: string;
   mercadoPagoPublicKey: string;
   payPalClientId: string;
