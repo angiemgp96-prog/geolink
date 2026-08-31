@@ -50,7 +50,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     encryptedNotice: 'Acceso Privado Encriptado · Privacidad Garantizada',
 
     fullAccessTitle: 'Acceso Full — Catálogo Actual',
-    fullAccessDesc: 'Desbloquea instantáneamente todas las fotos y videos publicados hasta la fecha.',
+    fullAccessDesc: 'Desbloquea instantáneamente todas las fotos y videos publicados hasta la fecha (No incluye contenidos etiquetados como Extra Premium ✨, los cuales son adicionales).',
     fullAccessBtn: 'Desbloquear Todo por',
     storeSectionTitle: 'Tienda Exclusiva',
     storeSectionSub: 'Fotos & Videos Desbloqueables',
@@ -82,7 +82,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     encryptedNotice: 'Encrypted Private Access · Guaranteed Privacy',
 
     fullAccessTitle: 'Full Access — Current Catalog',
-    fullAccessDesc: 'Instantly unlock all photos and videos published to date.',
+    fullAccessDesc: 'Instantly unlock all photos and videos published to date (Does not include content tagged as Extra Premium ✨, which are separate/additional).',
     fullAccessBtn: 'Unlock Everything for',
     storeSectionTitle: 'Exclusive Store',
     storeSectionSub: 'Unlockable Photos & Videos',
@@ -114,7 +114,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     encryptedNotice: 'Acesso Privado Criptografado · Privacidade Garantida',
 
     fullAccessTitle: 'Acesso Total — Catálogo Atual',
-    fullAccessDesc: 'Desbloqueie instantaneamente todas as fotos e vídeos publicados até o momento.',
+    fullAccessDesc: 'Desbloqueie instantaneamente todas as fotos e vídeos publicados até a data (Não inclui conteúdos marcados como Extra Premium ✨, que são adicionais).',
     fullAccessBtn: 'Desbloquear Tudo por',
     storeSectionTitle: 'Loja Exclusiva',
     storeSectionSub: 'Fotos e Vídeos Desbloqueáveis',
@@ -146,7 +146,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     encryptedNotice: 'Accès Privé Chiffré · Confidentialité Garantie',
 
     fullAccessTitle: 'Accès Complet — Catalogue Actuel',
-    fullAccessDesc: 'Débloquez instantanément toutes les photos et vidéos publiées à ce jour.',
+    fullAccessDesc: 'Débloquez instantanément toutes les photos et vidéos publiées à ce jour (N\'inclut pas les contenus marqués Extra Premium ✨, qui sont additionnels).',
     fullAccessBtn: 'Tout Débloquer pour',
     storeSectionTitle: 'Boutique Exclusive',
     storeSectionSub: 'Photos & Vidéos Déblocables',
@@ -178,7 +178,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     encryptedNotice: 'Verschlüsselter Privater Zugang · Garantie',
 
     fullAccessTitle: 'Vollzugriff — Aktueller Katalog',
-    fullAccessDesc: 'Schalten Sie sofort alle bisher veröffentlichten Fotos und Videos frei.',
+    fullAccessDesc: 'Schalten Sie sofort alle bisher veröffentlichten Fotos und Videos frei (Enthält keine als Extra Premium ✨ gekennzeichneten Inhalte, diese sind separat).',
     fullAccessBtn: 'Alles Freischalten für',
     storeSectionTitle: 'Exklusiver Shop',
     storeSectionSub: 'Freischaltbare Fotos & Videos',
@@ -210,7 +210,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     encryptedNotice: 'Accesso Privato Crittografato · Privacy Garantita',
 
     fullAccessTitle: 'Accesso Completo — Catalogo Attuale',
-    fullAccessDesc: 'Sblocca all\'istante tutte le foto e i video pubblicati fino ad oggi.',
+    fullAccessDesc: 'Sblocca all\'istante tutte le foto e i video pubblicati fino ad oggi (Non include i contenuti contrassegnati come Extra Premium ✨, che sono aggiuntivi).',
     fullAccessBtn: 'Sblocca Tutto per',
     storeSectionTitle: 'Negozio Esclusivo',
     storeSectionSub: 'Foto & Video Sbloccabili',

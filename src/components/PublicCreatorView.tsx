@@ -454,7 +454,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">{fullPrices.discountedFormatted}</span>
                     )}
                   </h3>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">{t.fullAccessDesc}</p>
+                  <p className="text-[11px] text-zinc-300 mt-0.5 leading-snug">
+                    {t.fullAccessDesc}
+                  </p>
                 </div>
               </div>
 

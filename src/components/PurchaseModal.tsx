@@ -379,7 +379,12 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
             <div className="flex items-center gap-2 text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1">
               <Lock className="w-3.5 h-3.5" /><span>Desbloqueo de Contenido Exclusivo</span>
             </div>
-            <h3 className="text-lg sm:text-xl font-bold text-white mb-3 line-clamp-2">{item.title}</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-1 line-clamp-2">{item.title}</h3>
+            {item.id === 'acceso_full_cat_actual' && (
+              <p className="text-[11px] text-amber-300/90 font-medium mb-3">
+                ⚠️ Nota: Este paquete incluye todo el catálogo actual a excepción de contenidos etiquetados como Extra Premium ✨ (los cuales son adicionales).
+              </p>
+            )}
 
             {/* Preview blur */}
             <div className="relative rounded-2xl overflow-hidden mb-4 border border-slate-700/60 bg-slate-900 h-28 sm:h-32">
