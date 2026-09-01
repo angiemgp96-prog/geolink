@@ -168,7 +168,13 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   const loadPurchases = async () => {
     try {
       const data = await api.getPurchases(creator.handle);
-      setPurchasesHistory(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : [];
+      list.sort((a, b) => {
+        const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return tB - tA;
+      });
+      setPurchasesHistory(list);
     } catch {
       setPurchasesHistory([]);
     }
@@ -1507,7 +1513,10 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                   <tbody className="divide-y divide-slate-800">
                     {purchasesHistory.map((p) => (
                       <tr key={p.id}>
-                        <td className="p-3 text-slate-400">{new Date(p.createdAt).toLocaleDateString()}</td>
+                        <td className="p-3 text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                          {new Date(p.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                          <span className="text-zinc-500 block text-[10px]">{new Date(p.createdAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                        </td>
                         <td className="p-3 font-semibold text-white">{p.mediaTitle}</td>
                         <td className="p-3">
                           <div className="font-semibold text-white">{p.buyerPhone || 'Sin teléfono'}</div>
