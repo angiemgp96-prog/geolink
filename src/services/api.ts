@@ -203,7 +203,35 @@ export const api = {
     }
   },
 
-  async createStripeCheckoutSession(mediaId: string, customPrice?: number, contactInfo?: string) {
+  async createStripeCheckoutSession(mediaId: string, customPrice?: number, contactInfo?: string, mediaTitle?: string) {
+    // 1. Inserción inmediata en Supabase en estado 'pending' desde el navegador del cliente
+    if (isSupabaseConfigured()) {
+      try {
+        const tempPurchaseId = `stripe_purch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        const tempUnlockToken = `unlock_stripe_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        const nowIso = new Date().toISOString();
+
+        await supabase.from('purchases').insert({
+          id: tempPurchaseId,
+          token: tempUnlockToken,
+          media_id: mediaId,
+          media_title: mediaTitle || 'Contenido VIP',
+          creator_handle: 'angelina69',
+          buyer_email: (contactInfo || '').trim(),
+          buyer_phone: (contactInfo || '').trim(),
+          payment_method: 'STRIPE',
+          amount: customPrice || 10,
+          currency: 'USD',
+          status: 'pending',
+          created_at: nowIso,
+          updated_at: nowIso
+        });
+      } catch (err) {
+        console.warn('[Supabase Direct Stripe Insert Warning]', err);
+      }
+    }
+
+    // 2. Generar sesión de pago en Stripe mediante la API backend
     try {
       const res = await fetch('/api/payments/stripe/create-checkout-session', {
         method: 'POST',

@@ -249,7 +249,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     setErrorMessage('');
     setIsLoading(true);
     try {
-      const data = await api.createStripeCheckoutSession(item.id, undefined, contactInfo);
+      const data = await api.createStripeCheckoutSession(item.id, undefined, contactInfo, item.title);
       if (data.error) {
         setErrorMessage(data.error);
         return;
