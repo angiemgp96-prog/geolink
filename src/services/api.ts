@@ -528,22 +528,37 @@ export const api = {
   },
 
   async updatePaymentMethodsVisibility(visibility: PaymentMethodsVisibility): Promise<PaymentMethodsVisibility> {
+    // 1. Instant local storage persistence
+    try {
+      localStorage.setItem('geolink_payment_visibility', JSON.stringify(visibility));
+    } catch {}
+
+    // 2. Persist in Supabase creators.data (JSONB)
     if (isSupabaseConfigured()) {
+      try {
+        const { data: creatorRows } = await supabase.from('creators').select('data').eq('handle', 'angelina69').limit(1);
+        if (creatorRows && creatorRows.length > 0) {
+          const currentData = typeof creatorRows[0].data === 'object' && creatorRows[0].data !== null ? creatorRows[0].data : {};
+          const updatedData = { ...currentData, paymentMethodsVisibility: visibility };
+          await supabase.from('creators').update({ data: updatedData }).eq('handle', 'angelina69');
+        }
+      } catch (err) {
+        console.warn('Supabase update creators.data visibility warning:', err);
+      }
+
       try {
         await supabase.from('payment_methods_visibility').upsert({
           id: 'default',
-          stripe: typeof visibility.stripe === 'boolean' ? visibility.stripe : true,
           mercadopago: visibility.mercadopago,
           paypal: visibility.paypal,
           paypal_telegram: visibility.paypal_telegram,
           nequi_usa: visibility.nequi_usa,
           updated_at: new Date().toISOString()
         }, { onConflict: 'id' });
-      } catch (err) {
-        console.warn('Supabase update payment_methods_visibility warning:', err);
-      }
+      } catch (_err) {}
     }
 
+    // 3. Persist to backend server API
     try {
       const res = await fetch('/api/settings/payment-methods-visibility', {
         method: 'POST',
