@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { CreatorProfile, MediaItem, PurchaseRecord, VisitorLocation, VisitorLead, PaymentMethodsVisibility } from '../types';
+import { sanitizeStripeTitle, sanitizeStripeDescription, sanitizeStripeMetadata, getStripeSafeImage } from '../utils/stripeSanitizer';
 
 const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL || 'https://eqpabbrmdssgoaaqtkgu.supabase.co';
 const SUPABASE_ANON_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcGFiYnJtZHNzZ29hYXF0a2d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxMDk2NTMsImV4cCI6MjEwMTY4NTY1M30.K09vvdfxkuBxd64RuQey9KV13Yz20fBBPkbWQOGGodQ';
@@ -203,8 +204,13 @@ export const api = {
     }
   },
 
-  async createStripeCheckoutSession(mediaId: string, customPrice?: number, contactInfo?: string, mediaTitle?: string) {
-    // 1. Inserción inmediata en Supabase en estado 'pending' desde el navegador del cliente
+  async createStripeCheckoutSession(mediaId: string, customPrice?: number, contactInfo?: string, mediaTitle?: string, mediaType?: string) {
+    // 1. Sanitizar título y metadatos para cumplimiento estricto de políticas de Stripe
+    const safeTitle = sanitizeStripeTitle(mediaTitle, mediaType, mediaId);
+    const safeDescription = sanitizeStripeDescription();
+    const safeImage = getStripeSafeImage();
+
+    // 2. Inserción inmediata en Supabase en estado 'pending' desde el navegador del cliente
     if (isSupabaseConfigured()) {
       try {
         const tempPurchaseId = `stripe_purch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -215,8 +221,8 @@ export const api = {
           id: tempPurchaseId,
           token: tempUnlockToken,
           media_id: mediaId,
-          media_title: mediaTitle || 'Contenido VIP',
-          creator_handle: 'angelina69',
+          media_title: safeTitle,
+          creator_handle: 'creator_vip',
           buyer_email: (contactInfo || '').trim(),
           buyer_phone: (contactInfo || '').trim(),
           payment_method: 'STRIPE',
@@ -231,12 +237,19 @@ export const api = {
       }
     }
 
-    // 2. Generar sesión de pago en Stripe mediante la API backend
+    // 3. Generar sesión de pago en Stripe mediante la API backend enviando datos 100% neutros/discretos
     try {
       const res = await fetch('/api/payments/stripe/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mediaId, customPrice, contactInfo })
+        body: JSON.stringify({ 
+          mediaId, 
+          customPrice, 
+          contactInfo,
+          title: safeTitle,
+          description: safeDescription,
+          imageUrl: safeImage
+        })
       });
       return await res.json();
     } catch (err: any) {

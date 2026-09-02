@@ -1,6 +1,7 @@
 const DEFAULT_STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY?.trim() || Buffer.from("c2tfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV3J3ODZlWlJpTGFFcEpTdHJ1OXliUktOa0czWUtHcGh5Q3VFdldYTkJJVjJZNE9ybXJGdDdUVUozTlBTeWNjT0tsWVVGekxqVDAwYUNBSkl4aUU=", "base64").toString("utf8");
 const DEFAULT_STRIPE_PUB_KEY = process.env.STRIPE_PUBLISHABLE_KEY?.trim() || Buffer.from("cGtfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV0EwM2V1dHY5aWJiNlVFNkthYVJSNVk0cTIyVGhGN2phYU83MEpIODA2NFluN2dKb3hPQlZEc3RlUE5vSFk3S2U1NFJnNjJtMzAwUVFIakFlTzg=", "base64").toString("utf8");
 import Stripe from 'stripe';
+import { sanitizeStripeTitle, sanitizeStripeDescription, sanitizeStripeMetadata, getStripeSafeImage } from './src/utils/stripeSanitizer';
 import dotenv from "dotenv";
 dotenv.config();
 

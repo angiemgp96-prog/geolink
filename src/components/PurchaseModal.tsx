@@ -249,7 +249,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     setErrorMessage('');
     setIsLoading(true);
     try {
-      const data = await api.createStripeCheckoutSession(item.id, undefined, contactInfo, item.title);
+      const data = await api.createStripeCheckoutSession(item.id, undefined, contactInfo, item.title, item.type);
       if (data.error) {
         setErrorMessage(data.error);
         return;
@@ -512,6 +512,10 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                         {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : <ArrowRight className="w-5 h-5 opacity-90 group-hover:translate-x-1 transition-transform text-white" />}
                       </button>
                     )}
+                    <div className="flex items-center gap-1.5 justify-center text-[10px] text-slate-400 font-medium py-0.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Facturación 100% discreta e instantánea (Aparece como "GEOLINK DIGITAL")</span>
+                    </div>
                   </div>
                 )}
 

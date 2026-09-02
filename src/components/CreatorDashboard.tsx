@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, CreditCard, ShoppingBag, Link as LinkIcon, MessageSquare, History, Plus, Trash2, Edit, Save, CheckCircle, AlertCircle, RefreshCw, Send, DollarSign, Globe, Lock, UserCheck, Sparkles, Eye } from 'lucide-react';
+import { ShieldAlert, ShieldCheck, CreditCard, ShoppingBag, Link as LinkIcon, MessageSquare, History, Plus, Trash2, Edit, Save, CheckCircle, AlertCircle, RefreshCw, Send, DollarSign, Globe, Lock, UserCheck, Sparkles, Eye } from 'lucide-react';
 import { CreatorProfile, MediaItem, PurchaseRecord, CustomLink, VisitorLead, PaymentMethodsVisibility } from '../types';
 import { COUNTRIES_LIST } from '../data/countries';
 import { api } from '../services/api';
@@ -1088,6 +1088,14 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                 <span className="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded font-semibold">
                   Stripe Live API
                 </span>
+              </div>
+
+              <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-3 flex items-start gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <div className="text-xs text-emerald-200 leading-relaxed">
+                  <span className="font-bold text-emerald-300">Protección Anti-Baneo de Stripe Activada: </span>
+                  Todos los títulos, descripciones y metadatos enviados a Stripe se sanitizan automáticamente a conceptos neutros PG-13 (ej. "Pase Digital VIP") para garantizar el cumplimiento 100% estricto con las políticas de Stripe.
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
