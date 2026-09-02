@@ -488,8 +488,29 @@ export const api = {
       paypal_telegram: true,
       nequi_usa: true,
     };
+
+    let localStripe: boolean | null = null;
+    try {
+      const s = localStorage.getItem('geolink_stripe_vis');
+      if (s !== null) localStripe = s === 'true';
+    } catch {}
+
     if (isSupabaseConfigured()) {
       try {
+        // 1. Try reading from creators.data JSONB field first (which supports stripe)
+        const { data: cData } = await supabase.from('creators').select('data').eq('handle', 'angelina69').limit(1);
+        if (cData && cData.length > 0 && cData[0].data && cData[0].data.paymentMethodsVisibility) {
+          const vis = cData[0].data.paymentMethodsVisibility;
+          return {
+            stripe: typeof vis.stripe === 'boolean' ? vis.stripe : (localStripe !== null ? localStripe : true),
+            mercadopago: typeof vis.mercadopago === 'boolean' ? vis.mercadopago : true,
+            paypal: typeof vis.paypal === 'boolean' ? vis.paypal : true,
+            paypal_telegram: typeof vis.paypal_telegram === 'boolean' ? vis.paypal_telegram : true,
+            nequi_usa: typeof vis.nequi_usa === 'boolean' ? vis.nequi_usa : true,
+          };
+        }
+
+        // 2. Fallback to payment_methods_visibility table
         const { data, error } = await supabase
           .from('payment_methods_visibility')
           .select('*')
@@ -497,7 +518,7 @@ export const api = {
         if (!error && data && data.length > 0) {
           const row = data[0];
           return {
-            stripe: typeof row.stripe === 'boolean' ? row.stripe : true,
+            stripe: typeof row.stripe === 'boolean' ? row.stripe : (localStripe !== null ? localStripe : true),
             mercadopago: typeof row.mercadopago === 'boolean' ? row.mercadopago : true,
             paypal: typeof row.paypal === 'boolean' ? row.paypal : true,
             paypal_telegram: typeof row.paypal_telegram === 'boolean' ? row.paypal_telegram : true,
@@ -515,6 +536,7 @@ export const api = {
         const data = await res.json();
         if (data.visibility) {
           return {
+            stripe: typeof data.visibility.stripe === 'boolean' ? data.visibility.stripe : (localStripe !== null ? localStripe : true),
             mercadopago: typeof data.visibility.mercadopago === 'boolean' ? data.visibility.mercadopago : true,
             paypal: typeof data.visibility.paypal === 'boolean' ? data.visibility.paypal : true,
             paypal_telegram: typeof data.visibility.paypal_telegram === 'boolean' ? data.visibility.paypal_telegram : true,
@@ -524,7 +546,7 @@ export const api = {
       }
     } catch {}
 
-    return defaultVis;
+    return localStripe !== null ? { ...defaultVis, stripe: localStripe } : defaultVis;
   },
 
   async updatePaymentMethodsVisibility(visibility: PaymentMethodsVisibility): Promise<PaymentMethodsVisibility> {
