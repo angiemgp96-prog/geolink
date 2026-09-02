@@ -55,7 +55,6 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   const mostExpensiveItemPrice = mediaItems.reduce((max, item) => Number(item.price) > max ? Number(item.price) : max, 0);
   const fullAccessBasePrice = mostExpensiveItemPrice > 0 ? mostExpensiveItemPrice + 20 : 50;
 
-  // Helper de cálculo preciso de precios con y sin descuento usando el multiplicador dinámico
   const getCalculatedPrices = (basePrice: number, itemId?: string) => {
     const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
     const isFullAccess = itemId === 'acceso_full_cat_actual' || itemId?.includes('acceso_full');
@@ -65,7 +64,6 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
       let discCop = 0;
 
       if (isFullAccess) {
-        // Regla Colombia: Acceso Full = 2x el producto más caro de la tienda en COP
         const maxItemBase = mediaItems.reduce((max, item) => item.price > max ? item.price : max, 0) || basePrice;
         const maxOrigCop = Math.round(maxItemBase * activeMult * 3500);
         const maxRawDiscounted = globalDiscount > 0 ? Math.round(maxItemBase * (1 - globalDiscount / 100) * 100) / 100 : maxItemBase;
@@ -103,92 +101,13 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     return isColombia ? Math.round(rawDiscountedBase * activeMult) : rawDiscountedBase;
   };
 
-  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
-
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setIsPageLoading(false);
-    }, 2000);
+    }, 1500);
     return () => clearTimeout(timer);
   }, []);
 
-  // Recorrido guiado automático paso a paso (deslizamiento fluido continuo sin saltos)
-  React.useEffect(() => {
-    if (isPageLoading) return;
-
-    let isCancelled = false;
-    let animFrameId: number | null = null;
-    setIsAutoScrolling(true);
-
-    const cancelAutoScroll = () => {
-      if (isCancelled) return;
-      isCancelled = true;
-      setIsAutoScrolling(false);
-      if (animFrameId !== null) {
-        cancelAnimationFrame(animFrameId);
-      }
-      window.removeEventListener('touchstart', cancelAutoScroll);
-      window.removeEventListener('touchmove', cancelAutoScroll);
-      window.removeEventListener('wheel', cancelAutoScroll);
-      window.removeEventListener('mousedown', cancelAutoScroll);
-      window.removeEventListener('keydown', cancelAutoScroll);
-    };
-
-    window.addEventListener('touchstart', cancelAutoScroll, { passive: true });
-    window.addEventListener('touchmove', cancelAutoScroll, { passive: true });
-    window.addEventListener('wheel', cancelAutoScroll, { passive: true });
-    window.addEventListener('mousedown', cancelAutoScroll, { passive: true });
-    window.addEventListener('keydown', cancelAutoScroll, { passive: true });
-
-    let startTime: number | null = null;
-
-    const runTourStep = (timestamp: number) => {
-      if (isCancelled) return;
-      if (!startTime) startTime = timestamp;
-
-      const maxScroll = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) - window.innerHeight;
-      if (maxScroll <= 100) {
-        cancelAutoScroll();
-        return;
-      }
-
-      const elapsed = timestamp - startTime;
-      const durationDown = Math.max(1200, Math.min(2500, maxScroll * 1.2));
-      const pauseDuration = 500;
-      const durationUp = Math.max(1000, Math.min(2000, maxScroll * 1.0));
-
-      if (elapsed < durationDown) {
-        // Fase 1: Deslizamiento continuo fluido hacia abajo paso a paso
-        const progress = elapsed / durationDown;
-        const currentY = progress * maxScroll;
-        window.scrollTo(0, currentY);
-        animFrameId = requestAnimationFrame(runTourStep);
-      } else if (elapsed < durationDown + pauseDuration) {
-        // Fase 2: Pausa de medio segundo (500 ms) en el fondo absoluto (último video)
-        window.scrollTo(0, maxScroll);
-        animFrameId = requestAnimationFrame(runTourStep);
-      } else if (elapsed < durationDown + pauseDuration + durationUp) {
-        // Fase 3: Deslizamiento continuo fluido de retorno hacia arriba
-        const upElapsed = elapsed - (durationDown + pauseDuration);
-        const progressUp = upElapsed / durationUp;
-        const currentY = maxScroll * (1 - progressUp);
-        window.scrollTo(0, currentY);
-        animFrameId = requestAnimationFrame(runTourStep);
-      } else {
-        // Fase 4: Recorrido finalizado
-        window.scrollTo(0, 0);
-        cancelAutoScroll();
-      }
-    };
-
-    animFrameId = requestAnimationFrame(runTourStep);
-
-    return () => {
-      cancelAutoScroll();
-    };
-  }, [isPageLoading]);
-
-  // Identificar los 2 videos más recientemente subidos evaluando su fecha de creación o posición de subida
   const allVideos = mediaItems.filter((item) => item.type === 'video' && item.id !== 'acceso_full_cat_actual');
   const sortedVideos = [...allVideos].sort((a, b) => {
     const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -209,504 +128,294 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   const remainingItems = baseFiltered.filter((item) => !latest2VideoIds.includes(item.id));
   const filteredItems = [...top2LatestVideos, ...remainingItems];
 
-  const onlyfansLink = creator.links.find(
-    l => l.active && (l.title.toLowerCase().includes('onlyfans') || l.icon.toLowerCase().includes('onlyfans'))
-  );
-
-  const otherLinks = creator.links.filter(
-    l => l.active && (!onlyfansLink || l.id !== onlyfansLink.id) && !l.title.toLowerCase().includes('onlyfans')
-  );
-
-  // Precio dinámico para el Acceso Full: $20 USD más alto que el elemento más costoso de la tienda (o $50 por defecto)
-  const maxStorePrice = mediaItems
-    .filter(item => item.id !== 'acceso_full_cat_actual')
-    .reduce((max, item) => (item.price > max ? item.price : max), 0);
-
-  const rawFullAccessPrice = maxStorePrice > 0 ? Math.round(maxStorePrice + 20) : 50;
-  const fullAccessPrice = getItemPrice(rawFullAccessPrice);
-
-  // Helper icon renderer con íconos distintivos por plataforma
-  const renderLinkIcon = (iconName: string, linkTitle: string = '') => {
-    const combined = (iconName + ' ' + linkTitle).toLowerCase();
-    if (combined.includes('onlyfans') || combined.includes('of')) {
-      return <Flame className="w-5 h-5 text-sky-400 fill-sky-400/20 animate-pulse" />;
-    }
-    if (combined.includes('instagram')) {
-      return <Instagram className="w-5 h-5 text-pink-400" />;
-    }
-    if (combined.includes('youtube')) {
-      return <Youtube className="w-5 h-5 text-red-500" />;
-    }
-    if (combined.includes('tiktok') || combined.includes('video')) {
-      return <Video className="w-5 h-5 text-cyan-400" />;
-    }
-    if (combined.includes('telegram') || combined.includes('messagecircle')) {
-      return <Send className="w-5 h-5 text-sky-400" />;
-    }
-    if (combined.includes('link.me') || combined.includes('globe') || combined.includes('web')) {
-      return <Globe className="w-5 h-5 text-purple-400" />;
-    }
-    if (combined.includes('dumbbell') || combined.includes('fit')) {
-      return <Dumbbell className="w-5 h-5 text-amber-400" />;
-    }
-    return <LinkIcon className="w-5 h-5 text-indigo-400" />;
+  const fullAccessItem: MediaItem = {
+    id: 'acceso_full_cat_actual',
+    creatorId: creator.id,
+    creatorHandle: creator.handle,
+    title: t.fullAccessTitle || 'Acceso Full — Catálogo Actual',
+    description: 'Desbloquea instantáneamente todas las fotos y videos publicados hasta la fecha (No incluye contenidos etiquetados como Extra Premium ✨).',
+    type: 'bundle',
+    price: fullAccessBasePrice,
+    currency: 'USD',
+    previewUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+    downloadUrl: '',
+    fileSize: 'Todas las Galerías',
+    duration: 'VIP Pass',
+    purchasesCount: 99
   };
 
-  if (isPageLoading) {
-    return (
-      <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center p-6 text-center space-y-6">
-        <div className="relative">
-          <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 animate-spin flex items-center justify-center">
-            <div className="w-full h-full bg-[#030712] rounded-full" />
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Sparkles className="w-8 h-8 text-pink-400 animate-pulse" />
-          </div>
-        </div>
-        <div className="space-y-2 max-w-sm">
-          <h2 className="text-xl font-bold text-white tracking-wide">Cargando perfil exclusivo...</h2>
-          <p className="text-xs text-zinc-400">Verificando enlaces oficiales y catálogo de @{creator.handle}</p>
-        </div>
-        <div className="w-48 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 animate-pulse w-full" />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen text-zinc-100 pb-20 selection:bg-indigo-500 selection:text-white">
-      
-      {/* Top Banner & Header */}
-      <div className="relative w-full h-56 md:h-72 bg-zinc-900/60 overflow-hidden">
+    <div className="min-h-screen bg-[#030712] text-zinc-100 font-sans pb-24 relative overflow-hidden selection:bg-indigo-500 selection:text-white">
+      {/* Background Glows */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-indigo-900/30 via-purple-900/20 to-transparent blur-3xl pointer-events-none" />
+
+      {/* HEADER BANNER CON ONLYFANS FLOTANTE */}
+      <div className="relative h-44 sm:h-52 md:h-60 overflow-hidden">
         <img
           src={creator.banner}
           alt={creator.name}
-          className="w-full h-full object-cover opacity-80"
+          className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#030712] via-[#030712]/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-[#030712]" />
+
+        {/* 1. ONLYFANS FLOTANTE SOBRE LA FOTO DE PORTADA SUPERIOR */}
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20">
+          <a
+            id="onlyfans-header-badge"
+            href="https://onlyfans.com/angelinax69"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 py-2 px-4 rounded-full bg-[#00AFF0]/90 hover:bg-[#00AFF0] text-white font-black text-xs shadow-xl shadow-[#00AFF0]/40 border border-white/40 backdrop-blur-md transition-all hover:scale-105 cursor-pointer"
+          >
+            <Flame className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
+            <span>OnlyFans Oficial 🔥 (@angelinax69)</span>
+            <ExternalLink className="w-3.5 h-3.5 text-white ml-0.5" />
+          </a>
+        </div>
       </div>
 
-      {/* Profile Card Container */}
-      <div className="max-w-3xl mx-auto px-4 -mt-24 relative z-10 space-y-8">
-        
-        {/* Creator Info Card */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl text-center space-y-4 relative">
+      {/* CONTAINER PRINCIPAL (PRIORIDAD TIENDA AL INICIAR) */}
+      <div className="max-w-3xl mx-auto px-3 sm:px-6 relative z-10 -mt-16 sm:-mt-20">
+        <div className="bg-slate-950/85 backdrop-blur-xl border border-white/10 rounded-3xl p-4 sm:p-6 text-center space-y-4 shadow-2xl">
           
-          {/* Floating Language Switcher Badge */}
-          <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-black/60 backdrop-blur-md border border-white/15 px-2.5 py-1 rounded-full text-xs font-bold shadow-lg z-20">
-            <Globe className="w-3.5 h-3.5 text-indigo-400" />
+          {/* Selector de Idioma */}
+          <div className="flex justify-end">
             <select
               value={lang}
               onChange={(e) => setLang(e.target.value as SupportedLanguage)}
-              className="bg-transparent text-white focus:outline-none cursor-pointer font-bold uppercase text-[10px]"
+              className="bg-slate-900/90 text-xs font-bold text-indigo-300 border border-indigo-500/30 rounded-xl px-2.5 py-1 outline-none cursor-pointer"
             >
-              <option value="es" className="bg-zinc-900 text-white">🇪🇸 ES</option>
-              <option value="en" className="bg-zinc-900 text-white">🇺🇸 EN</option>
-              <option value="pt" className="bg-zinc-900 text-white">🇧🇷 PT</option>
-              <option value="fr" className="bg-zinc-900 text-white">🇫🇷 FR</option>
-              <option value="de" className="bg-zinc-900 text-white">🇩🇪 DE</option>
-              <option value="it" className="bg-zinc-900 text-white">🇮🇹 IT</option>
+              <option value="es">🇪🇸 ES</option>
+              <option value="en">🇺🇸 EN</option>
+              <option value="fr">🇫🇷 FR</option>
+              <option value="pt">🇧🇷 PT</option>
+              <option value="de">🇩🇪 DE</option>
+              <option value="it">🇮🇹 IT</option>
             </select>
           </div>
 
-          {/* Avatar with Gradient Rim */}
-          <div className="relative mx-auto w-28 h-28 md:w-32 md:h-32 rounded-full p-1 bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-xl shadow-indigo-500/20 -mt-20 md:-mt-24">
+          {/* Avatar creador */}
+          <div className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 rounded-full p-1 bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-xl shadow-indigo-500/20 -mt-16 sm:-mt-20">
             <img
               src={creator.avatar}
               alt={creator.name}
               className="w-full h-full object-cover rounded-full border-2 border-[#030712]"
             />
             {creator.badge && (
-              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-full shadow-md whitespace-nowrap border border-indigo-400/30">
+              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[10px] font-extrabold uppercase px-3 py-0.5 rounded-full shadow-md whitespace-nowrap border border-indigo-400/30">
                 {creator.badge}
               </span>
             )}
           </div>
 
-          {/* Name & Handle */}
+          {/* Nombre & Handle */}
           <div>
-            <div className="flex items-center justify-center gap-1.5 text-2xl md:text-3xl font-extrabold text-white">
+            <div className="flex items-center justify-center gap-1.5 text-xl sm:text-2xl font-black text-white">
               <span>{creator.name}</span>
-              <CheckCircle2 className="w-6 h-6 text-indigo-400 shrink-0 fill-indigo-400/20" />
+              <CheckCircle2 className="w-5 h-5 text-indigo-400 shrink-0 fill-indigo-400/20" />
             </div>
-            <p className="text-sm text-indigo-400 font-medium mt-0.5">@{creator.handle}</p>
+            <p className="text-xs text-indigo-400 font-medium mt-0.5">@{creator.handle}</p>
           </div>
 
           {/* Bio */}
-          <p className="text-xs md:text-sm text-zinc-300 max-w-lg mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm text-zinc-300 max-w-lg mx-auto leading-relaxed">
             {creator.bio}
           </p>
 
-          {/* Quick VIP Action Buttons */}
-          <div className="flex justify-center pt-2">
+          {/* 2. BOTÓN TELEGRAM XXX SÚPER HOT Y DESTACADO */}
+          <div className="flex justify-center pt-1">
             <a
               id="telegram-channel-button"
               href="https://t.me/+KKTelchPdBhjOGVh"
               target="_blank"
               rel="noreferrer"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-600 to-purple-600 hover:from-sky-400 hover:to-purple-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-xl shadow-indigo-600/30 border border-sky-300/40 hover:scale-105 cursor-pointer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-xl shadow-rose-600/35 border-2 border-pink-300/40 hover:scale-105 cursor-pointer"
             >
-              <Send className="w-4.5 h-4.5 text-sky-300 fill-sky-300/30 animate-pulse" />
-              <span>CANAL XXX +18 TELEGRAM</span>
-              <Sparkles className="w-4 h-4 text-amber-300 animate-bounce" />
+              <Flame className="w-5 h-5 text-amber-300 fill-amber-300 animate-pulse" />
+              <span>🔥 CANAL XXX +18 TELEGRAM 🔞</span>
+              <Sparkles className="w-4.5 h-4.5 text-amber-300 animate-bounce" />
             </a>
           </div>
 
-          {/* Botón Principal Destacado: OnlyFans Azul Cielo (#00AFF0) */}
-          {onlyfansLink && (
-            <div className="pt-3">
-              <a
-                id="onlyfans-featured-button"
-                href={onlyfansLink.url}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full py-4 px-5 sm:px-6 rounded-2xl bg-gradient-to-r from-[#00AFF0] via-[#009ee0] to-[#0088cc] hover:from-[#1ab8f2] hover:to-[#0099e6] text-white font-extrabold shadow-xl shadow-[#00AFF0]/35 border-2 border-sky-200/50 flex items-center justify-between transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-[1.01] group cursor-pointer"
-              >
-                <div className="flex items-center gap-3.5 text-left">
-                  <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/30 group-hover:rotate-6 transition-transform shadow-inner">
-                    <Flame className="w-6 h-6 text-white fill-white animate-pulse" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-black tracking-wide text-white text-base sm:text-lg drop-shadow-sm">
-                        {onlyfansLink.title}
-                      </span>
-                      <span className="bg-white/25 text-white text-[10px] uppercase font-black px-2 py-0.5 rounded-full border border-white/40 backdrop-blur-md tracking-wider">
-                        VIP🔥
-                      </span>
+          {/* 3. BOTÓN COMPACTO "DESBLOQUEAR TODO" ACCESO FULL */}
+          {(() => {
+            const fullPrices = getCalculatedPrices(fullAccessBasePrice, "acceso_full_cat_actual");
+            return (
+              <div className="pt-2">
+                <button
+                  id="desbloquear-todo-button"
+                  onClick={() => onOpenPurchaseModal(fullAccessItem)}
+                  className="w-full py-3.5 px-4 sm:px-5 rounded-2xl bg-gradient-to-r from-amber-500 via-pink-600 to-purple-700 hover:from-amber-400 hover:to-purple-600 text-white font-black text-xs sm:text-sm shadow-xl shadow-purple-900/40 border-2 border-amber-300/50 flex items-center justify-between transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-[1.01] cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2.5 text-left">
+                    <div className="w-9 h-9 rounded-xl bg-amber-400 text-slate-950 font-black text-base flex items-center justify-center shrink-0 shadow-md">
+                      👑
                     </div>
-                    <p className="text-xs text-sky-100 font-medium mt-0.5">
-                      Haz clic para ver fotos y videos sin censura en OnlyFans
-                    </p>
-                  </div>
-                </div>
-                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-1 transition-transform shrink-0 border border-white/30">
-                  <ExternalLink className="w-5 h-5 text-white" />
-                </div>
-              </a>
-            </div>
-          )}
-
-          {/* Custom Links (Sección Secundaria de Enlaces) */}
-          {otherLinks.length > 0 && (
-            <div className="space-y-2 pt-2">
-              <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-left">
-                Otros Enlaces Oficiales
-              </h3>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {otherLinks.map((link: CustomLink) => (
-                  <a
-                    key={link.id}
-                    href={link.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-indigo-500/50 px-3 py-2 rounded-xl flex items-center justify-between transition-all group shadow-sm text-xs"
-                  >
-                    <div className="flex items-center gap-2 truncate">
-                      <div className="w-6 h-6 rounded-lg bg-zinc-900/80 border border-white/10 flex items-center justify-center shrink-0">
-                        {renderLinkIcon(link.icon, link.title)}
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-black text-white uppercase tracking-wide text-xs sm:text-sm">👑 DESBLOQUEAR TODO EL CATÁLOGO</span>
+                        {fullPrices.hasDiscount && (
+                          <span className="bg-rose-500/30 text-amber-200 border border-amber-400/50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black">
+                            {fullPrices.discountPercent}% OFF
+                          </span>
+                        )}
                       </div>
-                      <span className="font-bold text-xs text-white group-hover:text-indigo-300 transition-colors truncate">
-                        {link.title}
-                      </span>
+                      <p className="text-[10px] text-amber-100/90 font-medium">
+                        Acceso instantáneo a fotos y videos sin censura
+                      </p>
                     </div>
-                    <ExternalLink className="w-3 h-3 text-zinc-400 group-hover:text-white transition-colors shrink-0 ml-1" />
-                  </a>
-                ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs sm:text-sm font-extrabold text-amber-200 bg-black/40 px-3 py-1.5 rounded-xl border border-amber-300/30">
+                      {fullPrices.hasDiscount ? fullPrices.discountedFormatted : fullPrices.originalFormatted}
+                    </span>
+                  </div>
+                </button>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
         </div>
 
-        {/* Botón Acceso Full */}
-        {(() => {
-          const fullPrices = getCalculatedPrices(fullAccessBasePrice, "acceso_full_cat_actual");
-          return (
-            <div className="bg-gradient-to-r from-amber-950/40 via-indigo-950/40 to-purple-950/40 border border-amber-500/40 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl transition-all hover:border-amber-400/60">
-              <div className="flex items-center gap-3 text-left">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-black text-xl shrink-0 shadow-lg shadow-amber-500/20">
-                  👑
-                </div>
-                <div>
-                  <h3 className="font-black text-sm text-white flex items-center gap-2">
-                    <span>{t.fullAccessTitle}</span>
-                    {fullPrices.hasDiscount ? (
-                      <span className="flex flex-wrap items-center gap-1.5">
-                        <span className="line-through text-rose-400 opacity-80 text-[10px] font-bold">{fullPrices.originalFormatted}</span>
-                        <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 px-2 py-0.5 rounded text-[10px] uppercase font-black tracking-wider">
-                          {fullPrices.discountedFormatted} ({fullPrices.discountPercent}% OFF)
-                        </span>
-                      </span>
-                    ) : (
-                      <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">{fullPrices.discountedFormatted}</span>
-                    )}
-                  </h3>
-                  <p className="text-[11px] text-zinc-300 mt-0.5 leading-snug">
-                    {t.fullAccessDesc}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                id="acceso-full-button"
-                onClick={() => onOpenPurchaseModal({
-                  id: 'acceso_full_cat_actual',
-                  creatorId: creator.id,
-                  creatorHandle: creator.handle,
-                  title: `👑 ${t.fullAccessTitle}`,
-                  description: t.fullAccessDesc,
-                  type: 'bundle',
-                  price: fullAccessBasePrice,
-                  currency: 'USD',
-                  previewUrl: creator.avatar,
-                  downloadUrl: creator.avatar,
-                  fileSize: 'COMPLETO',
-                  duration: 'ILIMITADO',
-                  purchasesCount: 920,
-                  isFeatured: true,
-                  createdAt: new Date().toISOString()
-                })}
-                className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 uppercase tracking-wider"
-              >
-                <span>{t.fullAccessBtn} ({fullPrices.discountedFormatted})</span>
-              </button>
-            </div>
-          );
-        })()}
-
-        {/* Digital Store Section (Fotos & Videos Exclusivos) */}
-        <div className="space-y-6">
-          
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+        {/* 4. TIENDA EXCLUSIVA (PRODUCTOS VISIBLES EN PRIMERA PANTALLA) */}
+        <div className="space-y-4 pt-6">
+          <div className="flex items-center justify-between">
             <div>
-              <div className="flex items-center gap-2 text-indigo-400 font-extrabold text-sm uppercase tracking-wider">
-                <ShoppingBag className="w-4 h-4" />
-                <span>{t.storeSectionTitle}</span>
-              </div>
-              <h2 className="text-2xl font-bold text-white mt-1">{t.storeSectionSub}</h2>
+              <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 text-indigo-400" />
+                <span>Tienda Exclusiva</span>
+              </h2>
+              <p className="text-xs text-zinc-400 mt-0.5">Fotos & Videos Desbloqueables</p>
             </div>
 
-            {/* Content Filters */}
-            <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-xl border border-white/10 text-xs">
+            {/* Filtros */}
+            <div className="flex items-center gap-1.5 bg-slate-900/90 border border-white/10 p-1 rounded-xl">
               <button
-                id="filter-all-button"
                 onClick={() => setFilterType('all')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
-                  filterType === 'all' ? 'bg-indigo-600 text-white font-semibold' : 'text-zinc-400 hover:text-white'
-                }`}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${filterType === 'all' ? 'bg-indigo-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'}`}
               >
-                {t.filterAll} ({mediaItems.length})
+                Todos ({mediaItems.length - 1})
               </button>
               <button
-                id="filter-video-button"
                 onClick={() => setFilterType('video')}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg font-medium transition-all ${
-                  filterType === 'video' ? 'bg-indigo-600 text-white font-semibold' : 'text-zinc-400 hover:text-white'
-                }`}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${filterType === 'video' ? 'bg-indigo-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'}`}
               >
-                <Film className="w-3.5 h-3.5" /> {t.filterVideos}
+                Videos
               </button>
               <button
-                id="filter-photo-button"
                 onClick={() => setFilterType('photo')}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg font-medium transition-all ${
-                  filterType === 'photo' ? 'bg-indigo-600 text-white font-semibold' : 'text-zinc-400 hover:text-white'
-                }`}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${filterType === 'photo' ? 'bg-indigo-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'}`}
               >
-                <ImageIcon className="w-3.5 h-3.5" /> {t.filterPhotos}
+                Fotos
               </button>
             </div>
           </div>
 
-          {/* Media Store Items Grid (Vertical Aspect Ratio for Portrait Photos/Videos) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {/* GRID DE PRODUCTOS DE LA TIENDA */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredItems.map((item) => {
               const isUnlocked = unlockedMediaIds.includes(item.id);
-              const downloadToken = unlockedTokensMap[item.id];
-              const isNewVideo = latest2VideoIds.includes(item.id);
-              const itemPrices = getCalculatedPrices(item.price);
+              const prices = getCalculatedPrices(item.price, item.id);
+              const isLatest = latest2VideoIds.includes(item.id);
 
               return (
                 <div
                   key={item.id}
-                  className={`bg-white/5 backdrop-blur-md border rounded-2xl overflow-hidden shadow-xl transition-all duration-300 flex flex-col group ${
-                    isUnlocked ? 'border-emerald-500/50 bg-emerald-950/10' : 'border-white/10 hover:border-indigo-500/50'
-                  }`}
+                  className="bg-slate-900/80 border border-white/10 hover:border-indigo-500/40 rounded-3xl overflow-hidden transition-all duration-300 flex flex-col group shadow-xl hover:-translate-y-1"
                 >
-                  {/* Media Preview Card with Vertical Portrait Aspect Ratio 9:16 */}
-                  <div className="relative aspect-[9/16] bg-zinc-900/80 overflow-hidden">
-                    {/* Insignia 🔥 NUEVO para los 2 videos más recientes */}
-                    {isNewVideo && (
-                      <div className="absolute top-3 left-3 z-30 bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 text-white text-[11px] font-black uppercase px-3 py-1 rounded-full shadow-lg shadow-rose-950/80 border border-rose-400/50 flex items-center gap-1 animate-pulse">
-                        <span>🔥 NUEVO</span>
-                      </div>
-                    )}
-
+                  {/* Image Preview */}
+                  <div className="relative h-48 sm:h-52 overflow-hidden bg-zinc-950">
                     <img
                       src={item.previewUrl}
                       alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
+                      className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${!isUnlocked ? 'blur-[3px] scale-105 opacity-80' : ''}`}
                     />
-                    
-                    {/* Lock or Unlocked Overlay */}
-                    {isUnlocked ? (
-                      <div className="absolute inset-0 bg-emerald-950/40 flex items-center justify-center">
-                        <div className="px-4 py-2 rounded-full border border-emerald-400/60 bg-emerald-600/40 backdrop-blur-md flex items-center gap-2 text-white font-extrabold text-xs shadow-2xl uppercase tracking-wider">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                          <span>{t.purchasedBadge}</span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+
+                    {/* Badges */}
+                    <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 z-10">
+                      <span className="bg-slate-950/80 border border-white/20 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full backdrop-blur-md flex items-center gap-1">
+                        {item.type === 'video' ? <Film className="w-3 h-3 text-indigo-400" /> : <ImageIcon className="w-3 h-3 text-pink-400" />}
+                        <span>{item.type === 'video' ? 'Video HD' : 'Galería'}</span>
+                      </span>
+
+                      {isLatest && (
+                        <span className="bg-gradient-to-r from-rose-600 to-pink-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1 animate-pulse">
+                          <Flame className="w-3 h-3 text-amber-300 fill-amber-300" />
+                          <span>¡NUEVO!</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Lock Overlay */}
+                    {!isUnlocked && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-600/40 border border-indigo-400/60 flex items-center justify-center backdrop-blur-md shadow-lg shadow-indigo-600/30 group-hover:scale-110 transition-transform">
+                          <Lock className="w-6 h-6 text-indigo-200" />
                         </div>
                       </div>
-                    ) : (
-                      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
-                        <div className="w-12 h-12 rounded-full border border-white/20 bg-white/10 backdrop-blur-md flex items-center justify-center text-white shadow-2xl group-hover:scale-110 transition-transform">
-                          {item.type === 'video' ? (
-                            <Play className="w-6 h-6 text-white fill-white/30 ml-0.5" />
-                          ) : (
-                            <Lock className="w-5 h-5 text-white" />
+                    )}
+                  </div>
+
+                  {/* Body Info */}
+                  <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                    <div>
+                      <h3 className="font-extrabold text-base text-white line-clamp-1 group-hover:text-indigo-300 transition-colors">
+                        {item.title}
+                      </h3>
+                      {item.description && (
+                        <p className="text-xs text-zinc-400 line-clamp-2 mt-1 leading-relaxed">
+                          {item.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Meta Info & Price */}
+                    <div className="pt-2 border-t border-white/10 flex items-center justify-between">
+                      <div className="text-left">
+                        <div className="text-[10px] text-zinc-400 font-medium">Precio Exclusivo:</div>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-lg font-black text-amber-300">
+                            {prices.hasDiscount ? prices.discountedFormatted : prices.originalFormatted}
+                          </span>
+                          {prices.hasDiscount && (
+                            <span className="line-through text-xs text-rose-400 opacity-80 font-bold">
+                              {prices.originalFormatted}
+                            </span>
                           )}
                         </div>
                       </div>
-                    )}
 
-                    {/* Top Left Badges: NUEVO & EXTRA PREMIUM */}
-                    <div className="absolute top-3 left-3 flex items-center gap-1.5 z-30">
-                      {isNewVideo && (
-                        <div className="bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg shadow-rose-950/80 border border-rose-400/50 flex items-center gap-1 animate-pulse shrink-0">
-                          <span>🔥 NUEVO</span>
-                        </div>
-                      )}
-
-                      {item.isExtraPremium && (
-                        <div className="bg-gradient-to-r from-amber-500 via-rose-600 to-amber-600 border border-amber-300/80 px-2.5 py-1 rounded-full text-[9px] font-black text-white flex items-center gap-1 shadow-lg shadow-amber-500/40 uppercase tracking-wider shrink-0">
-                          <Sparkles className="w-3 h-3 text-amber-200 fill-amber-200" />
-                          <span>{t.extraPremiumBadge}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Top Right Badges: TYPE (Video / Photo alone on the right) */}
-                    <div className="absolute top-3 right-3 flex items-center gap-1.5 z-30">
-                      <div className="bg-black/75 backdrop-blur-md border border-white/20 px-2.5 py-1 rounded-full text-[10px] font-bold text-white flex items-center gap-1 shadow-md shrink-0">
-                        {item.type === 'video' && <Film className="w-3 h-3 text-indigo-400" />}
-                        {item.type === 'photo' && <ImageIcon className="w-3 h-3 text-indigo-300" />}
-                        {item.type === 'bundle' && <Layers className="w-3 h-3 text-amber-400" />}
-                        <span className="capitalize">{item.type}</span>
-                      </div>
-                    </div>
-
-                    {/* Price & Promo Tag (Bottom Right) */}
-                    <div className="absolute bottom-3 right-3 flex flex-col items-end gap-1 z-30">
-                      {itemPrices.hasDiscount && (
-                        <div className="bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 text-white font-black text-[9px] px-2 py-0.5 rounded-full shadow-md border border-amber-300/60 flex items-center gap-1 uppercase tracking-wider shrink-0">
-                          <span>🏷️ -{itemPrices.discountPercent}% OFF</span>
-                        </div>
-                      )}
-
-                      <div className="text-white font-extrabold text-sm px-3 py-1.5 rounded-xl backdrop-blur-md bg-black/85 border border-white/20 shadow-2xl">
-                        {isUnlocked ? (
-                          <span className="text-emerald-400 text-xs font-bold flex items-center gap-1">✅ {t.purchasedBadge}</span>
-                        ) : itemPrices.hasDiscount ? (
-                          <div className="flex flex-col items-end leading-tight">
-                            <span className="line-through text-rose-400 opacity-80 text-[10px] font-bold">
-                              {itemPrices.originalFormatted}
-                            </span>
-                            <span className="text-emerald-300 font-black text-sm drop-shadow-md tracking-tight">
-                              {itemPrices.discountedFormatted}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-amber-300 font-extrabold text-sm drop-shadow-md">
-                            {itemPrices.discountedFormatted}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Card Content & Action */}
-                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                    <div>
-                      <h3 className="font-bold text-base text-white group-hover:text-indigo-300 transition-colors line-clamp-2">
-                        {item.title}
-                      </h3>
-                      <p className="text-xs text-zinc-400 mt-1.5 line-clamp-2 leading-relaxed">
-                        {item.description}
-                      </p>
-                    </div>
-
-                    <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-zinc-400">
-                      <span>
-                        {item.duration ? `⏳ ${item.duration}` : `📦 ${item.fileSize}`}
-                      </span>
-                      <span className="text-emerald-400 font-medium">
-                        🔥 {item.purchasesCount} {t.purchasesCountLabel}
-                      </span>
-                    </div>
-
-                    {/* Buy / Unlock OR Download Button */}
-                    {isUnlocked ? (
-                      downloadedMediaIds.includes(item.id) || Boolean(localStorage.getItem(`geolink_downloaded_${item.id}`)) ? (
-                        <div className="w-full py-3 px-4 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-400 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
-                          <Lock className="w-4 h-4 text-zinc-500" />
-                          <span>{t.downloadedLimit}</span>
-                        </div>
-                      ) : (
-                        <a
-                          id={`download-media-${item.id}`}
-                          href={downloadToken ? `/api/media/download/${downloadToken}` : item.downloadUrl}
-                          onClick={() => {
-                            setDownloadedMediaIds((prev) => [...prev, item.id]);
-                            try {
-                              localStorage.setItem(`geolink_downloaded_${item.id}`, 'true');
-                            } catch {}
-                          }}
-                          target="_blank"
-                          rel="noreferrer"
-                          download
-                          className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer border border-emerald-400/40"
-                        >
-                          <Download className="w-4 h-4 animate-bounce" />
-                          <span>{t.downloadNowBtn}</span>
-                        </a>
-                      )
-                    ) : (
+                      {/* Unlock Button */}
                       <button
-                        id={`buy-media-${item.id}`}
                         onClick={() => onOpenPurchaseModal(item)}
-                        className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer border border-indigo-400/40"
+                        className={`py-2.5 px-4 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all shadow-lg cursor-pointer ${
+                          isUnlocked
+                            ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
+                            : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-600/30 hover:scale-105'
+                        }`}
                       >
-                        <Lock className="w-4 h-4 text-amber-300" />
-                        <span>
-                          {t.unlockNowBtn} ({itemPrices.discountedFormatted})
-                        </span>
+                        {isUnlocked ? (
+                          <>
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>Desbloqueado</span>
+                          </>
+                        ) : (
+                          <>
+                            <Lock className="w-4 h-4" />
+                            <span>Desbloquear</span>
+                          </>
+                        )}
                       </button>
-                    )}
-
+                    </div>
                   </div>
-
                 </div>
               );
             })}
           </div>
-
         </div>
 
       </div>
-
-      {/* Flotante del recorrido automático */}
-      {isAutoScrolling && (
-        <div
-          onClick={() => setIsAutoScrolling(false)}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-purple-900/90 to-indigo-900/90 border border-purple-400/50 text-white text-xs font-extrabold px-4 py-2 rounded-full shadow-2xl backdrop-blur-md flex items-center gap-2 cursor-pointer animate-bounce"
-        >
-          <Sparkles className="w-4 h-4 text-amber-300 animate-spin" />
-          <span>✨ Recorrido del catálogo... (Toca para detener)</span>
-        </div>
-      )}
-
     </div>
   );
 };
