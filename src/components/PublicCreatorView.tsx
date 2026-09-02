@@ -339,27 +339,17 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
           </p>
 
           {/* Quick VIP Action Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+          <div className="flex justify-center pt-2">
             <a
-              id="telegram-vip-direct-button"
-              href="https://t.me/Angelinaguzman69"
+              id="telegram-channel-button"
+              href="https://t.me/+KKTelchPdBhjOGVh"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 font-extrabold text-xs uppercase tracking-wide transition-all border border-sky-500/40 hover:scale-105"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-600 to-purple-600 hover:from-sky-400 hover:to-purple-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-xl shadow-indigo-600/30 border border-sky-300/40 hover:scale-105 cursor-pointer"
             >
-              <Send className="w-4 h-4 text-sky-400" />
-              <span>Contacto Directo Telegram VIP</span>
-            </a>
-
-            <a
-              id="telegram-hot-group-button"
-              href="https://t.me/+vREXeP2U7Kw3ZTJh"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-extrabold text-xs uppercase tracking-wide transition-all shadow-lg shadow-rose-600/30 border border-pink-400/40 hover:scale-105"
-            >
-              <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
-              <span>🔥 Grupo Hot Telegram</span>
+              <Send className="w-4.5 h-4.5 text-sky-300 fill-sky-300/30 animate-pulse" />
+              <span>CANAL XXX +18 TELEGRAM</span>
+              <Sparkles className="w-4 h-4 text-amber-300 animate-bounce" />
             </a>
           </div>
 
