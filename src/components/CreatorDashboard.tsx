@@ -123,6 +123,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   };
 
   const [paymentVisibility, setPaymentVisibility] = useState<PaymentMethodsVisibility>({
+    stripe: true,
     mercadopago: true,
     paypal: true,
     paypal_telegram: true,
@@ -1075,9 +1076,9 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                   <button
                     type="button"
                     onClick={() => handleTogglePaymentVisibility('stripe', !paymentVisibility.stripe)}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentVisibility.stripe !== false ? 'bg-purple-500' : 'bg-slate-700'}`}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentVisibility.stripe ? 'bg-purple-500' : 'bg-slate-700'}`}
                   >
-                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${paymentVisibility.stripe !== false ? 'translate-x-5' : 'translate-x-0'}`} />
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${paymentVisibility.stripe ? 'translate-x-5' : 'translate-x-0'}`} />
                   </button>
                 </div>
 

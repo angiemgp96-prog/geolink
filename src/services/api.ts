@@ -482,6 +482,7 @@ export const api = {
 
   async getPaymentMethodsVisibility(): Promise<PaymentMethodsVisibility> {
     const defaultVis: PaymentMethodsVisibility = {
+      stripe: true,
       mercadopago: true,
       paypal: true,
       paypal_telegram: true,
@@ -496,6 +497,7 @@ export const api = {
         if (!error && data && data.length > 0) {
           const row = data[0];
           return {
+            stripe: typeof row.stripe === 'boolean' ? row.stripe : true,
             mercadopago: typeof row.mercadopago === 'boolean' ? row.mercadopago : true,
             paypal: typeof row.paypal === 'boolean' ? row.paypal : true,
             paypal_telegram: typeof row.paypal_telegram === 'boolean' ? row.paypal_telegram : true,
@@ -530,6 +532,7 @@ export const api = {
       try {
         await supabase.from('payment_methods_visibility').upsert({
           id: 'default',
+          stripe: typeof visibility.stripe === 'boolean' ? visibility.stripe : true,
           mercadopago: visibility.mercadopago,
           paypal: visibility.paypal,
           paypal_telegram: visibility.paypal_telegram,
