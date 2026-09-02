@@ -745,7 +745,11 @@ app.post("/api/payments/stripe/create-checkout-session", async (req, res) => {
     });
   } catch (err: any) {
     console.error('[Stripe Session Error]', err);
-    res.status(500).json({ error: err.message || 'Error al iniciar Stripe Checkout' });
+    let errorMsg = err.message || 'Error al iniciar Stripe Checkout';
+    if (errorMsg.includes('cannot currently make live charges')) {
+      errorMsg = '⚠️ La cuenta de Stripe requiere completar la activación de cobros en vivo (Live Charges) en dashboard.stripe.com o verificar las llaves API activas.';
+    }
+    res.status(500).json({ error: errorMsg });
   }
 });
 
