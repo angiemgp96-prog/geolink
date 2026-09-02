@@ -158,18 +158,18 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-[#030712]" />
 
-        {/* 1. ONLYFANS FLOTANTE SOBRE LA FOTO DE PORTADA SUPERIOR */}
-        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20">
+        {/* 1. ONLYFANS CENTRADO FLOTANTE SOBRE LA FOTO DE PORTADA SUPERIOR */}
+        <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-20 w-auto">
           <a
             id="onlyfans-header-badge"
             href="https://onlyfans.com/angelinax69"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 py-2 px-4 rounded-full bg-[#00AFF0]/90 hover:bg-[#00AFF0] text-white font-black text-xs shadow-xl shadow-[#00AFF0]/40 border border-white/40 backdrop-blur-md transition-all hover:scale-105 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2.5 py-2.5 px-5 sm:px-6 rounded-full bg-[#00AFF0]/95 hover:bg-[#00AFF0] text-white font-black text-xs sm:text-sm shadow-xl shadow-[#00AFF0]/50 border-2 border-white/50 backdrop-blur-md transition-all hover:scale-105 cursor-pointer whitespace-nowrap"
           >
-            <Flame className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
+            <Flame className="w-4.5 h-4.5 text-amber-300 fill-amber-300 animate-pulse" />
             <span>OnlyFans Oficial 🔥 (@angelinax69)</span>
-            <ExternalLink className="w-3.5 h-3.5 text-white ml-0.5" />
+            <ExternalLink className="w-4 h-4 text-white ml-0.5" />
           </a>
         </div>
       </div>
@@ -324,7 +324,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                   className="bg-slate-900/80 border border-white/10 hover:border-indigo-500/40 rounded-3xl overflow-hidden transition-all duration-300 flex flex-col group shadow-xl hover:-translate-y-1"
                 >
                   {/* Image Preview */}
-                  <div className="relative h-48 sm:h-52 overflow-hidden bg-zinc-950">
+                  <div className="relative aspect-[9/16] w-full overflow-hidden bg-zinc-950">
                     <img
                       src={item.previewUrl}
                       alt={item.title}
