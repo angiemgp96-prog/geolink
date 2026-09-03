@@ -8,7 +8,7 @@ interface ColombiaAccessGateProps {
   onUnlocked: () => void;
 }
 
-const TELEGRAM_USER = 'Angelinaguzman69';
+const TELEGRAM_USER = 'angelinaguz69';
 
 export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator }) => {
   const [activePaymentTab, setActivePaymentTab] = useState<'mercadopago' | 'nequi'>('mercadopago');

@@ -10,7 +10,7 @@ import { api } from '../services/api';
 // ─── Configuración de enlaces estáticos ──────────────────────────────
 const PAYPAL_LINK    = 'https://www.paypal.com/paypalme/angieG473';
 const NEQUI_USA_LINK = 'https://giros.nequi.com.co/l/Cc1Sv9Bz';
-const TELEGRAM_USER  = 'Angelinaguzman69'; // sin @
+const TELEGRAM_USER  = 'angelinaguz69'; // sin @
 // ─────────────────────────────────────────────────────────────────────
 
 type Screen = 'select' | 'contact_paypal' | 'contact_nequi' | 'bank_mexico' | 'bank_usa' | 'bank_europe' | 'bank_colombia' | 'mp_pending' | 'mp_success' | 'paypal_pending' | 'paypal_success';
@@ -309,12 +309,11 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     }
   };
 
-  // ── Pagar vía Telegram: construye enlace directo y abre chat @Angelinaguzman69
-  const buildPayPalTelegramLink = () => {
-    const contactText = contactInfo ? `\n\nMi contacto: ${contactInfo}` : '';
+  // ── Pagar con Telegram: construye enlace directo y abre chat @Angelinaguzman69
+    const buildPayPalTelegramLink = () => {
     const formattedPrice = getFormattedModalPrice();
     const msg = encodeURIComponent(
-      `¡Hola! Quiero comprar el contenido: "${item.title}" (${formattedPrice}).${contactText}\n\nAquí te adjunto mi comprobante para la entrega 📎`
+      `¡Hola! Quiero comprar el contenido: "${item.title}" (${formattedPrice}).`
     );
     return `https://t.me/${TELEGRAM_USER}?text=${msg}`;
   };
@@ -650,7 +649,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                   </button>
                 )}
 
-                {/* Pagar vía Telegram Directo */}
+                {/* Pagar con Telegram Directo */}
                 {paymentVisibility.paypal_telegram && (
                   <a
                     id="pay-paypal-telegram-button"
@@ -672,7 +671,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                         <Send className="w-5 h-5 text-white" />
                       </div>
                       <div className="text-left">
-                        <div>Pagar vía Telegram</div>
+                        <div>Pagar con Telegram</div>
                         <div className="text-[11px] font-normal text-emerald-100">Contacto directo · Chat @{TELEGRAM_USER}</div>
                       </div>
                     </div>
