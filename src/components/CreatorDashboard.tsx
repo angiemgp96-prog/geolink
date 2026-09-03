@@ -1500,10 +1500,14 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
               <button
                 id="refresh-sales-history-button"
                 onClick={async () => {
-                  setIsRefreshing(true);
-                  await loadPurchases();
-                  setTimeout(() => setIsRefreshing(false), 800);
-                }}
+  setIsRefreshing(true);
+  await Promise.all([
+    loadPurchases(),
+    loadVisitorLeads(),
+    loadColombiaRequests()
+  ]);
+  setTimeout(() => setIsRefreshing(false), 800);
+}}
                 className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs text-slate-300 flex items-center gap-1.5 cursor-pointer border border-slate-700/60"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-indigo-400' : ''}`} />
@@ -1613,10 +1617,14 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
               </div>
               <button
                 onClick={async () => {
-                  setIsRefreshing(true);
-                  await loadColombiaRequests();
-                  setTimeout(() => setIsRefreshing(false), 800);
-                }}
+  setIsRefreshing(true);
+  await Promise.all([
+    loadPurchases(),
+    loadVisitorLeads(),
+    loadColombiaRequests()
+  ]);
+  setTimeout(() => setIsRefreshing(false), 800);
+}}
                 className="px-3 py-1.5 bg-purple-900/60 hover:bg-purple-800 border border-purple-500/40 text-purple-200 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shrink-0"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-purple-300' : ''}`} />
@@ -1795,10 +1803,14 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
               )}
               <button
                 onClick={async () => {
-                  setIsRefreshing(true);
-                  await loadVisitorLeads();
-                  setTimeout(() => setIsRefreshing(false), 800);
-                }}
+  setIsRefreshing(true);
+  await Promise.all([
+    loadPurchases(),
+    loadVisitorLeads(),
+    loadColombiaRequests()
+  ]);
+  setTimeout(() => setIsRefreshing(false), 800);
+}}
                 className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1.5 cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-indigo-400' : ''}`} />

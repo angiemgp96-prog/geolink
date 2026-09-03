@@ -331,6 +331,34 @@ export const api = {
   },
 
   async getPurchases(creatorHandle?: string): Promise<PurchaseRecord[]> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('purchases')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          return data.map((row: any) => ({
+            id: row.id,
+            token: row.token,
+            mediaId: row.media_id,
+            mediaTitle: row.media_title || row.media_id,
+            creatorHandle: row.creator_handle || 'angelina69',
+            buyerEmail: row.buyer_email || '',
+            buyerPhone: row.buyer_phone || '',
+            paymentMethod: row.payment_method || 'NEQUI',
+            amount: row.amount || 0,
+            currency: row.currency || 'USD',
+            status: row.status || 'completed',
+            createdAt: row.created_at || new Date().toISOString()
+          }));
+        }
+      } catch (err) {
+        console.warn('Supabase fetch purchases warning:', err);
+      }
+    }
+
     const url = creatorHandle ? `/api/purchases?creator=${encodeURIComponent(creatorHandle)}` : '/api/purchases';
     const res = await fetch(url);
     if (res.ok) return await res.json();
