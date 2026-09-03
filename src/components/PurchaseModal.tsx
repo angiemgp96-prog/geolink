@@ -55,6 +55,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
 
   // Visibilidad de métodos de pago desde Supabase/API
   const [paymentVisibility, setPaymentVisibility] = useState<PaymentMethodsVisibility>({
+    stripe: true,
     mercadopago: true,
     paypal: true,
     paypal_telegram: true,
