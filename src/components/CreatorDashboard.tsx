@@ -25,6 +25,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   const [profile, setProfile] = useState<CreatorProfile>({ ...creator });
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [visitorLeads, setVisitorLeads] = useState<VisitorLead[]>([]);
 
   // New Media Item Form State
