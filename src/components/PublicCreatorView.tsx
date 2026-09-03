@@ -108,25 +108,26 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  const allVideos = mediaItems.filter((item) => item.type === 'video' && item.id !== 'acceso_full_cat_actual');
-  const sortedVideos = [...allVideos].sort((a, b) => {
-    const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-    const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-    if (tA && tB && tA !== tB) return tB - tA;
-    return mediaItems.indexOf(b) - mediaItems.indexOf(a);
-  });
-  const latest2VideoIds = sortedVideos.slice(0, 2).map((v) => v.id);
+  // Ordenar estrictamente todos los ítems del más reciente al más antiguo
+  const sortedAllItems = [...mediaItems]
+    .filter((item) => item.id !== 'acceso_full_cat_actual')
+    .sort((a, b) => {
+      const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      if (tA && tB && tA !== tB) return tB - tA;
+      return mediaItems.indexOf(b) - mediaItems.indexOf(a);
+    });
 
-  const baseFiltered = mediaItems.filter((item) => {
-    if (item.id === 'acceso_full_cat_actual') return false;
+  const latest2VideoIds = sortedAllItems
+    .filter((item) => item.type === 'video')
+    .slice(0, 2)
+    .map((v) => v.id);
+
+  const filteredItems = sortedAllItems.filter((item) => {
     if (filterType === 'photo') return item.type === 'photo';
     if (filterType === 'video') return item.type === 'video';
     return true;
   });
-
-  const top2LatestVideos = baseFiltered.filter((item) => latest2VideoIds.includes(item.id));
-  const remainingItems = baseFiltered.filter((item) => !latest2VideoIds.includes(item.id));
-  const filteredItems = [...top2LatestVideos, ...remainingItems];
 
   const fullAccessItem: MediaItem = {
     id: 'acceso_full_cat_actual',
