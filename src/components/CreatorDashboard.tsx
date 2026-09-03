@@ -237,7 +237,12 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   const handleSaveProfile = async () => {
     setIsSaving(true);
     try {
-      const updated = await api.saveCreator(profile);
+      const profileToSave = {
+        ...profile,
+        paymentMethodsVisibility: paymentVisibility
+      };
+      const updated = await api.saveCreator(profileToSave as any);
+      await api.updatePaymentMethodsVisibility(paymentVisibility);
       onUpdateCreator(updated);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
@@ -1493,10 +1498,15 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
               <h3 className="text-xl font-bold text-white">Historial de Ventas Verificadas</h3>
               <button
                 id="refresh-sales-history-button"
-                onClick={loadPurchases}
-                className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs text-slate-300 flex items-center gap-1.5 cursor-pointer"
+                onClick={async () => {
+                  setIsRefreshing(true);
+                  await loadPurchases();
+                  setTimeout(() => setIsRefreshing(false), 800);
+                }}
+                className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs text-slate-300 flex items-center gap-1.5 cursor-pointer border border-slate-700/60"
               >
-                <RefreshCw className="w-3.5 h-3.5" /> Actualizar
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-indigo-400' : ''}`} />
+                <span>{isRefreshing ? 'Actualizando...' : 'Actualizar'}</span>
               </button>
             </div>
 
@@ -1601,10 +1611,15 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                 </p>
               </div>
               <button
-                onClick={loadColombiaRequests}
+                onClick={async () => {
+                  setIsRefreshing(true);
+                  await loadColombiaRequests();
+                  setTimeout(() => setIsRefreshing(false), 800);
+                }}
                 className="px-3 py-1.5 bg-purple-900/60 hover:bg-purple-800 border border-purple-500/40 text-purple-200 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shrink-0"
               >
-                <RefreshCw className="w-3.5 h-3.5" /> Actualizar
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-purple-300' : ''}`} />
+                <span>{isRefreshing ? 'Actualizando...' : 'Actualizar'}</span>
               </button>
             </div>
 
@@ -1778,10 +1793,15 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                 </button>
               )}
               <button
-                onClick={loadVisitorLeads}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1.5"
+                onClick={async () => {
+                  setIsRefreshing(true);
+                  await loadVisitorLeads();
+                  setTimeout(() => setIsRefreshing(false), 800);
+                }}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1.5 cursor-pointer"
               >
-                <RefreshCw className="w-3.5 h-3.5" /> Recargar
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-indigo-400' : ''}`} />
+                <span>{isRefreshing ? 'Recargando...' : 'Recargar'}</span>
               </button>
             </div>
           </div>
