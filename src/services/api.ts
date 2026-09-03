@@ -483,27 +483,27 @@ export const api = {
   async getPaymentMethodsVisibility(): Promise<PaymentMethodsVisibility> {
     const defaultVis: PaymentMethodsVisibility = {
       stripe: true,
-      mercadopago: true,
+      mercadopago: false,
       paypal: true,
       paypal_telegram: true,
       nequi_usa: true,
     };
 
-    let localStripe: boolean | null = null;
+    let localVis: Partial<PaymentMethodsVisibility> | null = null;
     try {
-      const s = localStorage.getItem('geolink_stripe_vis');
-      if (s !== null) localStripe = s === 'true';
+      const s = localStorage.getItem('geolink_payment_visibility');
+      if (s) localVis = JSON.parse(s);
     } catch {}
 
     if (isSupabaseConfigured()) {
       try {
-        // 1. Try reading from creators.data JSONB field first (which supports stripe)
+        // 1. Try reading from creators.data JSONB field first
         const { data: cData } = await supabase.from('creators').select('data').eq('handle', 'angelina69').limit(1);
         if (cData && cData.length > 0 && cData[0].data && cData[0].data.paymentMethodsVisibility) {
           const vis = cData[0].data.paymentMethodsVisibility;
           return {
-            stripe: typeof vis.stripe === 'boolean' ? vis.stripe : (localStripe !== null ? localStripe : true),
-            mercadopago: typeof vis.mercadopago === 'boolean' ? vis.mercadopago : true,
+            stripe: typeof vis.stripe === 'boolean' ? vis.stripe : true,
+            mercadopago: typeof vis.mercadopago === 'boolean' ? vis.mercadopago : false,
             paypal: typeof vis.paypal === 'boolean' ? vis.paypal : true,
             paypal_telegram: typeof vis.paypal_telegram === 'boolean' ? vis.paypal_telegram : true,
             nequi_usa: typeof vis.nequi_usa === 'boolean' ? vis.nequi_usa : true,
@@ -511,15 +511,12 @@ export const api = {
         }
 
         // 2. Fallback to payment_methods_visibility table
-        const { data, error } = await supabase
-          .from('payment_methods_visibility')
-          .select('*')
-          .limit(1);
+        const { data, error } = await supabase.from('payment_methods_visibility').select('*').limit(1);
         if (!error && data && data.length > 0) {
           const row = data[0];
           return {
-            stripe: typeof row.stripe === 'boolean' ? row.stripe : (localStripe !== null ? localStripe : true),
-            mercadopago: typeof row.mercadopago === 'boolean' ? row.mercadopago : true,
+            stripe: typeof row.stripe === 'boolean' ? row.stripe : true,
+            mercadopago: typeof row.mercadopago === 'boolean' ? row.mercadopago : false,
             paypal: typeof row.paypal === 'boolean' ? row.paypal : true,
             paypal_telegram: typeof row.paypal_telegram === 'boolean' ? row.paypal_telegram : true,
             nequi_usa: typeof row.nequi_usa === 'boolean' ? row.nequi_usa : true,
@@ -530,23 +527,7 @@ export const api = {
       }
     }
 
-    try {
-      const res = await fetch('/api/settings/payment-methods-visibility');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.visibility) {
-          return {
-            stripe: typeof data.visibility.stripe === 'boolean' ? data.visibility.stripe : (localStripe !== null ? localStripe : true),
-            mercadopago: typeof data.visibility.mercadopago === 'boolean' ? data.visibility.mercadopago : true,
-            paypal: typeof data.visibility.paypal === 'boolean' ? data.visibility.paypal : true,
-            paypal_telegram: typeof data.visibility.paypal_telegram === 'boolean' ? data.visibility.paypal_telegram : true,
-            nequi_usa: typeof data.visibility.nequi_usa === 'boolean' ? data.visibility.nequi_usa : true,
-          };
-        }
-      }
-    } catch {}
-
-    return localStripe !== null ? { ...defaultVis, stripe: localStripe } : defaultVis;
+    return localVis ? { ...defaultVis, ...localVis } : defaultVis;
   },
 
   async updatePaymentMethodsVisibility(visibility: PaymentMethodsVisibility): Promise<PaymentMethodsVisibility> {

@@ -339,6 +339,12 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                         <span>{item.type === 'video' ? 'Video HD' : 'Galería'}</span>
                       </span>
 
+                      {item.isExtraPremium && (
+                        <span className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 text-slate-950 text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg border border-amber-300 flex items-center gap-1">
+                          <span>💎 EXTRA PREMIUM</span>
+                        </span>
+                      )}
+
                       {isLatest && (
                         <span className="bg-gradient-to-r from-rose-600 to-pink-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1 animate-pulse">
                           <Flame className="w-3 h-3 text-amber-300 fill-amber-300" />
