@@ -440,7 +440,8 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 {detectedRegion === 'CO' && (
                   <div className="space-y-3">
                     <p className="text-[11px] font-bold text-sky-400 uppercase tracking-wider mb-1">MÉTODOS DE PAGO COLOMBIA:</p>
-                    <button
+                    {paymentVisibility.mercadopago === true && (
+<button
                       id="pay-mercadopago-button"
                       disabled={isLoading}
                       onClick={handleMercadoPagoDirect}
@@ -458,6 +459,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                       </div>
                       {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
                     </button>
+)}
 
                     <button
                       id="pay-bank-colombia-button"

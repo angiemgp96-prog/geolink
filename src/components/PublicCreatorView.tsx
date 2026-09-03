@@ -253,7 +253,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                     </div>
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <span className="font-black text-white uppercase tracking-wide text-xs sm:text-sm">👑 DESBLOQUEAR TODO EL CATÁLOGO</span>
+                        <span className="font-black text-white uppercase tracking-wide text-xs sm:text-sm">👑 DESBLOQUEAR TODO EL CATÁLOGO — (NO INCLUYE CONTENIDOS EXTRA PREMIUM)</span>
                         {fullPrices.hasDiscount && (
                           <span className="bg-rose-500/30 text-amber-200 border border-amber-400/50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black">
                             {fullPrices.discountPercent}% OFF
@@ -261,7 +261,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                         )}
                       </div>
                       <p className="text-[10px] text-amber-100/90 font-medium">
-                        Acceso instantáneo a fotos y videos sin censura
+                        Acceso instantáneo a fotos y videos sin censura (NO INCLUYE CONTENIDOS EXTRA PREMIUM)
                       </p>
                     </div>
                   </div>
