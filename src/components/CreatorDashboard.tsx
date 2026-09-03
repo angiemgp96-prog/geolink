@@ -1595,13 +1595,8 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
               </div>
             )}
           </div>
-        </div>
-      )}
+        
 
-      {/* TAB 7: PROSPECTOS / LEADS CAPTURADOS */}
-      {activeTab === 'leads' && (
-        <div className="space-y-6">
-          {/* Tarjeta de Aprobación de Acceso a la Página Colombia ($30 USD) */}
           <div className="bg-gradient-to-r from-purple-950/80 via-slate-900 to-indigo-950/80 border-2 border-purple-500/50 rounded-3xl p-6 space-y-4 shadow-xl">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
@@ -1744,6 +1739,14 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
             )}
           </div>
 
+          
+</div>
+      )}
+
+      {/* TAB 7: PROSPECTOS / LEADS CAPTURADOS */}
+      {activeTab === 'leads' && (
+        <div className="space-y-6">
+          {/* Tarjeta de Aprobación de Acceso a la Página Colombia ($30 USD) */}
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6">
           
           {/* Lead Capture Mode Switch ON / OFF Card */}
