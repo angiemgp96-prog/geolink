@@ -222,18 +222,31 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             {creator.bio}
           </p>
 
-          {/* 2. BOTÓN TELEGRAM XXX SÚPER HOT Y DESTACADO */}
-          <div className="flex justify-center pt-1">
+          {/* 2. BOTONES DE TELEGRAM DESTACADOS */}
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+            {/* Botón 1: Contacto Directo Telegram VIP */}
+            <a
+              id="telegram-direct-contact-button"
+              href="https://t.me/Angelinaguzman69"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-sky-950/80 border border-sky-500/60 hover:bg-sky-900/80 hover:border-sky-400 text-sky-300 font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg shadow-sky-500/20 hover:scale-105 cursor-pointer"
+            >
+              <Send className="w-4 h-4 text-sky-400" />
+              <span>CONTACTO DIRECTO TELEGRAM VIP</span>
+            </a>
+
+            {/* Botón 2: Grupo Hot Telegram */}
             <a
               id="telegram-channel-button"
               href="https://t.me/+vREXeP2U7Kw3ZTJh"
               target="_blank"
               rel="noreferrer"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-xl shadow-rose-600/35 border-2 border-pink-300/40 hover:scale-105 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg shadow-rose-600/30 hover:scale-105 cursor-pointer"
             >
-              <Flame className="w-5 h-5 text-amber-300 fill-amber-300 animate-pulse" />
-              <span>🔥 COMPRAR POR TELEGRAM — CANAL XXX +18 TELEGRAM 🔞</span>
-              <Sparkles className="w-4.5 h-4.5 text-amber-300 animate-bounce" />
+              <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+              <Flame className="w-4 h-4 text-amber-300 fill-amber-300" />
+              <span>GRUPO HOT TELEGRAM</span>
             </a>
           </div>
 
