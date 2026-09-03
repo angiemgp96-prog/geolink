@@ -318,17 +318,33 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               const prices = getCalculatedPrices(item.price, item.id);
               const isLatest = latest2VideoIds.includes(item.id);
 
+              const handleCardClick = () => {
+                if (isUnlocked) {
+                  const targetUrl = item.downloadUrl || 'https://t.me/+KKTelchPdBhjOGVh';
+                  window.open(targetUrl, '_blank');
+                } else {
+                  onOpenPurchaseModal(item);
+                }
+              };
+
               return (
                 <div
                   key={item.id}
-                  className="bg-slate-900/80 border border-white/10 hover:border-indigo-500/40 rounded-3xl overflow-hidden transition-all duration-300 flex flex-col group shadow-xl hover:-translate-y-1"
+                  onClick={handleCardClick}
+                  className={`rounded-3xl overflow-hidden transition-all duration-300 flex flex-col group shadow-xl hover:-translate-y-1 cursor-pointer ${
+                    isUnlocked
+                      ? 'bg-gradient-to-b from-sky-950/60 to-slate-950 border-2 border-sky-500/60 hover:border-sky-400 shadow-sky-500/25'
+                      : 'bg-slate-900/80 border border-white/10 hover:border-indigo-500/40'
+                  }`}
                 >
                   {/* Image Preview */}
                   <div className="relative aspect-[9/16] w-full overflow-hidden bg-zinc-950">
                     <img
                       src={item.previewUrl}
                       alt={item.title}
-                      className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${!isUnlocked ? 'blur-[3px] scale-105 opacity-80' : ''}`}
+                      className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+                        !isUnlocked ? 'blur-[3px] scale-105 opacity-80' : 'opacity-100 blur-none'
+                      }`}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
 
@@ -345,11 +361,18 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                         </span>
                       )}
 
-                      {isLatest && (
-                        <span className="bg-gradient-to-r from-rose-600 to-pink-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1 animate-pulse">
-                          <Flame className="w-3 h-3 text-amber-300 fill-amber-300" />
-                          <span>¡NUEVO!</span>
+                      {isUnlocked ? (
+                        <span className="bg-sky-500 text-slate-950 text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1">
+                          <Send className="w-3 h-3 fill-slate-950" />
+                          <span>¡DESBLOQUEADO!</span>
                         </span>
+                      ) : (
+                        isLatest && (
+                          <span className="bg-gradient-to-r from-rose-600 to-pink-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1 animate-pulse">
+                            <Flame className="w-3 h-3 text-amber-300 fill-amber-300" />
+                            <span>¡NUEVO!</span>
+                          </span>
+                        )
                       )}
                     </div>
 
@@ -366,7 +389,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                   {/* Body Info */}
                   <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                     <div>
-                      <h3 className="font-extrabold text-base text-white line-clamp-1 group-hover:text-indigo-300 transition-colors">
+                      <h3 className={`font-extrabold text-base line-clamp-1 transition-colors ${
+                        isUnlocked ? 'text-sky-300 group-hover:text-sky-200' : 'text-white group-hover:text-indigo-300'
+                      }`}>
                         {item.title}
                       </h3>
                       {item.description && (
@@ -379,32 +404,45 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                     {/* Meta Info & Price */}
                     <div className="pt-2 border-t border-white/10 flex items-center justify-between">
                       <div className="text-left">
-                        <div className="text-[10px] text-zinc-400 font-medium">Precio Exclusivo:</div>
+                        <div className="text-[10px] text-zinc-400 font-medium">
+                          {isUnlocked ? 'Estado del Ítem:' : 'Precio Exclusivo:'}
+                        </div>
                         <div className="flex items-baseline gap-1.5">
-                          <span className="text-lg font-black text-amber-300">
-                            {prices.hasDiscount ? prices.discountedFormatted : prices.originalFormatted}
-                          </span>
-                          {prices.hasDiscount && (
-                            <span className="line-through text-xs text-rose-400 opacity-80 font-bold">
-                              {prices.originalFormatted}
+                          {isUnlocked ? (
+                            <span className="text-xs font-black text-emerald-400 uppercase tracking-wide">
+                              Comprado / Acceso Activo
                             </span>
+                          ) : (
+                            <>
+                              <span className="text-lg font-black text-amber-300">
+                                {prices.hasDiscount ? prices.discountedFormatted : prices.originalFormatted}
+                              </span>
+                              {prices.hasDiscount && (
+                                <span className="line-through text-xs text-rose-400 opacity-80 font-bold">
+                                  {prices.originalFormatted}
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
 
                       {/* Unlock Button */}
                       <button
-                        onClick={() => onOpenPurchaseModal(item)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCardClick();
+                        }}
                         className={`py-2.5 px-4 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all shadow-lg cursor-pointer ${
                           isUnlocked
-                            ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
+                            ? 'bg-gradient-to-r from-sky-500 via-sky-400 to-emerald-400 text-slate-950 shadow-sky-500/30 hover:scale-105'
                             : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-600/30 hover:scale-105'
                         }`}
                       >
                         {isUnlocked ? (
                           <>
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>Desbloqueado</span>
+                            <Send className="w-4 h-4 fill-slate-950" />
+                            <span>Ver en Telegram 🚀</span>
                           </>
                         ) : (
                           <>
