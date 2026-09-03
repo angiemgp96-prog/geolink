@@ -310,12 +310,12 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   };
 
   // ── Pagar con Telegram: construye enlace directo y abre chat @Angelinaguzman69
-    const buildPayPalTelegramLink = () => {
+      const buildPayPalTelegramLink = () => {
     const formattedPrice = getFormattedModalPrice();
     const msg = encodeURIComponent(
       `¡Hola! Quiero comprar el contenido: "${item.title}" (${formattedPrice}).`
     );
-    return `https://t.me/${TELEGRAM_USER}?text=${msg}`;
+    return `https://t.me/${TELEGRAM_USER}?direct&text=${msg}`;
   };
 
   const handlePayPalTelegramClick = (e: React.MouseEvent) => {
