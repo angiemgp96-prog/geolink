@@ -232,7 +232,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-xl shadow-rose-600/35 border-2 border-pink-300/40 hover:scale-105 cursor-pointer"
             >
               <Flame className="w-5 h-5 text-amber-300 fill-amber-300 animate-pulse" />
-              <span>🔥 CANAL XXX +18 TELEGRAM 🔞</span>
+              <span>🔥 COMPRAR POR TELEGRAM — CANAL XXX +18 TELEGRAM 🔞</span>
               <Sparkles className="w-4.5 h-4.5 text-amber-300 animate-bounce" />
             </a>
           </div>
