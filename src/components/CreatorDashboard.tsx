@@ -72,6 +72,31 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
   const [colombiaRequests, setColombiaRequests] = useState<any[]>([]);
 
+  const handleApproveColombiaAccess = async (id: string) => {
+    try {
+      const success = await api.approveColombiaAccessRequest(id);
+      if (success) {
+        const targetReq = colombiaRequests.find((r) => r.id === id);
+        const codeToUse = targetReq?.customCode || targetReq?.custom_code || id;
+        const hostUrl = typeof window !== 'undefined' ? window.location.origin : 'https://geolink-1.onrender.com';
+        const accessUrl = `${hostUrl}/?access=${codeToUse}`;
+
+        try {
+          await navigator.clipboard.writeText(accessUrl);
+          alert(`✅ ¡Acceso Aprobado Exitosamente!\n\nEl dispositivo/IP de "${targetReq?.contactInfo || 'Cliente'}" ha sido liberado en la base de datos.\n\nEnlace VIP de Acceso Copiado al Portapapeles:\n${accessUrl}`);
+        } catch {
+          alert(`✅ ¡Acceso Aprobado Exitosamente!\n\nEl dispositivo de "${targetReq?.contactInfo || 'Cliente'}" ha sido liberado.\n\nEnlace VIP de Acceso:\n${accessUrl}`);
+        }
+      } else {
+        alert('Error al aprobar el acceso de Colombia.');
+      }
+      await loadColombiaRequests();
+    } catch (e) {
+      console.error(e);
+      alert('Error al procesar la aprobación.');
+    }
+  };
+
   const loadColombiaRequests = () => {
     api.getColombiaAccessRequests().then(setColombiaRequests).catch(() => {});
   };

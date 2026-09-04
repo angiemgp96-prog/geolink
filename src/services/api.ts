@@ -747,6 +747,7 @@ export const api = {
           return data.map((row: any) => ({
             id: row.id,
             contactInfo: row.contact_info || '',
+            customCode: row.custom_code || '',
             ipAddress: row.ip_address || '',
             deviceHash: row.device_hash || '',
             paymentMethod: row.payment_method || 'nequi',
@@ -770,10 +771,17 @@ export const api = {
   async approveColombiaAccessRequest(id: string): Promise<boolean> {
     if (isSupabaseConfigured()) {
       try {
-        await supabase
+        const { error } = await supabase
           .from('colombia_page_access')
           .update({ status: 'approved', approved_at: new Date().toISOString() })
           .eq('id', id);
+
+        if (error) {
+          await supabase
+            .from('colombia_page_access')
+            .update({ status: 'approved', approved_at: new Date().toISOString() })
+            .eq('custom_code', id);
+        }
       } catch (err) {
         console.warn('Supabase approve colombia_page_access warning:', err);
       }
@@ -781,7 +789,7 @@ export const api = {
 
     try {
       const res = await fetch(`/api/colombia-page-access/${id}/approve`, { method: 'POST' });
-      return res.ok;
+      return res.ok || isSupabaseConfigured();
     } catch {}
 
     return true;
