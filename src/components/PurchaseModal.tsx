@@ -653,7 +653,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                         <Send className="w-5 h-5 text-white" />
                       </div>
                       <div className="text-left">
-                        <div>Pagar con Telegram</div>
+                        <div>Pedir por Telegram</div>
                         <div className="text-[11px] font-normal text-emerald-100">Contacto directo · Chat @{TELEGRAM_USER}</div>
                       </div>
                     </div>
