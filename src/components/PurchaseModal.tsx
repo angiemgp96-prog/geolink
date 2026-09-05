@@ -199,7 +199,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   // MERCADO PAGO — Redirección Directa a Checkout Oficial API
   // ════════════════════════════════════════════════════════════════
   const handleMercadoPagoDirect = async () => {
-    if (!validateContact()) return;
+    
     setErrorMessage('');
     setIsLoading(true);
     try {
@@ -246,7 +246,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   // PAYPAL — Redirección Directa a Checkout Oficial PayPal Live API
   // ════════════════════════════════════════════════════════════════
   const handleStripeDirect = async () => {
-    if (!validateContact()) return;
+    
     setErrorMessage('');
     setIsLoading(true);
     try {
@@ -266,7 +266,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   };
 
   const handlePayPalDirect = async () => {
-    if (!validateContact()) return;
+    
     setErrorMessage('');
     setIsLoading(true);
     try {
@@ -328,7 +328,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   // NEQUI USA — abre Nequi + redirige esta ventana a Telegram
   // ════════════════════════════════════════════════════════════════
   const handleDirectTelegramRedirect = async (methodName: string, linkUrl: string) => {
-    if (!validateContact()) return;
+    
     const formattedPrice = getFormattedModalPrice();
     try {
       await api.createPendingDirectPurchase({
@@ -345,7 +345,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   };
 
   const handleNequiConfirm = () => {
-    if (!validateContact()) return;
+    
     window.open(NEQUI_USA_LINK, '_blank');
     window.location.href = telegramLink('Nequi Giro USA');
   };
@@ -405,27 +405,9 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
               </div>
             )}
 
-            {/* Campo para ingresar WhatsApp / Telegram del comprador */}
-            <div className="mb-4 text-left bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-1.5">
-              <label className="block text-[11px] font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Tu WhatsApp o usuario Telegram (Opcional)</span>
-              </label>
-              <input
-                type="text"
-                value={contactInfo}
-                onChange={(e) => { setContactInfo(e.target.value); setContactError(''); }}
-                placeholder="Ej. +573001234567 o @miusuario"
-                className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl py-2 px-3 text-xs text-white placeholder-slate-500 outline-none transition-colors"
-              />
-              <p className="text-[10px] text-zinc-400">Se guardará en tu compra para que la creadora pueda contactarte.</p>
-            </div>
 
-            {/* General Security Tag */}
-            <div className="mb-4 text-center bg-emerald-950/40 border border-emerald-500/30 rounded-xl py-2 px-3 flex items-center justify-center gap-1.5 text-xs text-emerald-300 font-bold shadow-sm">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Pago Seguro directamente con las plataformas</span>
-            </div>
+
+
 
             <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-3">Selecciona método de pago:</p>
 
@@ -463,7 +445,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                     <button
                       id="pay-bank-colombia-button"
                       onClick={() => {
-                        if (!validateContact()) return;
+                        
                         setErrorMessage('');
                         setScreen('bank_colombia');
                       }}
@@ -524,7 +506,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 {detectedRegion === 'MX' && (
                   <button
                     id="pay-bank-mexico-button"
-                    onClick={() => { if (!validateContact()) return; setErrorMessage(''); setScreen('bank_mexico'); }}
+                    onClick={() => {  setErrorMessage(''); setScreen('bank_mexico'); }}
                     className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-emerald-800 via-teal-800 to-green-800 hover:from-emerald-700 hover:to-green-700 text-white font-bold text-sm shadow-xl shadow-emerald-950/40 flex items-center justify-between transition-all cursor-pointer group border-2 border-emerald-400/50"
                   >
                     <div className="flex items-center gap-3">
@@ -544,7 +526,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 {detectedRegion === 'US' && (
                   <button
                     id="pay-bank-usa-button"
-                    onClick={() => { if (!validateContact()) return; setErrorMessage(''); setScreen('bank_usa'); }}
+                    onClick={() => {  setErrorMessage(''); setScreen('bank_usa'); }}
                     className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-blue-800 via-indigo-800 to-sky-800 hover:from-blue-700 hover:to-sky-700 text-white font-bold text-sm shadow-xl shadow-blue-950/40 flex items-center justify-between transition-all cursor-pointer group border-2 border-sky-400/50"
                   >
                     <div className="flex items-center gap-3">
@@ -564,7 +546,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 {detectedRegion === 'EU' && (
                   <button
                     id="pay-bank-europe-button"
-                    onClick={() => { if (!validateContact()) return; setErrorMessage(''); setScreen('bank_europe'); }}
+                    onClick={() => {  setErrorMessage(''); setScreen('bank_europe'); }}
                     className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-amber-700 via-indigo-900 to-blue-900 hover:from-amber-600 hover:to-blue-800 text-white font-bold text-sm shadow-xl shadow-indigo-950/40 flex items-center justify-between transition-all cursor-pointer group border-2 border-amber-400/50"
                   >
                     <div className="flex items-center gap-3">
