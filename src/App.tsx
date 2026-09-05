@@ -4,6 +4,7 @@ import { api } from './services/api';
 import { HeaderBar } from './components/HeaderBar';
 import { GeoBlockingBanner } from './components/GeoBlockingBanner';
 import { PublicCreatorView } from './components/PublicCreatorView';
+import { CleanStripeProfileView } from './components/CleanStripeProfileView';
 import { CreatorDashboard } from './components/CreatorDashboard';
 import { PurchaseModal } from './components/PurchaseModal';
 import { NewCreatorModal } from './components/NewCreatorModal';
@@ -331,13 +332,20 @@ export default function App() {
                 onUnlocked={() => setIsColombiaPageUnlocked(true)}
               />
             ) : (
-              <PublicCreatorView
-                creator={currentCreator}
-                mediaItems={mediaItems}
-                unlockedMediaIds={unlockedMediaIds}
-                unlockedTokensMap={unlockedTokensMap}
-                onOpenPurchaseModal={(item) => setSelectedMediaForPurchase(item)}
-              />
+              isCleanHomeMode ? (
+                <CleanStripeProfileView
+                  creator={currentCreator}
+                  onOpenPurchaseModal={(item) => setSelectedMediaForPurchase(item)}
+                />
+              ) : (
+                <PublicCreatorView
+                  creator={currentCreator}
+                  mediaItems={mediaItems}
+                  unlockedMediaIds={unlockedMediaIds}
+                  unlockedTokensMap={unlockedTokensMap}
+                  onOpenPurchaseModal={(item) => setSelectedMediaForPurchase(item)}
+                />
+              )
             )
           )
         ) : (
