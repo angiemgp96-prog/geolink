@@ -437,6 +437,9 @@ export default function App() {
           onClose={(contact) => {
             setVisitorContact(contact);
             setIsVisitorLeadModalOpen(false);
+            if (contact && contact.trim()) {
+              api.saveVisitorLead(contact.trim(), visitorLocation.countryCode).catch(() => {});
+            }
           }}
         />
       )}

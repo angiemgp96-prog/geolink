@@ -374,7 +374,7 @@ export const api = {
     return await res.json();
   },
 
-  async saveVisitorLead(contactInfo: string, countryCode?: string) {
+    async saveVisitorLead(contactInfo: string, countryCode?: string) {
     const trimmedContact = (contactInfo || '').trim();
     if (!trimmedContact) return { success: false };
 
@@ -383,54 +383,34 @@ export const api = {
       deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
     } catch {}
 
-    const isSilent = trimmedContact.includes('Captura Silenciosa');
-
     if (isSupabaseConfigured()) {
       try {
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
         await supabase.from('visitor_leads').delete().lt('created_at', oneDayAgo);
 
-        if (isSilent) {
-          if (deviceHash) {
-            const { data: existingDevice } = await supabase
-              .from('visitor_leads')
-              .select('id')
-              .eq('device_hash', deviceHash)
-              .ilike('contact_info', '%Captura Silenciosa%')
-              .limit(1);
+        // Deduplicate ONLY double-clicks/double-calls within the last 10 seconds for the SAME contact and device
+        const tenSecondsAgo = new Date(Date.now() - 10 * 1000).toISOString();
+        const { data: recentSameClick } = await supabase
+          .from('visitor_leads')
+          .select('id, ip_address')
+          .eq('contact_info', trimmedContact)
+          .gte('created_at', tenSecondsAgo)
+          .order('created_at', { ascending: false })
+          .limit(1);
 
-            if (existingDevice && existingDevice.length > 0) {
-              await supabase
-                .from('visitor_leads')
-                .update({
-                  country_code: countryCode || '',
-                  created_at: new Date().toISOString()
-                })
-                .eq('id', existingDevice[0].id);
-              return { success: true, updated: true };
-            }
-          }
-        } else {
-          const { data: existing } = await supabase
+        if (recentSameClick && recentSameClick.length > 0) {
+          // Double-call within 10s: Update IP/country of existing row instead of inserting duplicate
+          await supabase
             .from('visitor_leads')
-            .select('id, country_code')
-            .eq('contact_info', trimmedContact)
-            .order('created_at', { ascending: false })
-            .limit(1);
-
-          if (existing && existing.length > 0) {
-            await supabase
-              .from('visitor_leads')
-              .update({
-                country_code: countryCode || existing[0].country_code || '',
-                device_hash: deviceHash || undefined,
-                created_at: new Date().toISOString()
-              })
-              .eq('id', existing[0].id);
-            return { success: true, updated: true };
-          }
+            .update({
+              country_code: countryCode || undefined,
+              device_hash: deviceHash || undefined
+            })
+            .eq('id', recentSameClick[0].id);
+          return { success: true, updated: true };
         }
 
+        // Insert new clean lead entry for every new visit/entry
         const leadObj = {
           id: `lead_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
           contact_info: trimmedContact,
@@ -456,15 +436,13 @@ export const api = {
     }
   },
 
-  async getVisitorLeads(): Promise<VisitorLead[]> {
+    async getVisitorLeads(): Promise<VisitorLead[]> {
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
     if (isSupabaseConfigured()) {
       try {
-        // 1. Purga automática de registros de más de 24 horas en Supabase
         await supabase.from('visitor_leads').delete().lt('created_at', oneDayAgo);
 
-        // 2. Consulta directa de registros de las últimas 24 horas ordenados por fecha descendente sin el tope de 1000
         const { data, error } = await supabase
           .from('visitor_leads')
           .select('*')
@@ -473,47 +451,26 @@ export const api = {
           .limit(50000);
 
         if (!error && data) {
-          const seenKeys = new Set<string>();
-          const uniqueLeads: VisitorLead[] = [];
-
-          for (const row of data) {
-            const contactStr = (row.contact_info || '').trim();
-            const isSilent = contactStr.includes('Captura Silenciosa');
-            const key = isSilent ? (row.device_hash || row.ip_address || row.id) : contactStr.toLowerCase();
-
-            if (key && !seenKeys.has(key)) {
-              seenKeys.add(key);
-              uniqueLeads.push({
-                id: row.id,
-                contactInfo: row.contact_info || '',
-                countryCode: row.country_code || '',
-                deviceHash: row.device_hash || '',
-                createdAt: row.created_at || new Date().toISOString(),
-                ip: row.ip_address || row.ip || '',
-                vpnStatus: row.vpn_status || 'normal'
-              });
-            }
-          }
-          return uniqueLeads;
+          return data.map((row: any) => ({
+            id: row.id,
+            contactInfo: row.contact_info || '',
+            countryCode: row.country_code || '',
+            deviceHash: row.device_hash || '',
+            createdAt: row.created_at || new Date().toISOString(),
+            ip: row.ip_address || row.ip || '',
+            vpnStatus: row.vpn_status || 'normal'
+          }));
         }
       } catch (err) {
-        console.warn('Supabase fetch visitor_leads error:', err);
+        console.warn('Supabase visitor_leads fetch error:', err);
       }
     }
 
     try {
       const res = await fetch('/api/visitor-leads');
-      if (res.ok) {
-        const list: VisitorLead[] = await res.json();
-        if (Array.isArray(list)) {
-          const oneDayAgoMs = Date.now() - 24 * 60 * 60 * 1000;
-          return list.filter(lead => {
-            const time = new Date(lead.createdAt || (lead as any).created_at).getTime();
-            return isNaN(time) || time >= oneDayAgoMs;
-          });
-        }
-      }
+      if (res.ok) return await res.json();
     } catch {}
+
     return [];
   },
 
