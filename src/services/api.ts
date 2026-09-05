@@ -120,24 +120,29 @@ export const api = {
 
   // 3. Media Items
   async saveMediaItem(item: MediaItem): Promise<MediaItem> {
+    const itemToSave = {
+      ...item,
+      createdAt: item.createdAt || new Date().toISOString()
+    };
     if (isSupabaseConfigured()) {
       try {
         await supabase.from('media_items').upsert({
-          id: item.id,
-          creator_id: item.creatorId || 'creator_1',
-          creator_handle: item.creatorHandle,
-          title: item.title,
-          description: item.description,
-          type: item.type,
-          price: item.price,
-          currency: item.currency,
-          preview_url: item.previewUrl,
-          content_url: item.downloadUrl,
-          file_size: item.fileSize,
-          duration: item.duration,
-          sales_count: item.purchasesCount || 0,
-            is_extra_premium: Boolean(item.isExtraPremium),
-          data: { ...item, isExtraPremium: Boolean(item.isExtraPremium) }
+          id: itemToSave.id,
+          creator_id: itemToSave.creatorId || 'creator_1',
+          creator_handle: itemToSave.creatorHandle,
+          title: itemToSave.title,
+          description: itemToSave.description,
+          type: itemToSave.type,
+          price: itemToSave.price,
+          currency: itemToSave.currency,
+          preview_url: itemToSave.previewUrl,
+          content_url: itemToSave.downloadUrl,
+          file_size: itemToSave.fileSize,
+          duration: itemToSave.duration,
+          sales_count: itemToSave.purchasesCount || 0,
+          created_at: itemToSave.createdAt,
+          is_extra_premium: Boolean(itemToSave.isExtraPremium),
+          data: { ...itemToSave, isExtraPremium: Boolean(itemToSave.isExtraPremium) }
         });
       } catch (err) {
         console.warn('Supabase sync warning:', err);
@@ -147,7 +152,7 @@ export const api = {
     const res = await fetch('/api/media', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(item)
+      body: JSON.stringify(itemToSave)
     });
     const data = await res.json();
     return data.item;

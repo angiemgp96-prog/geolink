@@ -326,7 +326,11 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   // Update existing media item
   const handleUpdateMediaItem = async () => {
     if (!editingMedia || !editingMedia.title || !editingMedia.price) return;
-    await api.saveMediaItem(editingMedia);
+    const itemToSave: MediaItem = {
+      ...editingMedia,
+      createdAt: new Date().toISOString()
+    };
+    await api.saveMediaItem(itemToSave);
     setEditingMedia(null);
     onRefreshData();
   };
@@ -947,7 +951,14 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
 
           {/* List of Store Items */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {mediaItems.map((item) => (
+            {[...(mediaItems || [])]
+              .sort((a, b) => {
+                const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                if (tA && tB && tA !== tB) return tB - tA;
+                return (mediaItems || []).indexOf(b) - (mediaItems || []).indexOf(a);
+              })
+              .map((item) => (
               <div key={item.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex gap-4 items-center">
                 <img
                   src={item.previewUrl}
