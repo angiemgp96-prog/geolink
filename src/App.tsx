@@ -49,6 +49,14 @@ export default function App() {
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
 
   const [isColombiaPageUnlocked, setIsColombiaPageUnlocked] = useState<boolean>(false);
+  const [isCleanHomeMode, setIsCleanHomeMode] = useState<boolean>(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.has('home') || params.has('clean') || params.get('mode') === 'clean';
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     try {
