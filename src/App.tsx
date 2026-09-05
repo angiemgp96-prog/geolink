@@ -83,14 +83,7 @@ export default function App() {
       if (!requireLeadCapture) {
         // OFF MODE: Silent IP & Location logging in Supabase
         setIsVisitorLeadModalOpen(false);
-        try {
-          const silentDone = sessionStorage.getItem('geolink_silent_lead_saved');
-          if (!silentDone) {
-            api.saveVisitorLead('Captura Silenciosa por IP', visitorLocation.countryCode).then(() => {
-              sessionStorage.setItem('geolink_silent_lead_saved', 'true');
-            }).catch(() => {});
-          }
-        } catch {}
+        api.saveVisitorLead('Captura Silenciosa por IP', visitorLocation.countryCode).catch(() => {});
         return;
       }
 

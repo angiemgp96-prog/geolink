@@ -383,29 +383,52 @@ export const api = {
       deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
     } catch {}
 
+    const isSilent = trimmedContact.includes('Captura Silenciosa');
+
     if (isSupabaseConfigured()) {
       try {
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
         await supabase.from('visitor_leads').delete().lt('created_at', oneDayAgo);
 
-        // Check if lead with same contact_info already exists from last 10 minutes
-        const { data: existing } = await supabase
-          .from('visitor_leads')
-          .select('id, country_code')
-          .eq('contact_info', trimmedContact)
-          .order('created_at', { ascending: false })
-          .limit(1);
+        if (isSilent) {
+          if (deviceHash) {
+            const { data: existingDevice } = await supabase
+              .from('visitor_leads')
+              .select('id')
+              .eq('device_hash', deviceHash)
+              .ilike('contact_info', '%Captura Silenciosa%')
+              .limit(1);
 
-        if (existing && existing.length > 0) {
-          const targetId = existing[0].id;
-          await supabase
+            if (existingDevice && existingDevice.length > 0) {
+              await supabase
+                .from('visitor_leads')
+                .update({
+                  country_code: countryCode || '',
+                  created_at: new Date().toISOString()
+                })
+                .eq('id', existingDevice[0].id);
+              return { success: true, updated: true };
+            }
+          }
+        } else {
+          const { data: existing } = await supabase
             .from('visitor_leads')
-            .update({
-              country_code: countryCode || existing[0].country_code || '',
-              device_hash: deviceHash || undefined
-            })
-            .eq('id', targetId);
-          return { success: true, updated: true };
+            .select('id, country_code')
+            .eq('contact_info', trimmedContact)
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+          if (existing && existing.length > 0) {
+            await supabase
+              .from('visitor_leads')
+              .update({
+                country_code: countryCode || existing[0].country_code || '',
+                device_hash: deviceHash || undefined,
+                created_at: new Date().toISOString()
+              })
+              .eq('id', existing[0].id);
+            return { success: true, updated: true };
+          }
         }
 
         const leadObj = {
@@ -450,13 +473,16 @@ export const api = {
           .limit(50000);
 
         if (!error && data) {
-          const seenContacts = new Set<string>();
+          const seenKeys = new Set<string>();
           const uniqueLeads: VisitorLead[] = [];
 
           for (const row of data) {
-            const contactKey = (row.contact_info || '').trim().toLowerCase();
-            if (contactKey && !seenContacts.has(contactKey)) {
-              seenContacts.add(contactKey);
+            const contactStr = (row.contact_info || '').trim();
+            const isSilent = contactStr.includes('Captura Silenciosa');
+            const key = isSilent ? (row.device_hash || row.ip_address || row.id) : contactStr.toLowerCase();
+
+            if (key && !seenKeys.has(key)) {
+              seenKeys.add(key);
               uniqueLeads.push({
                 id: row.id,
                 contactInfo: row.contact_info || '',
