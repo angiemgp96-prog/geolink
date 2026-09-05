@@ -151,7 +151,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-indigo-900/30 via-purple-900/20 to-transparent blur-3xl pointer-events-none" />
 
       {/* HEADER BANNER CON ONLYFANS FLOTANTE */}
-      <div className="relative h-44 sm:h-52 md:h-60 overflow-hidden">
+      <div className="relative h-28 sm:h-52 md:h-60 overflow-hidden">
         <img
           src={creator.banner}
           alt={creator.name}
@@ -166,7 +166,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             href="https://onlyfans.com/angelinax69"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center justify-center gap-2.5 py-2.5 px-5 sm:px-6 rounded-full bg-[#00AFF0]/95 hover:bg-[#00AFF0] text-white font-black text-xs sm:text-sm shadow-xl shadow-[#00AFF0]/50 border-2 border-white/50 backdrop-blur-md transition-all hover:scale-105 cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center justify-center gap-1.5 py-1.5 px-3.5 sm:py-2.5 sm:px-6 rounded-full bg-[#00AFF0]/95 hover:bg-[#00AFF0] text-white font-black text-[10px] sm:text-xs shadow-xl shadow-[#00AFF0]/50 border border-white/50 backdrop-blur-md transition-all hover:scale-105 cursor-pointer whitespace-nowrap"
           >
             <Flame className="w-4.5 h-4.5 text-amber-300 fill-amber-300 animate-pulse" />
             <span>OnlyFans Oficial 🔥 (@angelinax69)</span>
@@ -176,8 +176,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
       </div>
 
       {/* CONTAINER PRINCIPAL (PRIORIDAD TIENDA AL INICIAR) */}
-      <div className="max-w-3xl mx-auto px-3 sm:px-6 relative z-10 -mt-16 sm:-mt-20">
-        <div className="bg-slate-950/85 backdrop-blur-xl border border-white/10 rounded-3xl p-4 sm:p-6 text-center space-y-4 shadow-2xl">
+      <div className="max-w-3xl mx-auto px-2.5 sm:px-6 relative z-10 -mt-10 sm:-mt-20">
+        <div className="bg-slate-950/85 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-3xl p-2.5 sm:p-6 text-center space-y-2 sm:space-y-4 shadow-2xl">
           
           {/* Selector de Idioma */}
           <div className="flex justify-end">
@@ -196,7 +196,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
           </div>
 
           {/* Avatar creador */}
-          <div className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 rounded-full p-1 bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-xl shadow-indigo-500/20 -mt-16 sm:-mt-20">
+          <div className="relative mx-auto w-14 h-14 sm:w-28 sm:h-28 rounded-full p-0.5 sm:p-1 bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-xl shadow-indigo-500/20 -mt-10 sm:-mt-20">
             <img
               src={creator.avatar}
               alt={creator.name}
@@ -211,7 +211,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
           {/* Nombre & Handle */}
           <div>
-            <div className="flex items-center justify-center gap-1.5 text-xl sm:text-2xl font-black text-white">
+            <div className="flex items-center justify-center gap-1 text-base sm:text-2xl font-black text-white">
               <span>{creator.name}</span>
               <CheckCircle2 className="w-5 h-5 text-indigo-400 shrink-0 fill-indigo-400/20" />
             </div>
@@ -219,7 +219,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
           </div>
 
           {/* Bio */}
-          <p className="text-xs sm:text-sm text-zinc-300 max-w-lg mx-auto leading-relaxed">
+          <p className="text-[10px] sm:text-sm text-zinc-300 max-w-lg mx-auto leading-tight line-clamp-1 sm:line-clamp-none">
             {creator.bio}
           </p>
 
@@ -231,7 +231,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               href="https://t.me/Angelinaguzman69"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-sky-950/80 border border-sky-500/60 hover:bg-sky-900/80 hover:border-sky-400 text-sky-300 font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg shadow-sky-500/20 hover:scale-105 cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-5 sm:py-3 rounded-full bg-sky-950/80 border border-sky-500/60 hover:bg-sky-900/80 hover:border-sky-400 text-sky-300 font-extrabold text-[10px] sm:text-xs uppercase tracking-wider transition-all shadow-lg shadow-sky-500/20 hover:scale-105 cursor-pointer"
             >
               <Send className="w-4 h-4 text-sky-400" />
               <span>CONTACTO DIRECTO TELEGRAM VIP</span>
@@ -243,7 +243,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               href="https://t.me/+vREXeP2U7Kw3ZTJh"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg shadow-rose-600/30 hover:scale-105 cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:px-6 sm:py-3 rounded-full bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-extrabold text-[10px] sm:text-xs uppercase tracking-wider transition-all shadow-lg shadow-rose-600/30 hover:scale-105 cursor-pointer"
             >
               <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
               <Flame className="w-4 h-4 text-amber-300 fill-amber-300" />
@@ -259,7 +259,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                 <button
                   id="desbloquear-todo-button"
                   onClick={() => onOpenPurchaseModal(fullAccessItem)}
-                  className="w-full py-3.5 px-4 sm:px-5 rounded-2xl bg-gradient-to-r from-amber-500 via-pink-600 to-purple-700 hover:from-amber-400 hover:to-purple-600 text-white font-black text-xs sm:text-sm shadow-xl shadow-purple-900/40 border-2 border-amber-300/50 flex items-center justify-between transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-[1.01] cursor-pointer group"
+                  className="w-full py-2 sm:py-3.5 px-2.5 sm:px-5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-500 via-pink-600 to-purple-700 hover:from-amber-400 hover:to-purple-600 text-white font-black text-[10px] sm:text-sm shadow-xl shadow-purple-900/40 border sm:border-2 border-amber-300/50 flex items-center justify-between transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-[1.01] cursor-pointer group"
                 >
                   <div className="flex items-center gap-2.5 text-left">
                     <div className="w-9 h-9 rounded-xl bg-amber-400 text-slate-950 font-black text-base flex items-center justify-center shrink-0 shadow-md">
