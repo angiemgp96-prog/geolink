@@ -1924,14 +1924,26 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                           )}
                         </td>
                         <td className="p-3">
-                          <a
-                            href={contactStr.startsWith('@') ? `https://t.me/${contactStr.replace('@', '')}` : `https://wa.me/${contactStr.replace(/[^0-9]/g, '')}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 font-bold border border-emerald-500/40 inline-flex items-center gap-1"
-                          >
-                            <Send className="w-3 h-3" /> Contactar
-                          </a>
+                          {(() => {
+                            const cleanContact = (contactStr || '').trim();
+                            let telegramUrl = 'https://t.me/Angelinaguzman69';
+                            if (cleanContact.startsWith('@')) {
+                              telegramUrl = `https://t.me/${cleanContact.replace('@', '')}`;
+                            } else if (cleanContact) {
+                              const cleanDigits = cleanContact.replace(/[^0-9]/g, '');
+                              telegramUrl = cleanDigits ? `https://t.me/+${cleanDigits}` : `https://t.me/${cleanContact}`;
+                            }
+                            return (
+                              <a
+                                href={telegramUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-2.5 py-1 rounded-lg bg-sky-950/80 hover:bg-sky-900/80 text-sky-300 font-bold border border-sky-500/40 inline-flex items-center gap-1 cursor-pointer transition-all shadow shadow-sky-500/20"
+                              >
+                                <Send className="w-3 h-3 text-sky-400" /> Contactar
+                              </a>
+                            );
+                          })()}
                         </td>
                       </tr>
                     );

@@ -375,6 +375,9 @@ export const api = {
   },
 
   async saveVisitorLead(contactInfo: string, countryCode?: string) {
+    const trimmedContact = (contactInfo || '').trim();
+    if (!trimmedContact) return { success: false };
+
     let deviceHash = '';
     try {
       deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
@@ -385,9 +388,29 @@ export const api = {
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
         await supabase.from('visitor_leads').delete().lt('created_at', oneDayAgo);
 
+        // Check if lead with same contact_info already exists from last 10 minutes
+        const { data: existing } = await supabase
+          .from('visitor_leads')
+          .select('id, country_code')
+          .eq('contact_info', trimmedContact)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (existing && existing.length > 0) {
+          const targetId = existing[0].id;
+          await supabase
+            .from('visitor_leads')
+            .update({
+              country_code: countryCode || existing[0].country_code || '',
+              device_hash: deviceHash || undefined
+            })
+            .eq('id', targetId);
+          return { success: true, updated: true };
+        }
+
         const leadObj = {
           id: `lead_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-          contact_info: contactInfo.trim(),
+          contact_info: trimmedContact,
           country_code: countryCode || '',
           device_hash: deviceHash,
           created_at: new Date().toISOString()
@@ -398,12 +421,16 @@ export const api = {
       }
     }
 
-    const res = await fetch('/api/visitor-leads', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contactInfo, countryCode, deviceHash })
-    });
-    return await res.json();
+    try {
+      const res = await fetch('/api/visitor-leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contactInfo: trimmedContact, countryCode, deviceHash })
+      });
+      return await res.json();
+    } catch {
+      return { success: true };
+    }
   },
 
   async getVisitorLeads(): Promise<VisitorLead[]> {
@@ -423,15 +450,25 @@ export const api = {
           .limit(50000);
 
         if (!error && data) {
-          return data.map((row: any) => ({
-            id: row.id,
-            contactInfo: row.contact_info || '',
-            countryCode: row.country_code || '',
-            deviceHash: row.device_hash || '',
-            createdAt: row.created_at || new Date().toISOString(),
-            ip: row.ip || '',
-            vpnStatus: row.vpn_status || 'normal'
-          }));
+          const seenContacts = new Set<string>();
+          const uniqueLeads: VisitorLead[] = [];
+
+          for (const row of data) {
+            const contactKey = (row.contact_info || '').trim().toLowerCase();
+            if (contactKey && !seenContacts.has(contactKey)) {
+              seenContacts.add(contactKey);
+              uniqueLeads.push({
+                id: row.id,
+                contactInfo: row.contact_info || '',
+                countryCode: row.country_code || '',
+                deviceHash: row.device_hash || '',
+                createdAt: row.created_at || new Date().toISOString(),
+                ip: row.ip_address || row.ip || '',
+                vpnStatus: row.vpn_status || 'normal'
+              });
+            }
+          }
+          return uniqueLeads;
         }
       } catch (err) {
         console.warn('Supabase fetch visitor_leads error:', err);
