@@ -95,7 +95,7 @@ export const INITIAL_MEDIA_ITEMS: MediaItem[] = [
     duration: '15:20 min',
     purchasesCount: 84,
     isFeatured: true,
-    createdAt: new Date().toISOString()
+    createdAt: new Date(Date.now() - 86400000 * 3).toISOString()
   },
   {
     id: 'media_102',
@@ -112,7 +112,7 @@ export const INITIAL_MEDIA_ITEMS: MediaItem[] = [
     itemCount: 35,
     purchasesCount: 142,
     isFeatured: true,
-    createdAt: new Date().toISOString()
+    createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
   },
   {
     id: 'media_103',
@@ -129,7 +129,7 @@ export const INITIAL_MEDIA_ITEMS: MediaItem[] = [
     duration: '22:10 min',
     itemCount: 2,
     purchasesCount: 57,
-    createdAt: new Date().toISOString()
+    createdAt: new Date(Date.now() - 86400000 * 1).toISOString()
   },
   {
     id: 'media_201',
@@ -145,6 +145,6 @@ export const INITIAL_MEDIA_ITEMS: MediaItem[] = [
     fileSize: '850 MB',
     duration: '28:45 min',
     purchasesCount: 39,
-    createdAt: new Date().toISOString()
+    createdAt: new Date(Date.now() - 86400000 * 1).toISOString()
   }
 ];

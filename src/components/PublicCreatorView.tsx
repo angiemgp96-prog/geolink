@@ -108,14 +108,13 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  // Ordenar estrictamente todos los ítems del más reciente al más antiguo
+  // Ordenar estrictamente todos los ítems del más reciente al más antiguo (creación o edición)
   const sortedAllItems = [...mediaItems]
     .filter((item) => item.id !== 'acceso_full_cat_actual')
     .sort((a, b) => {
       const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      if (tA && tB && tA !== tB) return tB - tA;
-      return mediaItems.indexOf(b) - mediaItems.indexOf(a);
+      return tB - tA;
     });
 
   const latest2VideoIds = sortedAllItems

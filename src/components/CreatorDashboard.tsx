@@ -955,8 +955,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
               .sort((a, b) => {
                 const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
                 const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-                if (tA && tB && tA !== tB) return tB - tA;
-                return (mediaItems || []).indexOf(b) - (mediaItems || []).indexOf(a);
+                return tB - tA;
               })
               .map((item) => (
               <div key={item.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex gap-4 items-center">
