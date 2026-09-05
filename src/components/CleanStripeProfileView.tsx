@@ -68,7 +68,7 @@ export const CleanStripeProfileView: React.FC<CleanStripeProfileViewProps> = ({ 
       {/* Banner Principal Clean */}
       <div className="relative h-64 sm:h-80 w-full overflow-hidden bg-slate-900 border-b border-white/10">
         <img
-          src={creator.banner || 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=1600&q=80'}
+          src="https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=1600&q=80"
           alt={creator.name}
           className="w-full h-full object-cover opacity-60"
         />
@@ -79,7 +79,7 @@ export const CleanStripeProfileView: React.FC<CleanStripeProfileViewProps> = ({ 
       <div className="max-w-4xl mx-auto px-4 -mt-20 relative z-10 space-y-6 text-center">
         <div className="inline-block relative">
           <img
-            src={creator.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'}
+            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80"
             alt={creator.name}
             className="w-32 h-32 rounded-full border-4 border-[#090d16] shadow-2xl object-cover mx-auto"
           />
