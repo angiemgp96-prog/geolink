@@ -13,6 +13,10 @@ export interface Translations {
   continueBtn: string;
   encryptedNotice: string;
 
+  // Telegram Buttons
+  telegramDirectContact: string;
+  telegramHotGroup: string;
+
   // Store & Profile
   fullAccessTitle: string;
   fullAccessDesc: string;
@@ -33,6 +37,10 @@ export interface Translations {
   durationLabel: string;
   fileSizeLabel: string;
   purchasesCountLabel: string;
+  viewTelegramBtn: string;
+  unlockBtn: string;
+  unlockedBadge: string;
+  newBadge: string;
 }
 
 export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
@@ -49,8 +57,11 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     continueBtn: 'Continuar al Perfil VIP ⚡',
     encryptedNotice: 'Acceso Privado Encriptado · Privacidad Garantizada',
 
-    fullAccessTitle: 'Acceso Full — Catálogo Actual',
-    fullAccessDesc: 'Desbloquea instantáneamente todas las fotos y videos publicados hasta la fecha (No incluye contenidos etiquetados como Extra Premium ✨, los cuales son adicionales).',
+    telegramDirectContact: 'CONTACTO DIRECTO TELEGRAM VIP',
+    telegramHotGroup: 'GRUPO HOT TELEGRAM',
+
+    fullAccessTitle: '👑 DESBLOQUEAR TODO EL CATÁLOGO',
+    fullAccessDesc: 'Acceso instantáneo a fotos y videos sin censura (NO INCLUYE CONTENIDOS EXTRA PREMIUM)',
     fullAccessBtn: 'Desbloquear Todo por',
     storeSectionTitle: 'Tienda Exclusiva',
     storeSectionSub: 'Fotos & Videos Desbloqueables',
@@ -67,6 +78,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     durationLabel: 'Duración',
     fileSizeLabel: 'Peso',
     purchasesCountLabel: 'Compras',
+    viewTelegramBtn: 'Ver en Telegram 🚀',
+    unlockBtn: 'Desbloquear',
+    unlockedBadge: '¡DESBLOQUEADO!',
+    newBadge: '¡NUEVO!',
   },
   en: {
     vipBadge: 'Exclusive VIP Profile',
@@ -81,8 +96,11 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     continueBtn: 'Continue to VIP Profile ⚡',
     encryptedNotice: 'Encrypted Private Access · Guaranteed Privacy',
 
-    fullAccessTitle: 'Full Access — Current Catalog',
-    fullAccessDesc: 'Instantly unlock all photos and videos published to date (Does not include content tagged as Extra Premium ✨, which are separate/additional).',
+    telegramDirectContact: 'VIP TELEGRAM DIRECT CONTACT',
+    telegramHotGroup: 'HOT TELEGRAM GROUP',
+
+    fullAccessTitle: '👑 UNLOCK ENTIRE CATALOG',
+    fullAccessDesc: 'Instant access to uncensored photos and videos (DOES NOT INCLUDE EXTRA PREMIUM CONTENT)',
     fullAccessBtn: 'Unlock Everything for',
     storeSectionTitle: 'Exclusive Store',
     storeSectionSub: 'Unlockable Photos & Videos',
@@ -99,6 +117,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     durationLabel: 'Duration',
     fileSizeLabel: 'Size',
     purchasesCountLabel: 'Sales',
+    viewTelegramBtn: 'View in Telegram 🚀',
+    unlockBtn: 'Unlock',
+    unlockedBadge: 'UNLOCKED!',
+    newBadge: 'NEW!',
   },
   pt: {
     vipBadge: 'Perfil VIP Exclusivo',
@@ -113,8 +135,11 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     continueBtn: 'Continuar para o Perfil VIP ⚡',
     encryptedNotice: 'Acesso Privado Criptografado · Privacidade Garantida',
 
-    fullAccessTitle: 'Acesso Total — Catálogo Atual',
-    fullAccessDesc: 'Desbloqueie instantaneamente todas as fotos e vídeos publicados até a data (Não inclui conteúdos marcados como Extra Premium ✨, que são adicionais).',
+    telegramDirectContact: 'CONTATO DIRETO TELEGRAM VIP',
+    telegramHotGroup: 'GRUPO HOT TELEGRAM',
+
+    fullAccessTitle: '👑 DESBLOQUEAR TODO O CATÁLOGO',
+    fullAccessDesc: 'Acesso instantâneo a fotos e vídeos sem censura (NÃO INCLUI CONTEÚDOS EXTRA PREMIUM)',
     fullAccessBtn: 'Desbloquear Tudo por',
     storeSectionTitle: 'Loja Exclusiva',
     storeSectionSub: 'Fotos e Vídeos Desbloqueáveis',
@@ -131,6 +156,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     durationLabel: 'Duração',
     fileSizeLabel: 'Tamanho',
     purchasesCountLabel: 'Vendas',
+    viewTelegramBtn: 'Ver no Telegram 🚀',
+    unlockBtn: 'Desbloquear',
+    unlockedBadge: 'DESBLOQUEADO!',
+    newBadge: 'NOVO!',
   },
   fr: {
     vipBadge: 'Profil VIP Exclusif',
@@ -145,8 +174,11 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     continueBtn: 'Continuer vers le Profil VIP ⚡',
     encryptedNotice: 'Accès Privé Chiffré · Confidentialité Garantie',
 
-    fullAccessTitle: 'Accès Complet — Catalogue Actuel',
-    fullAccessDesc: 'Débloquez instantanément toutes les photos et vidéos publiées à ce jour (N\'inclut pas les contenus marqués Extra Premium ✨, qui sont additionnels).',
+    telegramDirectContact: 'CONTACT DIRECT TELEGRAM VIP',
+    telegramHotGroup: 'GROUPE HOT TELEGRAM',
+
+    fullAccessTitle: '👑 DÉBLOQUER TOUT LE CATALOGUE',
+    fullAccessDesc: 'Accès instantané aux photos et vidéos non censurées (N\'INCLUT PAS LES CONTENUS EXTRA PREMIUM)',
     fullAccessBtn: 'Tout Débloquer pour',
     storeSectionTitle: 'Boutique Exclusive',
     storeSectionSub: 'Photos & Vidéos Déblocables',
@@ -163,6 +195,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     durationLabel: 'Durée',
     fileSizeLabel: 'Taille',
     purchasesCountLabel: 'Ventes',
+    viewTelegramBtn: 'Voir sur Telegram 🚀',
+    unlockBtn: 'Débloquer',
+    unlockedBadge: 'DÉBLOQUÉ!',
+    newBadge: 'NOUVEAU!',
   },
   de: {
     vipBadge: 'Exklusives VIP-Profil',
@@ -177,8 +213,11 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     continueBtn: 'Weiter zum VIP-Profil ⚡',
     encryptedNotice: 'Verschlüsselter Privater Zugang · Garantie',
 
-    fullAccessTitle: 'Vollzugriff — Aktueller Katalog',
-    fullAccessDesc: 'Schalten Sie sofort alle bisher veröffentlichten Fotos und Videos frei (Enthält keine als Extra Premium ✨ gekennzeichneten Inhalte, diese sind separat).',
+    telegramDirectContact: 'VIP TELEGRAM DIREKTKONTAKT',
+    telegramHotGroup: 'HOT TELEGRAM GRUPPE',
+
+    fullAccessTitle: '👑 GESAMTEN KATALOG FREISCHALTEN',
+    fullAccessDesc: 'Sofortiger Zugriff auf unzensierte Fotos und Videos (ENTHÄLT KEINE EXTRA PREMIUM INHALTE)',
     fullAccessBtn: 'Alles Freischalten für',
     storeSectionTitle: 'Exklusiver Shop',
     storeSectionSub: 'Freischaltbare Fotos & Videos',
@@ -195,6 +234,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     durationLabel: 'Dauer',
     fileSizeLabel: 'Größe',
     purchasesCountLabel: 'Käufe',
+    viewTelegramBtn: 'Auf Telegram ansehen 🚀',
+    unlockBtn: 'Freischalten',
+    unlockedBadge: 'FREIGESCHALTET!',
+    newBadge: 'NEU!',
   },
   it: {
     vipBadge: 'Profilo VIP Esclusivo',
@@ -209,8 +252,11 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     continueBtn: 'Continua al Profilo VIP ⚡',
     encryptedNotice: 'Accesso Privato Crittografato · Privacy Garantita',
 
-    fullAccessTitle: 'Accesso Completo — Catalogo Attuale',
-    fullAccessDesc: 'Sblocca all\'istante tutte le foto e i video pubblicati fino ad oggi (Non include i contenuti contrassegnati come Extra Premium ✨, che sono aggiuntivi).',
+    telegramDirectContact: 'CONTATTO DIRETTO TELEGRAM VIP',
+    telegramHotGroup: 'GRUPPO HOT TELEGRAM',
+
+    fullAccessTitle: '👑 SBLOCCA L\'INTERO CATALOGO',
+    fullAccessDesc: 'Accesso istantaneo a foto e video senza censura (NON INCLUDE CONTENUTI EXTRA PREMIUM)',
     fullAccessBtn: 'Sblocca Tutto per',
     storeSectionTitle: 'Negozio Esclusivo',
     storeSectionSub: 'Foto & Video Sbloccabili',
@@ -227,6 +273,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     durationLabel: 'Durata',
     fileSizeLabel: 'Dimensione',
     purchasesCountLabel: 'Vendite',
+    viewTelegramBtn: 'Vedi su Telegram 🚀',
+    unlockBtn: 'Sblocca',
+    unlockedBadge: 'SBLOCCATO!',
+    newBadge: 'NUOVO!',
   }
 };
 

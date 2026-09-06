@@ -101,14 +101,6 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     return isColombia ? Math.round(rawDiscountedBase * activeMult) : rawDiscountedBase;
   };
 
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsPageLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Ordenar estrictamente todos los ítems del más reciente al más antiguo (creación o edición)
   const sortedAllItems = [...mediaItems]
     .filter((item) => item.id !== 'acceso_full_cat_actual')
     .sort((a, b) => {
@@ -132,40 +124,58 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     id: 'acceso_full_cat_actual',
     creatorId: creator.id,
     creatorHandle: creator.handle,
-    title: t.fullAccessTitle || 'Acceso Full — Catálogo Actual',
-    description: 'Desbloquea instantáneamente todas las fotos y videos publicados hasta la fecha (No incluye contenidos etiquetados como Extra Premium ✨).',
+    title: t.fullAccessTitle,
+    description: t.fullAccessDesc,
     type: 'bundle',
     price: fullAccessBasePrice,
     currency: 'USD',
-    previewUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
-    downloadUrl: '',
-    fileSize: 'Todas las Galerías',
-    duration: 'VIP Pass',
-    purchasesCount: 99
+    previewUrl: creator.avatar,
+    downloadUrl: creator.avatar,
+    fileSize: 'COMPLETO',
+    duration: 'ILIMITADO',
+    purchasesCount: 950,
+    isFeatured: true,
+    createdAt: new Date().toISOString(),
   };
 
-  return (
-    <div className="min-h-screen bg-[#030712] text-zinc-100 font-sans pb-24 relative overflow-hidden selection:bg-indigo-500 selection:text-white">
-      {/* Background Glows */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-indigo-900/30 via-purple-900/20 to-transparent blur-3xl pointer-events-none" />
+  if (isPageLoading) {
+    return (
+      <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center p-4">
+        <div className="relative w-20 h-20 mb-6">
+          <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20 animate-ping" />
+          <div className="absolute inset-0 rounded-full border-4 border-t-indigo-500 border-r-purple-500 border-b-pink-500 border-l-amber-500 animate-spin" />
+          <div className="absolute inset-2 rounded-full bg-slate-900 flex items-center justify-center">
+            <Sparkles className="w-6 h-6 text-amber-400 animate-pulse" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-white font-extrabold text-lg tracking-wider">
+          <span>GEOLINK</span>
+          <span className="text-xs bg-indigo-600 text-white font-black px-2 py-0.5 rounded-full">VIP</span>
+        </div>
+        <p className="text-xs text-indigo-300/70 font-medium mt-1">Cargando perfil exclusivo y tienda digital...</p>
+      </div>
+    );
+  }
 
-      {/* HEADER BANNER CON ONLYFANS FLOTANTE */}
-      <div className="relative h-28 sm:h-52 md:h-60 overflow-hidden">
+  return (
+    <div className="min-h-screen bg-[#030712] text-zinc-100 font-sans pb-24 selection:bg-indigo-500 selection:text-white">
+      {/* HEADER BANNER TOP */}
+      <div className="relative h-44 sm:h-72 w-full overflow-hidden bg-slate-900">
         <img
           src={creator.banner}
           alt={creator.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover opacity-60 scale-105 transition-transform duration-1000 hover:scale-100"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-[#030712]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-[#030712]" />
 
-        {/* 1. ONLYFANS CENTRADO FLOTANTE SOBRE LA FOTO DE PORTADA SUPERIOR */}
-        <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-20 w-auto">
+        {/* Top Banner OnlyFans Link */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20">
           <a
-            id="onlyfans-header-badge"
+            id="onlyfans-top-banner-link"
             href="https://onlyfans.com/angelinax69"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center justify-center gap-1.5 py-1.5 px-3.5 sm:py-2.5 sm:px-6 rounded-full bg-[#00AFF0]/95 hover:bg-[#00AFF0] text-white font-black text-[10px] sm:text-xs shadow-xl shadow-[#00AFF0]/50 border border-white/50 backdrop-blur-md transition-all hover:scale-105 cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-sky-500/30 transition-all hover:scale-105 border border-sky-300/40"
           >
             <Flame className="w-4.5 h-4.5 text-amber-300 fill-amber-300 animate-pulse" />
             <span>OnlyFans Oficial 🔥 (@angelinax69)</span>
@@ -233,7 +243,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-5 sm:py-3 rounded-full bg-sky-950/80 border border-sky-500/60 hover:bg-sky-900/80 hover:border-sky-400 text-sky-300 font-extrabold text-[10px] sm:text-xs uppercase tracking-wider transition-all shadow-lg shadow-sky-500/20 hover:scale-105 cursor-pointer"
             >
               <Send className="w-4 h-4 text-sky-400" />
-              <span>CONTACTO DIRECTO TELEGRAM VIP</span>
+              <span>{t.telegramDirectContact}</span>
             </a>
 
             {/* Botón 2: Grupo Hot Telegram */}
@@ -246,7 +256,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             >
               <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
               <Flame className="w-4 h-4 text-amber-300 fill-amber-300" />
-              <span>GRUPO HOT TELEGRAM</span>
+              <span>{t.telegramHotGroup}</span>
             </a>
           </div>
 
@@ -265,7 +275,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                     <div className="w-full">
                       <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5">
                         <span className="font-black text-white uppercase tracking-wide text-[11px] sm:text-sm">
-                          👑 DESBLOQUEAR TODO EL CATÁLOGO — ({formattedDisplayPrice})
+                          {t.fullAccessTitle} — ({formattedDisplayPrice})
                         </span>
                         {fullPrices.hasDiscount && (
                           <span className="bg-rose-500/30 text-amber-200 border border-amber-400/50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black">
@@ -274,7 +284,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                         )}
                       </div>
                       <p className="text-[10px] text-amber-100/90 font-medium mt-0.5 leading-snug">
-                        Acceso instantáneo a fotos y videos sin censura (NO INCLUYE CONTENIDOS EXTRA PREMIUM)
+                        {t.fullAccessDesc}
                       </p>
                     </div>
 
@@ -297,9 +307,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             <div>
               <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-indigo-400" />
-                <span>Tienda Exclusiva</span>
+                <span>{t.storeSectionTitle}</span>
               </h2>
-              <p className="text-xs text-zinc-400 mt-0.5">Fotos & Videos Desbloqueables</p>
+              <p className="text-xs text-zinc-400 mt-0.5">{t.storeSectionSub}</p>
             </div>
 
             {/* Filtros */}
@@ -308,19 +318,19 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                 onClick={() => setFilterType('all')}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${filterType === 'all' ? 'bg-indigo-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'}`}
               >
-                Todos ({mediaItems.length - 1})
+                {t.filterAll} ({mediaItems.length - 1})
               </button>
               <button
                 onClick={() => setFilterType('video')}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${filterType === 'video' ? 'bg-indigo-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'}`}
               >
-                Videos
+                {t.filterVideos}
               </button>
               <button
                 onClick={() => setFilterType('photo')}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${filterType === 'photo' ? 'bg-indigo-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'}`}
               >
-                Fotos
+                {t.filterPhotos}
               </button>
             </div>
           </div>
@@ -378,13 +388,13 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       {isUnlocked ? (
                         <span className="bg-sky-500 text-slate-950 text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1">
                           <Send className="w-3 h-3 fill-slate-950" />
-                          <span>¡DESBLOQUEADO!</span>
+                          <span>{t.unlockedBadge}</span>
                         </span>
                       ) : (
                         isLatest && (
                           <span className="bg-gradient-to-r from-rose-600 to-pink-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1 animate-pulse">
                             <Flame className="w-3 h-3 text-amber-300 fill-amber-300" />
-                            <span>¡NUEVO!</span>
+                            <span>{t.newBadge}</span>
                           </span>
                         )
                       )}
@@ -456,12 +466,12 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                         {isUnlocked ? (
                           <>
                             <Send className="w-4 h-4 fill-slate-950" />
-                            <span>Ver en Telegram 🚀</span>
+                            <span>{t.viewTelegramBtn}</span>
                           </>
                         ) : (
                           <>
                             <Lock className="w-4 h-4" />
-                            <span>Desbloquear</span>
+                            <span>{t.unlockBtn}</span>
                           </>
                         )}
                       </button>
