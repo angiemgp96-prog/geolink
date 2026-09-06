@@ -404,20 +404,20 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       )}
                     </div>
 
-                    {/* Lock Overlay with Animated Open Lock & Unlock Badge on Hover */}
+                    {/* Lock Overlay with Animated Open Lock & Unlock Badge on Hover & Mobile */}
                     {!isUnlocked && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center pointer-events-none z-10">
                         <div className="flex flex-col items-center group-hover:scale-105 transition-all duration-300">
-                          <div className="relative w-12 h-12 rounded-2xl bg-indigo-600/40 border border-indigo-400/60 flex items-center justify-center backdrop-blur-md shadow-lg shadow-indigo-600/30 group-hover:bg-gradient-to-br group-hover:from-amber-500/40 group-hover:to-indigo-600/60 group-hover:border-amber-400/80 group-hover:shadow-amber-500/40 transition-all duration-300">
-                            {/* Closed Lock (Default state, shrinks & fades out on hover) */}
-                            <Lock className="w-6 h-6 text-indigo-200 transition-all duration-300 group-hover:opacity-0 group-hover:scale-50 group-hover:-rotate-12 absolute" />
+                          <div className="relative w-12 h-12 rounded-2xl bg-indigo-600/40 border border-indigo-400/60 flex items-center justify-center backdrop-blur-md shadow-lg shadow-indigo-600/30 group-hover:bg-gradient-to-br group-hover:from-amber-500/40 group-hover:to-indigo-600/60 group-hover:border-amber-400/80 group-hover:shadow-amber-500/40 transition-all duration-300 mobile-lock-box">
+                            {/* Closed Lock (Default state, shrinks & fades out on hover/mobile) */}
+                            <Lock className="w-6 h-6 text-indigo-200 transition-all duration-300 group-hover:opacity-0 group-hover:scale-50 group-hover:-rotate-12 absolute mobile-closed-lock" />
                             
-                            {/* Open Lock (Pops open & glows amber on hover) */}
-                            <Unlock className="w-6 h-6 text-amber-300 opacity-0 scale-50 rotate-12 group-hover:opacity-100 group-hover:scale-110 group-hover:rotate-0 transition-all duration-300 ease-out absolute" />
+                            {/* Open Lock (Pops open & glows amber on hover/mobile) */}
+                            <Unlock className="w-6 h-6 text-amber-300 opacity-0 scale-50 rotate-12 group-hover:opacity-100 group-hover:scale-110 group-hover:rotate-0 transition-all duration-300 ease-out absolute mobile-open-lock" />
                           </div>
 
-                          {/* "Unlock" Badge sliding up on hover */}
-                          <span className="mt-2 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-out bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 text-[11px] font-black uppercase px-3 py-1 rounded-full shadow-lg shadow-amber-400/40 tracking-wider border border-amber-200/80 flex items-center gap-1">
+                          {/* "Unlock" Badge sliding up on hover & mobile */}
+                          <span className="mt-2 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-out bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 text-[11px] font-black uppercase px-3 py-1 rounded-full shadow-lg shadow-amber-400/40 tracking-wider border border-amber-200/80 flex items-center gap-1 mobile-unlock-badge">
                             <Unlock className="w-3 h-3 stroke-[2.5]" />
                             <span>Unlock</span>
                           </span>

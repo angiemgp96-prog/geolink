@@ -55,3 +55,85 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
 }
+
+/* Mobile Auto-Play Animation for Lock Overlay (Touch & Mobile Screens) */
+@media (hover: none), (max-width: 640px) {
+  @keyframes mobileBoxGlow {
+    0%, 15% {
+      background-color: rgba(79, 70, 229, 0.4);
+      border-color: rgba(129, 140, 248, 0.6);
+      box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+    }
+    35%, 85% {
+      background-image: linear-gradient(to bottom right, rgba(245, 158, 11, 0.4), rgba(79, 70, 229, 0.6));
+      border-color: rgba(251, 191, 36, 0.8);
+      box-shadow: 0 10px 25px -3px rgba(245, 158, 11, 0.4);
+    }
+    100% {
+      background-color: rgba(79, 70, 229, 0.4);
+      border-color: rgba(129, 140, 248, 0.6);
+      box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+    }
+  }
+
+  @keyframes mobileClosedLockFade {
+    0%, 15% {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+    35%, 85% {
+      opacity: 0;
+      transform: scale(0.5) rotate(-12deg);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+  }
+
+  @keyframes mobileOpenLockPop {
+    0%, 15% {
+      opacity: 0;
+      transform: scale(0.5) rotate(12deg);
+    }
+    35%, 85% {
+      opacity: 1;
+      transform: scale(1.1) rotate(0deg);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.5) rotate(12deg);
+    }
+  }
+
+  @keyframes mobileUnlockBadgeSlide {
+    0%, 20% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    40%, 85% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  .mobile-lock-box {
+    animation: mobileBoxGlow 3.6s ease-in-out infinite !important;
+  }
+
+  .mobile-closed-lock {
+    animation: mobileClosedLockFade 3.6s ease-in-out infinite !important;
+  }
+
+  .mobile-open-lock {
+    animation: mobileOpenLockPop 3.6s ease-in-out infinite !important;
+  }
+
+  .mobile-unlock-badge {
+    animation: mobileUnlockBadgeSlide 3.6s ease-in-out infinite !important;
+  }
+}
