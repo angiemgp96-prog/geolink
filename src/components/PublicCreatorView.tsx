@@ -56,43 +56,43 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   }, []);
 
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
-  const [isScrolling, setIsScrolling] = useState<boolean>(false);
   const cardRefs = React.useRef<Map<string, HTMLDivElement>>(new Map());
-
-  React.useEffect(() => {
-    let scrollTimeout: NodeJS.Timeout;
-    const handleScroll = () => {
-      setIsScrolling(true);
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        setIsScrolling(false);
-      }, 150);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      clearTimeout(scrollTimeout);
-    };
-  }, []);
+  const visibleCardsRef = React.useRef<Set<string>>(new Set());
 
   React.useEffect(() => {
     if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
 
+    visibleCardsRef.current.clear();
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
+          const itemId = entry.target.getAttribute('data-item-id');
+          if (!itemId) return;
+
           if (entry.isIntersecting) {
-            const itemId = entry.target.getAttribute('data-item-id');
-            if (itemId) {
-              setActiveCardId(itemId);
-            }
+            visibleCardsRef.current.add(itemId);
+          } else {
+            visibleCardsRef.current.delete(itemId);
           }
         });
+
+        // Ensure ONLY ONE lock is animated at a time on mobile by picking the first visible card in sequence
+        const visibleList = Array.from(visibleCardsRef.current);
+        if (visibleList.length > 0) {
+          const firstVisible = mediaItems.find((item) => visibleCardsRef.current.has(item.id));
+          if (firstVisible) {
+            setActiveCardId(firstVisible.id);
+          } else {
+            setActiveCardId(visibleList[0]);
+          }
+        } else {
+          setActiveCardId(null);
+        }
       },
       {
-        threshold: 0.6,
-        rootMargin: '-10% 0px -10% 0px'
+        threshold: 0.25,
+        rootMargin: '0px 0px -10% 0px'
       }
     );
 
@@ -405,7 +405,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                 }
               };
 
-              const isMobileFocused = activeCardId === item.id && !isScrolling;
+              const isMobileFocused = activeCardId === item.id;
 
               return (
                 <div
