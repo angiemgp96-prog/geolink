@@ -29,14 +29,18 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   const [visitorCountry, setVisitorCountry] = useState<string>('');
 
   React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  React.useEffect(() => {
     api.getVisitorLocation().then(loc => {
       if (loc && loc.countryCode) {
         setVisitorCountry(loc.countryCode);
-        setLang(detectLanguage(loc.countryCode));
       }
-    }).catch(() => {
-      setLang(detectLanguage());
-    });
+    }).catch(() => {});
   }, []);
 
   const [globalDiscount, setGlobalDiscount] = useState<number>(0);
