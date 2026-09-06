@@ -53,13 +53,14 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   const [paypalUnlockToken, setPaypalUnlockToken] = useState<string | null>(null);
   const [paypalOrderId, setPaypalOrderId]         = useState<string | null>(null);
 
-  // Visibilidad de métodos de pago desde Supabase/API
+  // Visibilidad de métodos de pago desde Supabase/API (Carga asíncrona sin parpadeos)
+  const [isVisibilityLoading, setIsVisibilityLoading] = useState<boolean>(true);
   const [paymentVisibility, setPaymentVisibility] = useState<PaymentMethodsVisibility>({
-    stripe: true,
-    mercadopago: true,
-    paypal: true,
-    paypal_telegram: true,
-    nequi_usa: true,
+    stripe: false,
+    mercadopago: false,
+    paypal: false,
+    paypal_telegram: false,
+    nequi_usa: false,
   });
 
   const [visitorCountry, setVisitorCountry] = useState<string>('');
@@ -132,11 +133,15 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
 
   useEffect(() => {
     if (!item) return;
+    setIsVisibilityLoading(true);
     api.getPaymentMethodsVisibility()
       .then((vis) => {
         if (vis) setPaymentVisibility(vis);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        setIsVisibilityLoading(false);
+      });
   }, [item]);
 
   if (!item) return null;
@@ -350,14 +355,15 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     window.location.href = telegramLink('Nequi Giro USA');
   };
 
-    const isColombiaVisitor = detectedRegion === 'CO';
-  const hasActivePaymentMethods = isColombiaVisitor || (
-    paymentVisibility.stripe !== false ||
-    paymentVisibility.mercadopago ||
-    paymentVisibility.paypal ||
-    paymentVisibility.paypal_telegram ||
-    paymentVisibility.nequi_usa ||
-    ['MX', 'US', 'EU'].includes(detectedRegion)
+  const isColombiaVisitor = detectedRegion === 'CO';
+  const hasActivePaymentMethods = isColombiaVisitor ? (
+    paymentVisibility.mercadopago !== false || paymentVisibility.paypal_telegram !== false
+  ) : (
+    Boolean(paymentVisibility.stripe) ||
+    Boolean(paymentVisibility.mercadopago) ||
+    Boolean(paymentVisibility.paypal) ||
+    Boolean(paymentVisibility.paypal_telegram) ||
+    Boolean(paymentVisibility.nequi_usa)
   );
 
   // ─────────────────────────────────────────────────────────────────
@@ -405,47 +411,47 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
               </div>
             )}
 
-
-
-
-
             <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-3">Selecciona método de pago:</p>
 
-            {(!hasActivePaymentMethods) ? (
+            {isVisibilityLoading ? (
+              <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-400">
+                <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
+                <span className="text-xs font-medium">Verificando opciones disponibles...</span>
+              </div>
+            ) : (!hasActivePaymentMethods) ? (
               <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/30 text-amber-300 text-xs text-center font-medium my-3">
                 ⚠️ No hay métodos de pago habilitados visualmente en este momento.
               </div>
             ) : (
               <div className="space-y-3">
-                {/* 1. COLOMBIA: MERCADO PAGO Y NEQUI SIEMPRE VISIBLES */}
+                {/* 1. COLOMBIA: MERCADO PAGO Y NEQUI VISIBLES SEGÚN CONFIGURACIÓN */}
                 {detectedRegion === 'CO' && (
                   <div className="space-y-3">
                     <p className="text-[11px] font-bold text-sky-400 uppercase tracking-wider mb-1">MÉTODOS DE PAGO COLOMBIA:</p>
                     {paymentVisibility.mercadopago === true && (
-<button
-                      id="pay-mercadopago-button"
-                      disabled={isLoading}
-                      onClick={handleMercadoPagoDirect}
-                      className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-sky-600/20 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group border-2 border-sky-400/50"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇨🇴</div>
-                        <div className="text-left">
-                          <div className="flex items-center gap-1.5">
-                            <span>Mercado Pago Colombia</span>
-                            <span className="bg-sky-400/20 text-sky-200 border border-sky-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">RECOMENDADO</span>
+                      <button
+                        id="pay-mercadopago-button"
+                        disabled={isLoading}
+                        onClick={handleMercadoPagoDirect}
+                        className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-sky-600/20 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group border-2 border-sky-400/50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇨🇴</div>
+                          <div className="text-left">
+                            <div className="flex items-center gap-1.5">
+                              <span>Mercado Pago Colombia</span>
+                              <span className="bg-sky-400/20 text-sky-200 border border-sky-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">RECOMENDADO</span>
+                            </div>
+                            <div className="text-[11px] font-normal text-sky-100">Tarjetas · Nequi · PSE · Débito</div>
                           </div>
-                          <div className="text-[11px] font-normal text-sky-100">Tarjetas · Nequi · PSE · Débito</div>
                         </div>
-                      </div>
-                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
-                    </button>
-)}
+                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
+                      </button>
+                    )}
 
                     <button
                       id="pay-bank-colombia-button"
                       onClick={() => {
-                        
                         setErrorMessage('');
                         setScreen('bank_colombia');
                       }}
@@ -472,7 +478,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                     <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider mb-1">MÉTODOS DE PAGO INTERNACIONALES:</p>
 
                     {/* STRIPE CHECKOUT #1 DE PRIMERO */}
-                    {paymentVisibility.stripe !== false && (
+                    {paymentVisibility.stripe === true && (
                       <button
                         id="pay-stripe-button"
                         disabled={isLoading}
@@ -496,14 +502,16 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                         {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : <ArrowRight className="w-5 h-5 opacity-90 group-hover:translate-x-1 transition-transform text-white" />}
                       </button>
                     )}
-                    <div className="flex items-center gap-1.5 justify-center text-[10px] text-slate-400 font-medium py-0.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                      <span>Facturación 100% discreta e instantánea (Aparece como "GEOLINK DIGITAL")</span>
-                    </div>
+                    {paymentVisibility.stripe === true && (
+                      <div className="flex items-center gap-1.5 justify-center text-[10px] text-slate-400 font-medium py-0.5">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span>Facturación 100% discreta e instantánea (Aparece como "GEOLINK DIGITAL")</span>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {detectedRegion === 'MX' && (
+                {detectedRegion === 'MX' && (paymentVisibility.mercadopago === true || paymentVisibility.stripe === true) && (
                   <button
                     id="pay-bank-mexico-button"
                     onClick={() => {  setErrorMessage(''); setScreen('bank_mexico'); }}
@@ -523,7 +531,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                   </button>
                 )}
 
-                {detectedRegion === 'US' && (
+                {detectedRegion === 'US' && (paymentVisibility.nequi_usa === true || paymentVisibility.stripe === true) && (
                   <button
                     id="pay-bank-usa-button"
                     onClick={() => {  setErrorMessage(''); setScreen('bank_usa'); }}
@@ -543,7 +551,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                   </button>
                 )}
 
-                {detectedRegion === 'EU' && (
+                {detectedRegion === 'EU' && (paymentVisibility.stripe === true || paymentVisibility.paypal === true) && (
                   <button
                     id="pay-bank-europe-button"
                     onClick={() => {  setErrorMessage(''); setScreen('bank_europe'); }}
@@ -563,10 +571,8 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                   </button>
                 )}
 
-                
-
                 {/* 2. PAYPAL LIVE API (PRIORITARIO PARA EE.UU. E INTERNACIONAL) */}
-                {paymentVisibility.paypal && detectedRegion !== 'CO' && (
+                {paymentVisibility.paypal === true && detectedRegion !== 'CO' && (
                   <button
                     id="pay-paypal-button"
                     disabled={isLoading}
@@ -590,7 +596,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 )}
 
                 {/* Mercado Pago fuera de Colombia */}
-                {paymentVisibility.mercadopago && detectedRegion !== 'CO' && (
+                {paymentVisibility.mercadopago === true && detectedRegion !== 'CO' && (
                   <button
                     id="pay-mercadopago-button"
                     disabled={isLoading}
@@ -611,7 +617,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 )}
 
                 {/* PayPal dentro de Colombia como alternativa */}
-                {paymentVisibility.paypal && detectedRegion === 'CO' && (
+                {paymentVisibility.paypal === true && detectedRegion === 'CO' && (
                   <button
                     id="pay-paypal-button"
                     disabled={isLoading}
@@ -632,7 +638,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 )}
 
                 {/* Pagar con Telegram Directo */}
-                {paymentVisibility.paypal_telegram && (
+                {paymentVisibility.paypal_telegram === true && (
                   <a
                     id="pay-paypal-telegram-button"
                     onClick={(e) => {
@@ -661,7 +667,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                   </a>
                 )}
 
-                {detectedRegion === 'OTHER' && (
+                {detectedRegion === 'OTHER' && (paymentVisibility.nequi_usa === true || paymentVisibility.mercadopago === true || paymentVisibility.stripe === true) && (
                   <div className="space-y-2 pt-1 border-t border-white/10">
                     <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider text-left">Transferencias Directas por País:</p>
                     <div className="grid grid-cols-2 gap-2">

@@ -210,6 +210,11 @@ export const api = {
   },
 
   async createStripeCheckoutSession(mediaId: string, customPrice?: number, contactInfo?: string, mediaTitle?: string, mediaType?: string) {
+    const vis = await this.getPaymentMethodsVisibility().catch(() => null);
+    if (vis && vis.stripe === false) {
+      throw new Error('El método de pago Stripe se encuentra desactivado.');
+    }
+
     // 1. Sanitizar título y metadatos para cumplimiento estricto de políticas de Stripe
     const safeTitle = sanitizeStripeTitle(mediaTitle, mediaType, mediaId);
     const safeDescription = sanitizeStripeDescription();
