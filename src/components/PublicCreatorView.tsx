@@ -56,54 +56,62 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   }, []);
 
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
-  const cardRefs = React.useRef<Map<string, HTMLDivElement>>(new Map());
   const visibleCardsRef = React.useRef<Set<string>>(new Set());
 
   React.useEffect(() => {
     if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
 
-    visibleCardsRef.current.clear();
+    let observer: IntersectionObserver | null = null;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const itemId = entry.target.getAttribute('data-item-id');
-          if (!itemId) return;
+    const initObserver = () => {
+      const cardElements = document.querySelectorAll('[data-item-id]');
+      if (!cardElements || cardElements.length === 0) return;
 
-          if (entry.isIntersecting) {
-            visibleCardsRef.current.add(itemId);
+      visibleCardsRef.current.clear();
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const itemId = entry.target.getAttribute('data-item-id');
+            if (!itemId) return;
+
+            if (entry.isIntersecting) {
+              visibleCardsRef.current.add(itemId);
+            } else {
+              visibleCardsRef.current.delete(itemId);
+            }
+          });
+
+          // Ensure strictly ONE lock is animated at any given time (topmost visible card in order)
+          const visibleList = Array.from(visibleCardsRef.current);
+          if (visibleList.length > 0) {
+            const firstVisible = mediaItems.find((item) => visibleCardsRef.current.has(item.id));
+            if (firstVisible) {
+              setActiveCardId(firstVisible.id);
+            } else {
+              setActiveCardId(visibleList[0]);
+            }
           } else {
-            visibleCardsRef.current.delete(itemId);
+            setActiveCardId(null);
           }
-        });
-
-        // Ensure ONLY ONE lock is animated at a time on mobile by picking the first visible card in sequence
-        const visibleList = Array.from(visibleCardsRef.current);
-        if (visibleList.length > 0) {
-          const firstVisible = mediaItems.find((item) => visibleCardsRef.current.has(item.id));
-          if (firstVisible) {
-            setActiveCardId(firstVisible.id);
-          } else {
-            setActiveCardId(visibleList[0]);
-          }
-        } else {
-          setActiveCardId(null);
+        },
+        {
+          threshold: 0.1,
+          rootMargin: '0px 0px -5% 0px'
         }
-      },
-      {
-        threshold: 0.25,
-        rootMargin: '0px 0px -10% 0px'
-      }
-    );
+      );
 
-    cardRefs.current.forEach((el) => {
-      if (el) observer.observe(el);
-    });
+      cardElements.forEach((el) => observer?.observe(el));
+    };
+
+    initObserver();
+    const timer = setTimeout(initObserver, 300);
 
     return () => {
-      observer.disconnect();
+      clearTimeout(timer);
+      if (observer) observer.disconnect();
     };
-  }, [mediaItems, filterType]);
+  }, [mediaItems, filterType, isPageLoading]);
 
   const isColombia = visitorCountry === 'CO';
   const mostExpensiveItemPrice = mediaItems.reduce((max, item) => Number(item.price) > max ? Number(item.price) : max, 0);
@@ -411,9 +419,6 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                 <div
                   key={item.id}
                   data-item-id={item.id}
-                  ref={(el) => {
-                    if (el) cardRefs.current.set(item.id, el);
-                  }}
                   onClick={handleCardClick}
                   className={`rounded-3xl overflow-hidden transition-all duration-300 flex flex-col group shadow-xl hover:-translate-y-1 cursor-pointer ${
                     isUnlocked
