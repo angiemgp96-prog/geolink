@@ -70,19 +70,118 @@ export const api = {
 
   // 2. Creator Profiles
   async getCreators(): Promise<CreatorProfile[]> {
+    let creators: CreatorProfile[] = [];
     try {
       const res = await fetch('/api/creators');
-      if (res.ok) return await res.json();
+      if (res.ok) creators = await res.json();
     } catch (e) {
       console.warn('API fetch fallback:', e);
     }
-    return [];
+
+    if (isSupabaseConfigured()) {
+      try {
+        const { data: rows } = await supabase
+          .from('creators')
+          .select('id, handle, name, title, bio, avatar, banner, badge, data');
+
+        if (rows && rows.length > 0) {
+          if (creators.length === 0) {
+            creators = rows.map((r: any) => ({
+              ...(r.data || {}),
+              id: r.id || r.data?.id || '1',
+              handle: r.handle || r.data?.handle || 'angelina69',
+              name: r.name || r.data?.name || 'Angelina Guzman',
+              title: r.title || r.data?.title || 'Model & Digital Content Creator',
+              bio: r.bio || r.data?.bio || '',
+              avatar: r.avatar || r.data?.avatar || '',
+              banner: r.banner || r.data?.banner || '',
+              badge: r.badge || r.data?.badge || 'VIP CREATOR',
+            }));
+          } else {
+            creators = creators.map((c) => {
+              const matchedRow = rows.find((r: any) => r.handle === c.handle || r.id === c.id);
+              if (matchedRow) {
+                return {
+                  ...c,
+                  avatar: matchedRow.avatar || c.avatar,
+                  banner: matchedRow.banner || c.banner,
+                  bio: matchedRow.bio || c.bio,
+                  title: matchedRow.title || c.title,
+                  name: matchedRow.name || c.name,
+                  badge: matchedRow.badge || c.badge,
+                };
+              }
+              return c;
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Supabase getCreators merge warning:', err);
+      }
+    }
+
+    return creators;
   },
 
   async getCreator(handle: string): Promise<{ creator: CreatorProfile; mediaItems: MediaItem[] }> {
-    const res = await fetch(`/api/creators/${encodeURIComponent(handle)}`);
-    if (!res.ok) throw new Error('Creator profile not found');
-    return await res.json();
+    let creatorData: { creator: CreatorProfile; mediaItems: MediaItem[] } | null = null;
+    try {
+      const res = await fetch(`/api/creators/${encodeURIComponent(handle)}`);
+      if (res.ok) {
+        creatorData = await res.json();
+      }
+    } catch (e) {
+      console.warn('API getCreator fetch error:', e);
+    }
+
+    if (isSupabaseConfigured()) {
+      try {
+        const { data: dbRows } = await supabase
+          .from('creators')
+          .select('avatar, banner, bio, title, name, badge, data')
+          .eq('handle', handle)
+          .limit(1);
+
+        if (dbRows && dbRows.length > 0) {
+          const row = dbRows[0];
+          if (!creatorData) {
+            creatorData = {
+              creator: (row.data as CreatorProfile) || {
+                id: '1',
+                handle: 'angelina69',
+                name: 'Angelina Guzman',
+                title: 'Model & Digital Content Creator',
+                bio: 'Bienvenido a mi espacio exclusivo 💋',
+                avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
+                banner: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80',
+                badge: 'VIP CREATOR',
+                blockedCountries: [],
+                blockedMessage: '',
+                whatsappNumber: '',
+                links: [],
+                paymentSettings: {}
+              },
+              mediaItems: []
+            };
+          }
+
+          if (row.avatar) creatorData.creator.avatar = row.avatar;
+          if (row.banner) creatorData.creator.banner = row.banner;
+          if (row.bio) creatorData.creator.bio = row.bio;
+          if (row.title) creatorData.creator.title = row.title;
+          if (row.name) creatorData.creator.name = row.name;
+          if (row.badge) creatorData.creator.badge = row.badge;
+        }
+      } catch (err) {
+        console.warn('Supabase getCreator override warning:', err);
+      }
+    }
+
+    if (!creatorData) {
+      throw new Error('Creator profile not found');
+    }
+
+    return creatorData;
   },
 
   async saveCreator(creator: CreatorProfile): Promise<CreatorProfile> {
