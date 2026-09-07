@@ -45,6 +45,10 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
   const [globalDiscount, setGlobalDiscount] = useState<number>(0);
   const [colombiaMultiplier, setColombiaMultiplier] = useState<number>(7);
+  const [bigoSettings, setBigoSettings] = useState<{ isLive: boolean; streamUrl: string }>({
+    isLive: false,
+    streamUrl: 'https://www.bigo.tv/es/sid/2525959848_1493541244_1775323289?c=7&p=2&t=0&b=690015288&h=angelinaguzman'
+  });
 
   React.useEffect(() => {
     api.getGlobalDiscount().then((res) => {
@@ -53,6 +57,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
         setColombiaMultiplier(res.colombiaMultiplier);
       }
     }).catch(() => {});
+
+    api.getBigoLiveSettings().then(setBigoSettings).catch(() => {});
   }, []);
 
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
@@ -265,6 +271,50 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               <option value="it">🇮🇹 IT</option>
             </select>
           </div>
+
+          {/* TRANSMISIÓN EN VIVO BIGO LIVE (SUPERIOR SOBRE EL AVATAR CUANDO ESTÁ EN VIVO) */}
+          {bigoSettings.isLive && (
+            <div className="w-full mb-3 bg-gradient-to-b from-slate-900 via-zinc-900 to-slate-950 border-2 border-red-500/60 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-2xl shadow-red-500/20 text-left relative overflow-hidden">
+              <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-red-500/20">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+                  <span className="text-xs sm:text-sm font-black text-red-400 tracking-wider uppercase flex items-center gap-1">
+                    🔴 TRANSMISIÓN EN VIVO AHORA · BIGO LIVE
+                  </span>
+                </div>
+                <a
+                  href={bigoSettings.streamUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-500/20 hover:bg-red-500/30 text-red-300 font-bold text-[10px] sm:text-xs border border-red-400/30 transition-all cursor-pointer"
+                >
+                  <span>Abrir en Bigo</span>
+                  <ExternalLink className="w-3 h-3 text-red-300" />
+                </a>
+              </div>
+
+              {/* Video Embed Frame */}
+              <div className="relative w-full aspect-video rounded-xl sm:rounded-2xl overflow-hidden bg-black border border-white/10 shadow-inner">
+                <iframe
+                  src={bigoSettings.streamUrl}
+                  title="Bigo Live Stream"
+                  className="w-full h-full object-cover border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+
+              <div className="mt-2 flex items-center justify-between text-[11px] text-zinc-400 font-medium">
+                <span className="flex items-center gap-1 text-amber-300 font-bold">
+                  🔥 Transmitiendo en directo @{creator.handle}
+                </span>
+                <span className="text-zinc-500 text-[10px]">Transmisión en tiempo real</span>
+              </div>
+            </div>
+          )}
 
           {/* Avatar creador (Protegido contra clics, arrastrado y descargas) */}
           <div

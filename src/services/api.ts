@@ -1159,5 +1159,47 @@ export const api = {
     } catch {}
 
     return true;
+  },
+
+  async getBigoLiveSettings(): Promise<{ isLive: boolean; streamUrl: string }> {
+    const defaultSettings = {
+      isLive: false,
+      streamUrl: 'https://www.bigo.tv/es/sid/2525959848_1493541244_1775323289?c=7&p=2&t=0&b=690015288&h=angelinaguzman'
+    };
+    try {
+      const raw = localStorage.getItem('geolink_bigo_live_settings');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return {
+          isLive: Boolean(parsed.isLive),
+          streamUrl: parsed.streamUrl || defaultSettings.streamUrl
+        };
+      }
+    } catch {}
+    return defaultSettings;
+  },
+
+  async updateBigoLiveSettings(settings: { isLive?: boolean; streamUrl?: string }): Promise<{ isLive: boolean; streamUrl: string }> {
+    const current = await this.getBigoLiveSettings();
+    const updated = {
+      isLive: settings.isLive !== undefined ? settings.isLive : current.isLive,
+      streamUrl: settings.streamUrl || current.streamUrl
+    };
+    try {
+      localStorage.setItem('geolink_bigo_live_settings', JSON.stringify(updated));
+    } catch {}
+
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('lead_capture_settings').upsert({
+          id: 'bigo_live',
+          require_lead_capture: updated.isLive,
+          custom_stream_url: updated.streamUrl,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+      } catch {}
+    }
+
+    return updated;
   }
 };

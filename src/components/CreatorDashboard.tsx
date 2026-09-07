@@ -72,6 +72,26 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
   const [colombiaRequests, setColombiaRequests] = useState<any[]>([]);
 
+  const [bigoIsLive, setBigoIsLive] = useState<boolean>(false);
+  const [bigoStreamUrl, setBigoStreamUrl] = useState<string>('https://www.bigo.tv/es/sid/2525959848_1493541244_1775323289?c=7&p=2&t=0&b=690015288&h=angelinaguzman');
+
+  useEffect(() => {
+    api.getBigoLiveSettings().then((settings) => {
+      setBigoIsLive(settings.isLive);
+      if (settings.streamUrl) setBigoStreamUrl(settings.streamUrl);
+    });
+  }, []);
+
+  const handleToggleBigoLive = async (isLive: boolean) => {
+    setBigoIsLive(isLive);
+    await api.updateBigoLiveSettings({ isLive, streamUrl: bigoStreamUrl });
+  };
+
+  const handleSaveBigoUrl = async () => {
+    await api.updateBigoLiveSettings({ isLive: bigoIsLive, streamUrl: bigoStreamUrl });
+    alert('✅ Enlace de transmisión Bigo Live guardado exitosamente.');
+  };
+
   const handleApproveColombiaAccess = async (id: string) => {
     try {
       const success = await api.approveColombiaAccessRequest(id);
@@ -1784,7 +1804,58 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
           {/* Tarjeta de Aprobación de Acceso a la Página Colombia ($30 USD) */}
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6">
           
-          {/* Lead Capture Mode Switch ON / OFF Card */}
+          {/* Bigo Live Transmission Control Card */}
+          <div className="bg-slate-800/80 border border-red-500/40 rounded-2xl p-5 space-y-4 shadow-lg">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h4 className="font-extrabold text-sm text-white flex items-center gap-2">
+                  <span>🔴 Retransmisión de Bigo Live en Vivo (Reproductor Superior)</span>
+                  <span className={`px-2.5 py-0.5 rounded text-[10px] font-black uppercase ${bigoIsLive ? 'bg-red-500/20 text-red-300 border border-red-500/40 animate-pulse' : 'bg-slate-700 text-slate-400 border border-slate-600'}`}>
+                    {bigoIsLive ? '🔴 EN VIVO AHORA (ON)' : '⚪ APAGADO (OFF)'}
+                  </span>
+                </h4>
+                <p className="text-xs text-slate-300 mt-1 leading-snug">
+                  {bigoIsLive
+                    ? 'Transmisión activa: El reproductor de video en vivo aparece automáticamente sobre la foto del avatar en el inicio.'
+                    : 'Modo normal: El perfil luce completamente normal sin reproductor de video.'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleToggleBigoLive(true)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${bigoIsLive ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' : 'bg-slate-900 text-slate-400 border border-slate-700 hover:text-white'}`}
+                >
+                  🔴 EN VIVO (ON)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleToggleBigoLive(false)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${!bigoIsLive ? 'bg-slate-700 text-white shadow' : 'bg-slate-900 text-slate-400 border border-slate-700 hover:text-white'}`}
+                >
+                  ⚪ APAGADO (OFF)
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-2 pt-2 border-t border-slate-700/60">
+              <input
+                type="text"
+                value={bigoStreamUrl}
+                onChange={(e) => setBigoStreamUrl(e.target.value)}
+                placeholder="URL de Transmisión o Perfil de Bigo Live"
+                className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-red-500"
+              />
+              <button
+                type="button"
+                onClick={handleSaveBigoUrl}
+                className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shrink-0"
+              >
+                Guardar URL Bigo
+              </button>
+            </div>
+          </div>
           <div className="bg-slate-800/80 border border-purple-500/40 rounded-2xl p-5 space-y-3 shadow-lg">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
