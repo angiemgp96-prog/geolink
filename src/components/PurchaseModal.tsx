@@ -358,13 +358,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   const isColombiaVisitor = detectedRegion === 'CO';
   const hasActivePaymentMethods = isColombiaVisitor ? (
     paymentVisibility.mercadopago !== false || paymentVisibility.paypal_telegram !== false
-  ) : (
-    Boolean(paymentVisibility.stripe) ||
-    Boolean(paymentVisibility.mercadopago) ||
-    Boolean(paymentVisibility.paypal) ||
-    Boolean(paymentVisibility.paypal_telegram) ||
-    Boolean(paymentVisibility.nequi_usa)
-  );
+  ) : true;
 
   // ─────────────────────────────────────────────────────────────────
   return (
@@ -472,46 +466,71 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                   </div>
                 )}
 
-                {/* 2. FUERA DE COLOMBIA: STRIPE DE PRIMERO + OTROS MÉTODOS INTERNACIONALES */}
+                {/* 2. FUERA DE COLOMBIA: STRIPE, PAYPAL, SEPA, CLABE, ACH */}
                 {detectedRegion !== 'CO' && (
                   <div className="space-y-3">
                     <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider mb-1">MÉTODOS DE PAGO INTERNACIONALES:</p>
 
                     {/* STRIPE CHECKOUT #1 DE PRIMERO */}
-                    {paymentVisibility.stripe === true && (
+                    {paymentVisibility.stripe !== false && (
+                      <>
+                        <button
+                          id="pay-stripe-button"
+                          disabled={isLoading}
+                          onClick={handleStripeDirect}
+                          className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-sm shadow-xl shadow-purple-600/30 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group border-2 border-purple-400/60 relative overflow-hidden"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20">
+                              <CreditCard className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="text-left">
+                              <div className="flex items-center gap-2">
+                                <span className="font-extrabold text-white text-base">Tarjetas de Crédito / Débito (Stripe)</span>
+                                <span className="bg-amber-400 text-slate-950 text-[9px] uppercase font-black px-2 py-0.5 rounded-full shadow-md animate-pulse">⚡ PRINCIPAL Y RECOMENDADO</span>
+                              </div>
+                              <div className="text-[11px] font-medium text-purple-100 mt-0.5">
+                                Visa · Mastercard · Amex · Apple Pay · Google Pay (USD)
+                              </div>
+                            </div>
+                          </div>
+                          {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : <ArrowRight className="w-5 h-5 opacity-90 group-hover:translate-x-1 transition-transform text-white" />}
+                        </button>
+                        <div className="flex items-center gap-1.5 justify-center text-[10px] text-slate-400 font-medium py-0.5">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <span>Facturación 100% discreta e instantánea (Aparece como "GEOLINK DIGITAL")</span>
+                        </div>
+                      </>
+                    )}
+
+                    {/* PAYPAL LIVE API INTERNACIONAL */}
+                    {paymentVisibility.paypal !== false && (
                       <button
-                        id="pay-stripe-button"
+                        id="pay-paypal-button"
                         disabled={isLoading}
-                        onClick={handleStripeDirect}
-                        className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-sm shadow-xl shadow-purple-600/30 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group border-2 border-purple-400/60 relative overflow-hidden"
+                        onClick={handlePayPalDirect}
+                        className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#003087] to-[#009cde] hover:from-[#00256a] hover:to-[#0082c2] text-white font-bold text-sm shadow-lg shadow-blue-900/30 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group border-2 border-blue-400/40"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20">
-                            <CreditCard className="w-5 h-5 text-white" />
+                          <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                            <span className="font-extrabold italic text-base leading-none">P</span>
                           </div>
                           <div className="text-left">
-                            <div className="flex items-center gap-2">
-                              <span className="font-extrabold text-white text-base">Tarjetas de Crédito / Débito (Stripe)</span>
-                              <span className="bg-amber-400 text-slate-950 text-[9px] uppercase font-black px-2 py-0.5 rounded-full shadow-md animate-pulse">⚡ PRINCIPAL Y RECOMENDADO</span>
+                            <div className="flex items-center gap-1.5">
+                              <span>PayPal (Oficial Live API)</span>
+                              <span className="bg-blue-400/20 text-blue-200 border border-blue-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">RECOMENDADO</span>
                             </div>
-                            <div className="text-[11px] font-medium text-purple-100 mt-0.5">
-                              Visa · Mastercard · Amex · Apple Pay · Google Pay (USD)
-                            </div>
+                            <div className="text-[11px] font-normal text-blue-200">Tarjetas internacionales · USD (Verificación Directa)</div>
                           </div>
                         </div>
-                        {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : <ArrowRight className="w-5 h-5 opacity-90 group-hover:translate-x-1 transition-transform text-white" />}
+                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
                       </button>
-                    )}
-                    {paymentVisibility.stripe === true && (
-                      <div className="flex items-center gap-1.5 justify-center text-[10px] text-slate-400 font-medium py-0.5">
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span>Facturación 100% discreta e instantánea (Aparece como "GEOLINK DIGITAL")</span>
-                      </div>
                     )}
                   </div>
                 )}
 
-                {detectedRegion === 'MX' && (paymentVisibility.mercadopago === true || paymentVisibility.stripe === true) && (
+                {/* MÉXICO */}
+                {detectedRegion === 'MX' && (
                   <button
                     id="pay-bank-mexico-button"
                     onClick={() => {  setErrorMessage(''); setScreen('bank_mexico'); }}
@@ -531,7 +550,8 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                   </button>
                 )}
 
-                {detectedRegion === 'US' && (paymentVisibility.nequi_usa === true || paymentVisibility.stripe === true) && (
+                {/* ESTADOS UNIDOS */}
+                {detectedRegion === 'US' && (
                   <button
                     id="pay-bank-usa-button"
                     onClick={() => {  setErrorMessage(''); setScreen('bank_usa'); }}
@@ -551,7 +571,8 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                   </button>
                 )}
 
-                {detectedRegion === 'EU' && (paymentVisibility.stripe === true || paymentVisibility.paypal === true) && (
+                {/* EUROPA */}
+                {detectedRegion === 'EU' && (
                   <button
                     id="pay-bank-europe-button"
                     onClick={() => {  setErrorMessage(''); setScreen('bank_europe'); }}
@@ -568,51 +589,6 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                       </div>
                     </div>
                     <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-                )}
-
-                {/* 2. PAYPAL LIVE API (PRIORITARIO PARA EE.UU. E INTERNACIONAL) */}
-                {paymentVisibility.paypal === true && detectedRegion !== 'CO' && (
-                  <button
-                    id="pay-paypal-button"
-                    disabled={isLoading}
-                    onClick={handlePayPalDirect}
-                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-[#003087] to-[#009cde] hover:from-[#00256a] hover:to-[#0082c2] text-white font-bold text-sm shadow-lg shadow-blue-900/30 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group border-2 border-blue-400/40"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-                        <span className="font-extrabold italic text-base leading-none">P</span>
-                      </div>
-                      <div className="text-left">
-                        <div className="flex items-center gap-1.5">
-                          <span>PayPal (Oficial Live API)</span>
-                          <span className="bg-blue-400/20 text-blue-200 border border-blue-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">RECOMENDADO</span>
-                        </div>
-                        <div className="text-[11px] font-normal text-blue-200">Tarjetas internacionales · USD (Verificación Directa)</div>
-                      </div>
-                    </div>
-                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
-                  </button>
-                )}
-
-                {/* Mercado Pago fuera de Colombia */}
-                {paymentVisibility.mercadopago === true && detectedRegion !== 'CO' && (
-                  <button
-                    id="pay-mercadopago-button"
-                    disabled={isLoading}
-                    onClick={handleMercadoPagoDirect}
-                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-sky-600/20 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-                        <CreditCard className="w-5 h-5" />
-                      </div>
-                      <div className="text-left">
-                        <div>Mercado Pago</div>
-                        <div className="text-[11px] font-normal text-sky-100">Tarjetas de Crédito / Débito</div>
-                      </div>
-                    </div>
-                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
                   </button>
                 )}
 
