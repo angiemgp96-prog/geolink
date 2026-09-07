@@ -351,7 +351,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
           <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
             <a
               id="telegram-channel-button"
-              href="https://t.me/+vREXeP2U7Kw3ZTJh"
+              href="https://t.me/angelinaguz69"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center justify-center gap-2 px-4 py-2 sm:px-6 sm:py-3 rounded-full bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold text-[10px] sm:text-xs uppercase tracking-wider transition-all shadow-xl shadow-sky-500/30 hover:scale-105 cursor-pointer border border-sky-300/40"
