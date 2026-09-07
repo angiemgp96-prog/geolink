@@ -266,15 +266,25 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             </select>
           </div>
 
-          {/* Avatar creador */}
-          <div className="relative mx-auto w-14 h-14 sm:w-28 sm:h-28 rounded-full p-0.5 sm:p-1 bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-xl shadow-indigo-500/20 -mt-10 sm:-mt-20">
+          {/* Avatar creador (Protegido contra clics, arrastrado y descargas) */}
+          <div
+            className="relative mx-auto w-14 h-14 sm:w-28 sm:h-28 rounded-full p-0.5 sm:p-1 bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-xl shadow-indigo-500/20 -mt-10 sm:-mt-20 select-none overflow-hidden"
+            onContextMenu={(e) => e.preventDefault()}
+          >
             <img
               src={creator.avatar}
               alt={creator.name}
-              className="w-full h-full object-cover rounded-full border-2 border-[#030712]"
+              draggable="false"
+              onContextMenu={(e) => e.preventDefault()}
+              className="w-full h-full object-cover rounded-full border-2 border-[#030712] pointer-events-none select-none"
+            />
+            {/* Capa protectora transparente e invisible sobre el avatar */}
+            <div
+              className="absolute inset-0 z-20 rounded-full bg-transparent select-none cursor-default"
+              onContextMenu={(e) => e.preventDefault()}
             />
             {creator.badge && (
-              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[10px] font-extrabold uppercase px-3 py-0.5 rounded-full shadow-md whitespace-nowrap border border-indigo-400/30">
+              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[10px] font-extrabold uppercase px-3 py-0.5 rounded-full shadow-md whitespace-nowrap border border-indigo-400/30 z-30">
                 {creator.badge}
               </span>
             )}
@@ -294,31 +304,17 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             {creator.bio}
           </p>
 
-          {/* 2. BOTONES DE TELEGRAM DESTACADOS */}
+          {/* 2. BOTÓN ÚNICO DE TELEGRAM AZUL (GRUPO VIP TELEGRAM) */}
           <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
-            {/* Botón 1: Contacto Directo Telegram VIP */}
-            <a
-              id="telegram-direct-contact-button"
-              href="https://t.me/Angelinaguzman69"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-5 sm:py-3 rounded-full bg-sky-950/80 border border-sky-500/60 hover:bg-sky-900/80 hover:border-sky-400 text-sky-300 font-extrabold text-[10px] sm:text-xs uppercase tracking-wider transition-all shadow-lg shadow-sky-500/20 hover:scale-105 cursor-pointer"
-            >
-              <Send className="w-4 h-4 text-sky-400" />
-              <span>{t.telegramDirectContact}</span>
-            </a>
-
-            {/* Botón 2: Grupo Hot Telegram */}
             <a
               id="telegram-channel-button"
               href="https://t.me/+vREXeP2U7Kw3ZTJh"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:px-6 sm:py-3 rounded-full bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-extrabold text-[10px] sm:text-xs uppercase tracking-wider transition-all shadow-lg shadow-rose-600/30 hover:scale-105 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 sm:px-6 sm:py-3 rounded-full bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold text-[10px] sm:text-xs uppercase tracking-wider transition-all shadow-xl shadow-sky-500/30 hover:scale-105 cursor-pointer border border-sky-300/40"
             >
-              <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
-              <Flame className="w-4 h-4 text-amber-300 fill-amber-300" />
-              <span>{t.telegramHotGroup}</span>
+              <Send className="w-4 h-4 text-white fill-white shrink-0" />
+              <span>{t.telegramVipGroup || 'GRUPO VIP TELEGRAM'}</span>
             </a>
           </div>
 

@@ -16,6 +16,7 @@ export interface Translations {
   // Telegram Buttons
   telegramDirectContact: string;
   telegramHotGroup: string;
+  telegramVipGroup: string;
 
   // Store & Profile
   fullAccessTitle: string;
@@ -59,6 +60,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
 
     telegramDirectContact: 'CONTACTO DIRECTO TELEGRAM VIP',
     telegramHotGroup: 'GRUPO HOT TELEGRAM',
+    telegramVipGroup: 'GRUPO VIP TELEGRAM',
 
     fullAccessTitle: '👑 DESBLOQUEAR TODO EL CATÁLOGO',
     fullAccessDesc: 'Acceso instantáneo a fotos y videos sin censura (NO INCLUYE CONTENIDOS EXTRA PREMIUM)',
@@ -98,6 +100,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
 
     telegramDirectContact: 'VIP TELEGRAM DIRECT CONTACT',
     telegramHotGroup: 'HOT TELEGRAM GROUP',
+    telegramVipGroup: 'TELEGRAM VIP GROUP',
 
     fullAccessTitle: '👑 UNLOCK ENTIRE CATALOG',
     fullAccessDesc: 'Instant access to uncensored photos and videos (DOES NOT INCLUDE EXTRA PREMIUM CONTENT)',
@@ -137,6 +140,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
 
     telegramDirectContact: 'CONTATO DIRETO TELEGRAM VIP',
     telegramHotGroup: 'GRUPO HOT TELEGRAM',
+    telegramVipGroup: 'GRUPO VIP TELEGRAM',
 
     fullAccessTitle: '👑 DESBLOQUEAR TODO O CATÁLOGO',
     fullAccessDesc: 'Acesso instantâneo a fotos e vídeos sem censura (NÃO INCLUI CONTEÚDOS EXTRA PREMIUM)',
@@ -176,6 +180,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
 
     telegramDirectContact: 'CONTACT DIRECT TELEGRAM VIP',
     telegramHotGroup: 'GROUPE HOT TELEGRAM',
+    telegramVipGroup: 'GROUPE TELEGRAM VIP',
 
     fullAccessTitle: '👑 DÉBLOQUER TOUT LE CATALOGUE',
     fullAccessDesc: 'Accès instantané aux photos et vidéos non censurées (N\'INCLUT PAS LES CONTENUS EXTRA PREMIUM)',
@@ -215,6 +220,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
 
     telegramDirectContact: 'VIP TELEGRAM DIREKTKONTAKT',
     telegramHotGroup: 'HOT TELEGRAM GRUPPE',
+    telegramVipGroup: 'TELEGRAM VIP GRUPPE',
 
     fullAccessTitle: '👑 GESAMTEN KATALOG FREISCHALTEN',
     fullAccessDesc: 'Sofortiger Zugriff auf unzensierte Fotos und Videos (ENTHÄLT KEINE EXTRA PREMIUM INHALTE)',
@@ -254,6 +260,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
 
     telegramDirectContact: 'CONTATTO DIRETTO TELEGRAM VIP',
     telegramHotGroup: 'GRUPPO HOT TELEGRAM',
+    telegramVipGroup: 'GRUPPO TELEGRAM VIP',
 
     fullAccessTitle: '👑 SBLOCCA L\'INTERO CATALOGO',
     fullAccessDesc: 'Accesso istantaneo a foto e video senza censura (NON INCLUDE CONTENUTI EXTRA PREMIUM)',
