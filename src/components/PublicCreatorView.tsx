@@ -297,20 +297,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                 </a>
               </div>
 
-              {/* Video Player Frame HLS Native */}
-              {bigoSettings.streamUrl.includes('.m3u8') || bigoSettings.streamUrl.includes('.flv') ? (
-                <BigoHlsPlayer streamUrl={bigoSettings.streamUrl} />
-              ) : (
-                <div className="relative w-full aspect-video rounded-xl sm:rounded-2xl overflow-hidden bg-black border border-white/10 shadow-inner">
-                  <iframe
-                    src={bigoSettings.streamUrl}
-                    title="Bigo Live Stream"
-                    className="w-full h-full object-cover border-0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
-                </div>
-              )}
+              {/* Video Player Frame HLS Native (Solo el Video) */}
+              <BigoHlsPlayer streamUrl={bigoSettings.streamUrl} />
 
               <div className="mt-2 flex items-center justify-between text-[11px] text-zinc-400 font-medium">
                 <span className="flex items-center gap-1 text-amber-300 font-bold">
