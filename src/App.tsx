@@ -181,6 +181,9 @@ export default function App() {
 
       const loc = await api.getVisitorLocation();
       setVisitorLocation(loc);
+      if (loc.countryCode === 'CO') {
+        api.checkColombiaAccessApproved().then(setIsColombiaPageUnlocked).catch(() => {});
+      }
 
       // Check for returning payment redirect parameters or direct VIP access codes (?access=Axwkjl)
       const params = new URLSearchParams(window.location.search);

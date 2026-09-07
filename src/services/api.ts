@@ -929,23 +929,52 @@ export const api = {
     if (!hash) {
       try {
         hash = localStorage.getItem('geolink_device_fingerprint') || '';
+        if (!hash && typeof window !== 'undefined') {
+          const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+          const rawFp = [navigator.userAgent, screen.width, screen.height, screen.colorDepth, navigator.language, tz].join('|');
+          let hashNum = 0;
+          for (let i = 0; i < rawFp.length; i++) {
+            hashNum = (hashNum << 5) - hashNum + rawFp.charCodeAt(i);
+            hashNum |= 0;
+          }
+          hash = `dev_${Math.abs(hashNum).toString(36)}`;
+          localStorage.setItem('geolink_device_fingerprint', hash);
+        }
       } catch {}
     }
 
-    // 1. Verificación en Supabase por dispositivo o aprobación previa
+    // 1. Verificación en Supabase por dispositivo y vigencia de 30 días
     if (isSupabaseConfigured()) {
       try {
         if (hash) {
           const { data } = await supabase
             .from('colombia_page_access')
-            .select('id, status')
+            .select('id, status, approved_at, created_at')
             .eq('device_hash', hash)
             .eq('status', 'approved')
+            .order('approved_at', { ascending: false, nullsFirst: false })
             .limit(1);
 
           if (data && data.length > 0) {
-            try { localStorage.setItem('geolink_colombia_page_unlocked', 'true'); } catch {}
-            return true;
+            const row = data[0];
+            const approvalDate = row.approved_at || row.created_at;
+            if (approvalDate) {
+              const approvalTime = new Date(approvalDate).getTime();
+              const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+              if (Date.now() - approvalTime <= thirtyDaysMs) {
+                try {
+                  localStorage.setItem('geolink_colombia_page_unlocked', 'true');
+                  localStorage.setItem('geolink_colombia_unlocked_at', new Date(approvalTime).toISOString());
+                } catch {}
+                return true;
+              } else {
+                console.log('El acceso de Colombia para este dispositivo ha expirado (>30 días).');
+              }
+            } else {
+              // Sin fecha guardada en registro antiguo, permitir pero actualizar fecha
+              try { localStorage.setItem('geolink_colombia_page_unlocked', 'true'); } catch {}
+              return true;
+            }
           }
         }
       } catch (err) {
@@ -966,9 +995,10 @@ export const api = {
       }
     } catch {}
 
-    // Si no está verificado en Supabase ni por compra aprobada, eliminar cualquier marca local obsoleta
+    // Si no está verificado en Supabase ni por compra aprobada o si expiró (>30 días), eliminar marcas locales obsoletas
     try {
       localStorage.removeItem('geolink_colombia_page_unlocked');
+      localStorage.removeItem('geolink_colombia_unlocked_at');
     } catch {}
 
     return false;
