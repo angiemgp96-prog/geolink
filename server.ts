@@ -1666,6 +1666,48 @@ app.get("/api/visitor-leads", async (req, res) => {
 // ----------------------------------------------------
 // LEAD CAPTURE SETTINGS (ON / OFF SWITCH)
 // ----------------------------------------------------
+
+// ----------------------------------------------------
+// BIGO LIVE STREAM CORS PROXY
+// ----------------------------------------------------
+app.get("/api/bigo-stream-proxy", async (req, res) => {
+  try {
+    const { sid, url } = req.query;
+    let targetUrl = typeof url === 'string' && url.trim() ? url.trim() : '';
+
+    if (!targetUrl && sid) {
+      targetUrl = "https://pull-hls.bigo.tv/live/" + sid + ".m3u8";
+    }
+
+    if (!targetUrl) {
+      return res.status(400).json({ error: "Missing sid or url parameter" });
+    }
+
+    const bRes = await fetch(targetUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': '*/*',
+        'Referer': 'https://www.bigo.tv/',
+        'Origin': 'https://www.bigo.tv'
+      }
+    });
+
+    if (!bRes.ok) {
+      return res.status(bRes.status).send("Stream not available");
+    }
+
+    const contentType = bRes.headers.get("content-type") || "application/x-mpegURL";
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.setHeader("Content-Type", contentType);
+
+    const data = await bRes.arrayBuffer();
+    return res.send(Buffer.from(data));
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Proxy stream error" });
+  }
+});
+
 app.get("/api/settings/lead-capture", (req, res) => {
   res.json({ requireLeadCapture });
 });

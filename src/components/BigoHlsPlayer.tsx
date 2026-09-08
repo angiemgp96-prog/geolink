@@ -7,20 +7,23 @@ interface BigoHlsPlayerProps {
 function resolveHlsStreamUrl(rawUrl: string): string {
   if (!rawUrl) return '';
   const trimmed = rawUrl.trim();
-  if (trimmed.includes('.m3u8') || trimmed.includes('.flv')) {
-    return trimmed;
-  }
+
+  if (trimmed.startsWith('/api/')) return trimmed;
 
   // Extract numeric SID from Bigo link (e.g. /sid/2525959848_...)
   const sidMatch = trimmed.match(/sid\/(\d+)/);
   if (sidMatch && sidMatch[1]) {
-    return `https://pull-hls.bigo.tv/live/${sidMatch[1]}.m3u8`;
+    return `/api/bigo-stream-proxy?sid=${sidMatch[1]}`;
   }
 
   // Fallback: search any string of 8+ digits in Bigo URL
   const digitMatch = trimmed.match(/\/(\d{8,})/);
   if (digitMatch && digitMatch[1]) {
-    return `https://pull-hls.bigo.tv/live/${digitMatch[1]}.m3u8`;
+    return `/api/bigo-stream-proxy?sid=${digitMatch[1]}`;
+  }
+
+  if (trimmed.includes('.m3u8') || trimmed.includes('.flv')) {
+    return `/api/bigo-stream-proxy?url=${encodeURIComponent(trimmed)}`;
   }
 
   return trimmed;
@@ -29,6 +32,7 @@ function resolveHlsStreamUrl(rawUrl: string): string {
 export const BigoHlsPlayer: React.FC<BigoHlsPlayerProps> = ({ streamUrl }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const resolvedUrl = resolveHlsStreamUrl(streamUrl);
 
   useEffect(() => {
@@ -41,6 +45,7 @@ export const BigoHlsPlayer: React.FC<BigoHlsPlayerProps> = ({ streamUrl }) => {
       video.play().then(() => setIsPlaying(true)).catch(() => {
         // Autoplay muted fallback
         video.muted = true;
+        setIsMuted(true);
         video.play().then(() => setIsPlaying(true)).catch(() => {});
       });
     };
@@ -65,7 +70,15 @@ export const BigoHlsPlayer: React.FC<BigoHlsPlayerProps> = ({ streamUrl }) => {
             if (data.fatal) {
               switch (data.type) {
                 case (window as any).Hls.ErrorTypes.NETWORK_ERROR:
-                  hlsInstance.startLoad();
+                  // Direct HLS fallback if CORS proxy fails
+                  if (resolvedUrl.includes('/api/bigo-stream-proxy') && streamUrl) {
+                    const sid = streamUrl.match(/sid\/(\d+)/)?.[1] || streamUrl.match(/\/(\d{8,})/)?.[1];
+                    const directHls = sid ? `https://pull-hls.bigo.tv/live/${sid}.m3u8` : streamUrl;
+                    video.src = directHls;
+                    playVideo();
+                  } else {
+                    hlsInstance.startLoad();
+                  }
                   break;
                 case (window as any).Hls.ErrorTypes.MEDIA_ERROR:
                   hlsInstance.recoverMediaError();
@@ -102,18 +115,38 @@ export const BigoHlsPlayer: React.FC<BigoHlsPlayerProps> = ({ streamUrl }) => {
         hlsInstance.destroy();
       }
     };
-  }, [resolvedUrl]);
+  }, [resolvedUrl, streamUrl]);
+
+  const handleUnmute = () => {
+    const video = videoRef.current;
+    if (video) {
+      video.muted = false;
+      setIsMuted(false);
+      video.play().catch(() => {});
+    }
+  };
 
   return (
-    <div className="relative w-full aspect-video rounded-xl sm:rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl group">
+    <div className="relative w-full aspect-video rounded-xl sm:rounded-2xl overflow-hidden bg-slate-950 border border-white/10 shadow-2xl group">
       <video
         ref={videoRef}
         controls
         playsInline
-        muted
+        muted={isMuted}
         autoPlay
+        disablePictureInPicture
+        controlsList="nodownload noplaybackrate"
         className="w-full h-full object-contain bg-black"
       />
+      {isMuted && (
+        <button
+          type="button"
+          onClick={handleUnmute}
+          className="absolute bottom-3 right-3 z-30 px-3 py-1.5 rounded-full bg-red-600/90 hover:bg-red-500 text-white font-extrabold text-[11px] uppercase tracking-wider shadow-lg backdrop-blur-md border border-white/20 transition-all hover:scale-105 flex items-center gap-1.5 cursor-pointer"
+        >
+          <span>🔊 Activar Sonido</span>
+        </button>
+      )}
     </div>
   );
 };

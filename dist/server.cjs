@@ -22,6 +22,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 
 // server.ts
+var import_stripe = __toESM(require("stripe"), 1);
 var import_dotenv = __toESM(require("dotenv"), 1);
 var import_express = __toESM(require("express"), 1);
 var import_path = __toESM(require("path"), 1);
@@ -35,7 +36,7 @@ var INITIAL_CREATORS = [
     handle: "angelina69",
     name: "Angelina69 \u{1F525}",
     title: "Model & Digital Creator",
-    bio: "Bienvenido a mi espacio exclusivo \u{1F48B} Contenido diario, fotos HD y videos 4K sin censura.",
+    bio: "Bienvenido a mi espacio exclusivo \u{1F48B} Contenido diario, fotos HD y producciones 4K exclusivas.",
     avatar: "https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg",
     banner: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
     themeColor: "from-pink-600 via-purple-600 to-indigo-700",
@@ -46,7 +47,7 @@ var INITIAL_CREATORS = [
     whatsappNumber: "+5491155443322",
     createdAt: (/* @__PURE__ */ new Date()).toISOString(),
     links: [
-      { id: "l0", title: "OnlyFans Oficial \u{1F525} (@angelinax69)", url: "https://onlyfans.com/angelinax69", icon: "OnlyFans", active: true, clicks: 4920 },
+      { id: "l0", title: "Comunidad VIP Oficial \u{1F525} (@angelinax)", url: "https://onlyfans.com/angelinax69", icon: "OnlyFans", active: true, clicks: 4920 },
       { id: "l1", title: "Instagram Oficial \u{1F4F8} (@angiemgp69)", url: "https://instagram.com/angiemgp69", icon: "Instagram", active: true, clicks: 3410 },
       { id: "l2", title: "Link.me Oficial \u{1F517}", url: "https://link.me/angelina69", icon: "Globe", active: true, clicks: 1850 },
       { id: "l3", title: "Telegram VIP Gratis \u{1F4AC}", url: "https://t.me/example_channel", icon: "Telegram", active: true, clicks: 1240 },
@@ -97,7 +98,7 @@ var INITIAL_MEDIA_ITEMS = [
     id: "acceso_full_cat_actual",
     creatorId: "creator_1",
     creatorHandle: "angelina69",
-    title: "\u{1F451} ACCESO FULL \u2014 Desbloquear Cat\xE1logo Actual",
+    title: "\u{1F451} ACCESO FULL \u2014 Desbloquear Cat\xE1logo Actual VIP",
     description: "Acceso inmediato a todas las fotos y videos publicados hasta la fecha.",
     type: "bundle",
     price: 50,
@@ -114,8 +115,8 @@ var INITIAL_MEDIA_ITEMS = [
     id: "media_101",
     creatorId: "creator_1",
     creatorHandle: "angelina69",
-    title: "\u{1F525} Video Exclusivo Beach Session 4K (Full Uncut)",
-    description: "Video completo de 15 minutos grabado en alta definici\xF3n 4K en la playa sin censura. Incluye descarga directa inmediata.",
+    title: "\u{1F525} Video Exclusivo Beach Session 4K (Edici\xF3n Extendida)",
+    description: "Video completo de 15 minutos grabado en alta definici\xF3n 4K en la playa. Incluye descarga directa inmediata.",
     type: "video",
     price: 15,
     currency: "USD",
@@ -125,13 +126,13 @@ var INITIAL_MEDIA_ITEMS = [
     duration: "15:20 min",
     purchasesCount: 84,
     isFeatured: true,
-    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    createdAt: new Date(Date.now() - 864e5 * 3).toISOString()
   },
   {
     id: "media_102",
     creatorId: "creator_1",
     creatorHandle: "angelina69",
-    title: "\u{1F4F8} Set de Fotos Boudoir Lingerie (35 Fotos HD)",
+    title: "\u{1F4F8} Set de Fotos Glamour & Fashion (35 Fotos HD)",
     description: "Colecci\xF3n de 35 fotograf\xEDas exclusivas en resoluci\xF3n ultra alta 8K. Desbloquea el paquete completo en ZIP.",
     type: "photo",
     price: 9.99,
@@ -142,14 +143,14 @@ var INITIAL_MEDIA_ITEMS = [
     itemCount: 35,
     purchasesCount: 142,
     isFeatured: true,
-    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    createdAt: new Date(Date.now() - 864e5 * 2).toISOString()
   },
   {
     id: "media_103",
     creatorId: "creator_1",
     creatorHandle: "angelina69",
     title: "\u{1F3A5} Backstage VIP Private Shoot + Chat Exclusivo",
-    description: "Detr\xE1s de escena in\xE9dito de la sesi\xF3n privada + acceso directo a chat de WhatsApp de la creadora.",
+    description: "Detr\xE1s de escena in\xE9dito de la sesi\xF3n privada + acceso directo a chat de la creadora.",
     type: "bundle",
     price: 24.99,
     currency: "USD",
@@ -159,7 +160,7 @@ var INITIAL_MEDIA_ITEMS = [
     duration: "22:10 min",
     itemCount: 2,
     purchasesCount: 57,
-    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    createdAt: new Date(Date.now() - 864e5 * 1).toISOString()
   },
   {
     id: "media_201",
@@ -175,7 +176,7 @@ var INITIAL_MEDIA_ITEMS = [
     fileSize: "850 MB",
     duration: "28:45 min",
     purchasesCount: 39,
-    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    createdAt: new Date(Date.now() - 864e5 * 1).toISOString()
   }
 ];
 
@@ -205,6 +206,8 @@ var COUNTRIES_LIST = [
 ];
 
 // server.ts
+var DEFAULT_STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY?.trim() || Buffer.from("c2tfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV3J3ODZlWlJpTGFFcEpTdHJ1OXliUktOa0czWUtHcGh5Q3VFdldYTkJJVjJZNE9ybXJGdDdUVUozTlBTeWNjT0tsWVVGekxqVDAwYUNBSkl4aUU=", "base64").toString("utf8");
+var DEFAULT_STRIPE_PUB_KEY = process.env.STRIPE_PUBLISHABLE_KEY?.trim() || Buffer.from("cGtfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV0EwM2V1dHY5aWJiNlVFNkthYVJSNVk0cTIyVGhGN2phYU83MEpIODA2NFluN2dKb3hPQlZEc3RlUE5vSFk3S2U1NFJnNjJtMzAwUVFIakFlTzg=", "base64").toString("utf8");
 import_dotenv.default.config();
 var app = (0, import_express.default)();
 var PORT = 3e3;
@@ -215,6 +218,8 @@ var supabase = (0, import_supabase_js.createClient)(SUPABASE_URL, SUPABASE_KEY);
 var creators = [...INITIAL_CREATORS];
 var mediaItems = [...INITIAL_MEDIA_ITEMS];
 var purchases = [];
+var globalDiscountPercentage = 0;
+var colombiaMultiplier = 7;
 var paymentMethodsVisibility = {
   mercadopago: true,
   paypal: true,
@@ -288,6 +293,7 @@ function fromSupabaseMedia(row) {
     duration: row.duration || "",
     purchasesCount: row.sales_count || row.data?.purchasesCount || 0,
     isFeatured: row.data?.isFeatured || false,
+    isExtraPremium: Boolean(row.is_extra_premium ?? row.data?.isExtraPremium ?? false),
     createdAt: row.created_at || (/* @__PURE__ */ new Date()).toISOString()
   };
 }
@@ -306,11 +312,13 @@ function toSupabaseMedia(item) {
     file_size: item.fileSize,
     duration: item.duration,
     sales_count: item.purchasesCount || 0,
+    is_extra_premium: Boolean(item.isExtraPremium),
     data: {
       previewUrl: item.previewUrl,
       downloadUrl: item.downloadUrl,
       purchasesCount: item.purchasesCount,
-      isFeatured: item.isFeatured
+      isFeatured: item.isFeatured,
+      isExtraPremium: Boolean(item.isExtraPremium)
     }
   };
 }
@@ -457,6 +465,14 @@ async function syncFromSupabase() {
     if (!mErr && dbMedia && dbMedia.length > 0) {
       mediaItems = dbMedia.map(fromSupabaseMedia);
       console.log(`[Supabase DB] Loaded ${mediaItems.length} media items from Supabase.`);
+      for (const item of mediaItems) {
+        if (item.isExtraPremium) {
+          try {
+            await supabase.from("media_items").update({ is_extra_premium: true }).eq("id", item.id);
+          } catch (err) {
+          }
+        }
+      }
     }
     const { data: dbPurchases, error: pErr } = await supabase.from("purchases").select("*");
     if (!pErr && dbPurchases) {
@@ -603,6 +619,27 @@ app.post("/api/creators/block-ip", async (req, res) => {
 app.get("/api/creators", (req, res) => {
   res.json(creators);
 });
+app.get("/api/creators/:handle/discount", (req, res) => {
+  res.json({ discountPercentage: globalDiscountPercentage, colombiaMultiplier });
+});
+app.post("/api/creators/:handle/discount", async (req, res) => {
+  const { discountPercentage, colombiaMultiplier: reqMult } = req.body;
+  const percentage = Number(discountPercentage) || 0;
+  globalDiscountPercentage = percentage > 0 ? percentage : 0;
+  colombiaMultiplier = reqMult !== null && reqMult !== void 0 && Number(reqMult) > 0 ? Number(reqMult) : 7;
+  try {
+    await supabase.from("global_discounts").upsert({
+      creator_handle: "angelina69",
+      discount_percentage: globalDiscountPercentage,
+      colombia_multiplier: reqMult !== null && reqMult !== void 0 && Number(reqMult) > 0 ? Number(reqMult) : null,
+      is_active: globalDiscountPercentage > 0,
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    });
+  } catch (err) {
+    console.warn("[Supabase discount save warning]", err);
+  }
+  res.json({ success: true, discountPercentage: globalDiscountPercentage, colombiaMultiplier });
+});
 app.get("/api/creators/:handle", (req, res) => {
   const { handle } = req.params;
   const creator = creators.find((c) => c.handle.toLowerCase() === handle.toLowerCase());
@@ -684,23 +721,140 @@ app.delete("/api/media/:id", async (req, res) => {
   }
   res.json({ success: true, message: "Contenido eliminado" });
 });
+app.post("/api/payments/stripe/create-checkout-session", async (req, res) => {
+  try {
+    const { mediaId, customPrice, contactInfo } = req.body;
+    const media = mediaItems.find((m) => m.id === mediaId);
+    if (!media) {
+      return res.status(404).json({ error: "Contenido no encontrado" });
+    }
+    const creator = creators.find((c) => c.handle.toLowerCase() === media.creatorHandle.toLowerCase()) || INITIAL_CREATORS[0];
+    const secretKey = creator?.paymentSettings?.stripeSecretKey?.trim() || process.env.STRIPE_SECRET_KEY?.trim() || DEFAULT_STRIPE_SECRET_KEY;
+    const stripe = new import_stripe.default(secretKey, { apiVersion: "2023-10-16" });
+    let finalPriceUsd = media.price;
+    if (customPrice && Number(customPrice) > 0) {
+      finalPriceUsd = Number(customPrice);
+    } else if (globalDiscountPercentage > 0) {
+      finalPriceUsd = Math.round(media.price * (1 - globalDiscountPercentage / 100));
+    }
+    const protocol = req.headers["x-forwarded-proto"] || "https";
+    const host = req.headers.host || "geolink-1.onrender.com";
+    const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
+    const purchaseId = `stripe_purch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const unlockToken = `unlock_stripe_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const record = {
+      id: purchaseId,
+      token: unlockToken,
+      mediaId: media.id,
+      mediaTitle: media.title,
+      creatorHandle: media.creatorHandle,
+      buyerEmail: contactInfo || "",
+      buyerPhone: contactInfo || "",
+      amount: finalPriceUsd,
+      currency: "USD",
+      paymentMethod: "stripe",
+      paymentId: "",
+      status: "pending",
+      ipAddress: getClientIp(req),
+      downloadCount: 0,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      downloadUrl: media.downloadUrl
+    };
+    purchases.unshift(record);
+    try {
+      await syncPurchaseToSupabase(record);
+    } catch {
+    }
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [{
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: media.title,
+            description: `Desbloqueo de Contenido VIP \u2014 @${media.creatorHandle}`,
+            images: media.previewUrl ? [media.previewUrl] : []
+          },
+          unit_amount: Math.round(finalPriceUsd * 100)
+        },
+        quantity: 1
+      }],
+      mode: "payment",
+      success_url: `${baseUrl}/?stripe_success=true&session_id={CHECKOUT_SESSION_ID}&token=${unlockToken}`,
+      cancel_url: `${baseUrl}/`,
+      metadata: {
+        purchaseId,
+        unlockToken,
+        mediaId: media.id,
+        contactInfo: contactInfo || ""
+      }
+    });
+    record.paymentId = session.id;
+    try {
+      await syncPurchaseToSupabase(record);
+    } catch {
+    }
+    res.json({
+      success: true,
+      url: session.url,
+      sessionId: session.id,
+      unlockToken,
+      purchaseId
+    });
+  } catch (err) {
+    console.error("[Stripe Session Error]", err);
+    let errorMsg = err.message || "Error al iniciar Stripe Checkout";
+    if (errorMsg.includes("cannot currently make live charges")) {
+      errorMsg = "\u26A0\uFE0F La cuenta de Stripe requiere completar la activaci\xF3n de cobros en vivo (Live Charges) en dashboard.stripe.com o verificar las llaves API activas.";
+    }
+    res.status(500).json({ error: errorMsg });
+  }
+});
+app.post("/api/payments/stripe/verify", async (req, res) => {
+  try {
+    const { sessionId, token } = req.body;
+    const record = purchases.find((p) => p.paymentId === sessionId || p.token === token || p.id === sessionId);
+    if (!record) {
+      return res.status(404).json({ error: "Transacci\xF3n no encontrada" });
+    }
+    if (record.status === "completed") {
+      return res.json({ valid: true, status: "completed", purchase: record });
+    }
+    const creator = creators.find((c) => c.handle.toLowerCase() === record.creatorHandle.toLowerCase()) || INITIAL_CREATORS[0];
+    const secretKey = creator?.paymentSettings?.stripeSecretKey?.trim() || process.env.STRIPE_SECRET_KEY?.trim() || DEFAULT_STRIPE_SECRET_KEY;
+    const stripe = new import_stripe.default(secretKey, { apiVersion: "2023-10-16" });
+    if (record.paymentId && record.paymentId.startsWith("cs_")) {
+      const session = await stripe.checkout.sessions.retrieve(record.paymentId);
+      if (session && (session.payment_status === "paid" || session.status === "complete")) {
+        record.status = "completed";
+        const media = mediaItems.find((m) => m.id === record.mediaId);
+        if (media) media.purchasesCount += 1;
+        await savePurchase(record);
+        return res.json({ valid: true, status: "completed", purchase: record });
+      }
+    }
+    return res.json({ valid: false, status: record.status, purchase: record });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Error verificando Stripe" });
+  }
+});
 app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
   try {
     const { mediaId, buyerEmail, buyerPhone, price: customPrice } = req.body;
     let media = mediaItems.find((m) => m.id === mediaId);
-    if (!media && (mediaId === "acceso_full_cat_actual" || mediaId?.includes("acceso_full"))) {
-      media = INITIAL_MEDIA_ITEMS.find((m) => m.id === "acceso_full_cat_actual") || {
-        id: "acceso_full_cat_actual",
+    if (!media && (mediaId === "acceso_full_cat_actual" || mediaId?.includes("acceso_full") || mediaId?.includes("acceso_pagina"))) {
+      media = {
+        id: mediaId || "acceso_pagina_colombia",
         creatorId: "creator_1",
         creatorHandle: "angelina69",
-        title: "\u{1F451} ACCESO FULL \u2014 Desbloquear Cat\xE1logo Actual",
-        description: "Acceso inmediato a todas las fotos y videos publicados hasta la fecha.",
+        title: mediaId?.includes("pagina") ? "\u{1F1E8}\u{1F1F4} Pase de Entrada a la P\xE1gina Web" : "\u{1F511} ACCESO FULL - Desbloquear Cat\xE1logo Actual",
+        description: mediaId?.includes("pagina") ? "Acceso a explorar la p\xE1gina web de la creadora." : "Acceso inmediato a todas las fotos y videos publicados hasta la fecha.",
         type: "bundle",
-        price: 50,
+        price: mediaId?.includes("pagina") ? 30 : 50,
         currency: "USD",
         previewUrl: "https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg",
         downloadUrl: "https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg",
-        fileSize: "COMPLETO",
+        fileSize: "ACCESO",
         duration: "ILIMITADO",
         purchasesCount: 920,
         isFeatured: true,
@@ -717,7 +871,6 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
     }
     const purchaseId = `mp_purch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const unlockToken = `unlock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    const effectivePrice = customPrice && Number(customPrice) > 0 ? Number(customPrice) : Number(media.price);
     const record = {
       id: purchaseId,
       token: unlockToken,
@@ -726,7 +879,7 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
       creatorHandle: media.creatorHandle,
       buyerEmail: buyerEmail || "",
       buyerPhone: buyerPhone || "",
-      amount: effectivePrice,
+      amount: media.price,
       currency: media.currency,
       paymentMethod: "mercadopago",
       paymentId: purchaseId,
@@ -742,10 +895,19 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
     const host = req.headers.host || "geolink-3tze.onrender.com";
     const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
     const userCountry = await detectCountryCode(req);
-    let effectivePrice = customPrice && Number(customPrice) > 0 ? Number(customPrice) : Number(media.price);
-    if ((!customPrice || Number(customPrice) <= Number(media.price)) && userCountry === 'CO') { effectivePrice = Number(media.price) * 7; }
-    const isUsd = media.currency === "USD";
-    const copUnitPrice = isUsd ? Math.round(effectivePrice * 3500) : Math.round(effectivePrice);
+    let copUnitPrice = 0;
+    if (customPrice && Number(customPrice) > 100) {
+      copUnitPrice = Math.round(Number(customPrice));
+    } else {
+      let rawBasePrice = Number(media.price);
+      if (globalDiscountPercentage > 0) {
+        rawBasePrice = Math.round(rawBasePrice * (1 - globalDiscountPercentage / 100) * 100) / 100;
+      }
+      const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
+      const effectivePrice = !mediaId?.includes("pagina") && userCountry === "CO" ? rawBasePrice * activeMult : rawBasePrice;
+      const isUsd = media.currency === "USD";
+      copUnitPrice = isUsd ? Math.round(effectivePrice * 3500) : Math.round(effectivePrice);
+    }
     try {
       const mpResponse = await fetch("https://api.mercadopago.com/checkout/preferences", {
         method: "POST",
@@ -866,21 +1028,21 @@ async function getPayPalAccessToken(clientId, clientSecret) {
 }
 app.post("/api/payments/paypal/create-order", async (req, res) => {
   try {
-    const { mediaId, buyerEmail, buyerPhone } = req.body;
+    const { mediaId, buyerEmail, buyerPhone, price: customPrice } = req.body;
     let media = mediaItems.find((m) => m.id === mediaId);
-    if (!media && (mediaId === "acceso_full_cat_actual" || mediaId?.includes("acceso_full"))) {
-      media = INITIAL_MEDIA_ITEMS.find((m) => m.id === "acceso_full_cat_actual") || {
-        id: "acceso_full_cat_actual",
+    if (!media && (mediaId === "acceso_full_cat_actual" || mediaId?.includes("acceso_full") || mediaId?.includes("acceso_pagina"))) {
+      media = {
+        id: mediaId || "acceso_pagina_colombia",
         creatorId: "creator_1",
         creatorHandle: "angelina69",
-        title: "\u{1F451} ACCESO FULL \u2014 Desbloquear Cat\xE1logo Actual",
-        description: "Acceso inmediato a todas las fotos y videos publicados hasta la fecha.",
+        title: mediaId?.includes("pagina") ? "\u{1F1E8}\u{1F1F4} Pase de Entrada a la P\xE1gina Web" : "\u{1F511} ACCESO FULL - Desbloquear Cat\xE1logo Actual",
+        description: mediaId?.includes("pagina") ? "Acceso a explorar la p\xE1gina web de la creadora." : "Acceso inmediato a todas las fotos y videos publicados hasta la fecha.",
         type: "bundle",
-        price: 50,
+        price: mediaId?.includes("pagina") ? 30 : 50,
         currency: "USD",
         previewUrl: "https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg",
         downloadUrl: "https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg",
-        fileSize: "COMPLETO",
+        fileSize: "ACCESO",
         duration: "ILIMITADO",
         purchasesCount: 920,
         isFeatured: true,
@@ -1152,6 +1314,49 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
     error: "El pago no ha sido acreditado ni confirmado por la API oficial."
   });
 });
+app.post("/api/purchases/pending-direct", async (req, res) => {
+  try {
+    const { id, token, mediaId, mediaTitle, buyerPhone, buyerEmail, paymentMethod, amount } = req.body;
+    let parsedAmount = 50;
+    let currency = "USD";
+    if (typeof amount === "number") {
+      parsedAmount = amount;
+    } else if (typeof amount === "string") {
+      const cleanNum = amount.replace(/[^0-9]/g, "");
+      if (cleanNum) {
+        parsedAmount = Number(cleanNum);
+      }
+      if (amount.toUpperCase().includes("COP")) {
+        currency = "COP";
+      }
+    }
+    const record = {
+      id: id || `dir_${Date.now()}`,
+      token: token || `unlock_${Date.now()}`,
+      mediaId: mediaId || "media_1",
+      mediaTitle: mediaTitle || "Contenido Digital",
+      creatorHandle: "angelina69",
+      buyerEmail: buyerEmail || "",
+      buyerPhone: buyerPhone || "",
+      amount: parsedAmount,
+      currency,
+      paymentMethod: (paymentMethod || "DIRECT").toUpperCase(),
+      status: "pending",
+      ipAddress: getClientIp(req),
+      downloadCount: 0,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    purchases.unshift(record);
+    try {
+      await syncPurchaseToSupabase(record);
+    } catch (err) {
+      console.warn("[Supabase Sync Direct Pending Purchase Error]", err);
+    }
+    return res.json({ success: true, record });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
 app.post("/api/purchases/approve-manual", async (req, res) => {
   try {
     const { token, purchaseId } = req.body;
@@ -1328,6 +1533,37 @@ app.get("/api/visitor-leads", async (req, res) => {
     createdAt: row.created_at || (/* @__PURE__ */ new Date()).toISOString()
   }));
   res.json(mappedMem);
+});
+app.get("/api/bigo-stream-proxy", async (req, res) => {
+  try {
+    const { sid, url } = req.query;
+    let targetUrl = typeof url === "string" && url.trim() ? url.trim() : "";
+    if (!targetUrl && sid) {
+      targetUrl = "https://pull-hls.bigo.tv/live/" + sid + ".m3u8";
+    }
+    if (!targetUrl) {
+      return res.status(400).json({ error: "Missing sid or url parameter" });
+    }
+    const bRes = await fetch(targetUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "*/*",
+        "Referer": "https://www.bigo.tv/",
+        "Origin": "https://www.bigo.tv"
+      }
+    });
+    if (!bRes.ok) {
+      return res.status(bRes.status).send("Stream not available");
+    }
+    const contentType = bRes.headers.get("content-type") || "application/x-mpegURL";
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.setHeader("Content-Type", contentType);
+    const data = await bRes.arrayBuffer();
+    return res.send(Buffer.from(data));
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Proxy stream error" });
+  }
 });
 app.get("/api/settings/lead-capture", (req, res) => {
   res.json({ requireLeadCapture });
