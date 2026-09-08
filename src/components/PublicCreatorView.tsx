@@ -361,44 +361,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             </a>
           </div>
 
-          {/* 3. BOTÓN COMPACTO "DESBLOQUEAR TODO" ACCESO FULL */}
-          {(() => {
-            const fullPrices = getCalculatedPrices(fullAccessBasePrice, "acceso_full_cat_actual");
-            const formattedDisplayPrice = fullPrices.hasDiscount ? fullPrices.discountedFormatted : fullPrices.originalFormatted;
-            return (
-              <div className="pt-1 sm:pt-2">
-                <button
-                  id="desbloquear-todo-button"
-                  onClick={() => onOpenPurchaseModal(fullAccessItem)}
-                  className="w-full py-2.5 px-3 sm:py-3.5 sm:px-5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-500 via-pink-600 to-purple-700 hover:from-amber-400 hover:to-purple-600 text-white font-black shadow-xl shadow-purple-900/40 border sm:border-2 border-amber-300/50 transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-[1.01] cursor-pointer group"
-                >
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-1.5 text-center sm:text-left">
-                    <div className="w-full">
-                      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5">
-                        <span className="font-black text-white uppercase tracking-wide text-[11px] sm:text-sm">
-                          {t.fullAccessTitle} — ({formattedDisplayPrice})
-                        </span>
-                        {fullPrices.hasDiscount && (
-                          <span className="bg-rose-500/30 text-amber-200 border border-amber-400/50 px-1.5 py-0.5 rounded text-[9px] uppercase font-black">
-                            {fullPrices.discountPercent}% OFF
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[10px] text-amber-100/90 font-medium mt-0.5 leading-snug">
-                        {t.fullAccessDesc}
-                      </p>
-                    </div>
-
-                    <div className="hidden sm:flex items-center gap-2 shrink-0">
-                      <span className="text-xs sm:text-sm font-extrabold text-amber-200 bg-black/40 px-3 py-1.5 rounded-xl border border-amber-300/30">
-                        {formattedDisplayPrice}
-                      </span>
-                    </div>
-                  </div>
-                </button>
-              </div>
-            );
-          })()}
+          {/* 3. BOTÓN COMPACTO "DESBLOQUEAR TODO" ACCESO FULL (OCULTO) */}
+          {/* Hidden as requested */}
 
         </div>
 
