@@ -49,21 +49,22 @@ export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator 
   };
 
   const handleNequiTelegramSubmit = async () => {
-    if (!contactInfo || contactInfo.trim().length < 3) {
-      setContactError('Ingresa tu WhatsApp o usuario de Telegram');
-      return;
-    }
     setContactError('');
 
-    try {
-      localStorage.setItem('geolink_visitor_contact', contactInfo.trim());
-    } catch {}
+    const cleanContact = contactInfo.trim();
+    if (cleanContact) {
+      try {
+        localStorage.setItem('geolink_visitor_contact', cleanContact);
+      } catch {}
+    }
 
-    await api.saveColombiaAccessRequest(contactInfo.trim(), 'nequi');
+    const contactStr = cleanContact || 'Visitante';
+    await api.saveColombiaAccessRequest(contactStr, 'nequi');
     setSubmittedNequi(true);
 
+    const contactText = cleanContact ? `\n\nMi contacto: ${cleanContact}` : '';
     const msg = encodeURIComponent(
-      `¡Hola! Ya realicé el pago de $35.000 COP por Nequi Llave Bre-B (@NEQUIANG05606) para solicitar el Acceso a la página web.\n\nMi contacto: ${contactInfo.trim()}\n\nAquí te adjunto mi comprobante 📎`
+      `¡Hola! Ya realicé el pago de $35.000 COP por Nequi Llave Bre-B (@NEQUIANG05606) para solicitar el Acceso a la página web.${contactText}\n\nAquí te adjunto mi comprobante 📎`
     );
 
     window.open(`https://t.me/${TELEGRAM_USER}?text=${msg}`, '_blank');
@@ -164,7 +165,7 @@ export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator 
                   type="text"
                   value={contactInfo}
                   onChange={e => { setContactInfo(e.target.value); setContactError(''); }}
-                  placeholder="Tu WhatsApp o Telegram *"
+                  placeholder="Tu WhatsApp o Telegram (opcional)"
                   className="w-full bg-black/60 border border-purple-500/40 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 outline-none focus:border-purple-400"
                 />
                 {contactError && (

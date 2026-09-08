@@ -180,12 +180,8 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     return () => clearInterval(id);
   }, [screen, paypalOrderId, paypalUnlockToken]);
 
-  // ── Validar contacto obligatorio ─────────────────────────────────
+  // ── Validar contacto opcional ─────────────────────────────────
   const validateContact = () => {
-    if (!contactInfo || !contactInfo.trim()) {
-      setErrorMessage('⚠️ Debes ingresar tu WhatsApp o usuario de Telegram antes de continuar con la compra.');
-      return false;
-    }
     setErrorMessage('');
     return true;
   };
@@ -785,7 +781,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-zinc-300 flex items-center gap-1.5">
                 <Phone className="w-3.5 h-3.5 text-indigo-400" />
-                Tu WhatsApp o usuario de Telegram <span className="text-red-400">*</span>
+                Tu WhatsApp o usuario de Telegram <span className="text-zinc-500 font-normal">(opcional)</span>
               </label>
               <input
                 type="text"
