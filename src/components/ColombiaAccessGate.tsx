@@ -35,7 +35,7 @@ export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator 
   const handleMercadoPagoPay = async () => {
     setIsLoadingMp(true);
     try {
-      const data = await api.createMercadoPagoPreference('acceso_pagina_colombia', '', contactInfo || 'Pagina Colombia', 10);
+      const data = await api.createMercadoPagoPreference('acceso_pagina_colombia', '', contactInfo || 'Pagina Colombia', 35000);
       if (data.init_point) {
         window.location.href = data.init_point;
       } else {
