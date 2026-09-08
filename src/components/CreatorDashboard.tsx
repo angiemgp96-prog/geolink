@@ -1656,7 +1656,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <span>🇨🇴 Solicitudes de Acceso Colombia ($30 USD / $105.000 COP)</span>
+                  <span>🇨🇴 Solicitudes de Acceso Colombia ($10 USD / $35.000 COP)</span>
                   <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
                     Aprobación Nequi
                   </span>

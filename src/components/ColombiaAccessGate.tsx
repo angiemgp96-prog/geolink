@@ -35,7 +35,7 @@ export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator 
   const handleMercadoPagoPay = async () => {
     setIsLoadingMp(true);
     try {
-      const data = await api.createMercadoPagoPreference('acceso_pagina_colombia', '', contactInfo || 'Pagina Colombia', 30);
+      const data = await api.createMercadoPagoPreference('acceso_pagina_colombia', '', contactInfo || 'Pagina Colombia', 10);
       if (data.init_point) {
         window.location.href = data.init_point;
       } else {
@@ -63,7 +63,7 @@ export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator 
     setSubmittedNequi(true);
 
     const msg = encodeURIComponent(
-      `¡Hola! Ya realicé el pago de $105.000 COP por Nequi Llave Bre-B (@NEQUIANG05606) para solicitar el Acceso a la página web.\n\nMi contacto: ${contactInfo.trim()}\n\nAquí te adjunto mi comprobante 📎`
+      `¡Hola! Ya realicé el pago de $35.000 COP por Nequi Llave Bre-B (@NEQUIANG05606) para solicitar el Acceso a la página web.\n\nMi contacto: ${contactInfo.trim()}\n\nAquí te adjunto mi comprobante 📎`
     );
 
     window.open(`https://t.me/${TELEGRAM_USER}?text=${msg}`, '_blank');
@@ -80,7 +80,7 @@ export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator 
           </div>
           
           <div className="text-xl font-black text-amber-300">
-            $105.000 COP <span className="text-xs font-bold text-slate-400">($30 USD)</span>
+            $35.000 COP <span className="text-xs font-bold text-slate-400">($10 USD)</span>
           </div>
 
           <p className="text-[11px] text-zinc-300 leading-snug font-medium px-2">
@@ -125,7 +125,7 @@ export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator 
                 className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
               >
                 {isLoadingMp ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
-                <span>Pagar $105.000 COP con Mercado Pago</span>
+                <span>Pagar $35.000 COP con Mercado Pago</span>
               </button>
               <p className="text-[10px] text-center text-sky-300/80 font-medium">
                 ⚡ Desbloqueo automático inmediato al pagar

@@ -828,7 +828,71 @@ export const api = {
     return { code, link, token: unlockToken };
   },
 
-  // 6. Colombia Page Access Control ($30 USD / $105.000 COP)
+  // 6. Colombia Page Access Control ($10 USD / $35.000 COP)
+  async autoApproveMercadoPagoColombiaAccess(contactInfo?: string): Promise<boolean> {
+    let deviceHash = '';
+    try {
+      deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
+      if (!deviceHash && typeof window !== 'undefined') {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+        const rawFp = [navigator.userAgent, screen.width, screen.height, screen.colorDepth, navigator.language, tz].join('|');
+        let hashNum = 0;
+        for (let i = 0; i < rawFp.length; i++) {
+          hashNum = (hashNum << 5) - hashNum + rawFp.charCodeAt(i);
+          hashNum |= 0;
+        }
+        deviceHash = `dev_${Math.abs(hashNum).toString(36)}`;
+        localStorage.setItem('geolink_device_fingerprint', deviceHash);
+      }
+    } catch {}
+
+    const nowIso = new Date().toISOString();
+    const reqId = `mp_auto_co_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+
+    if (isSupabaseConfigured()) {
+      try {
+        if (deviceHash) {
+          const { data } = await supabase
+            .from('colombia_page_access')
+            .select('id')
+            .eq('device_hash', deviceHash)
+            .limit(1);
+
+          if (data && data.length > 0) {
+            await supabase
+              .from('colombia_page_access')
+              .update({
+                status: 'approved',
+                payment_method: 'mercadopago',
+                approved_at: nowIso,
+                contact_info: contactInfo ? contactInfo.trim() : 'Pago MercadoPago Automático'
+              })
+              .eq('id', data[0].id);
+          } else {
+            await supabase.from('colombia_page_access').insert({
+              id: reqId,
+              contact_info: contactInfo ? contactInfo.trim() : 'Pago MercadoPago Automático',
+              device_hash: deviceHash,
+              payment_method: 'mercadopago',
+              status: 'approved',
+              created_at: nowIso,
+              approved_at: nowIso
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Supabase autoApproveMercadoPagoColombiaAccess warning:', err);
+      }
+    }
+
+    try {
+      localStorage.setItem('geolink_colombia_page_unlocked', 'true');
+      localStorage.setItem('geolink_colombia_unlocked_at', nowIso);
+    } catch {}
+
+    return true;
+  },
+
   async saveColombiaAccessRequest(contactInfo: string, method: string = 'nequi'): Promise<boolean> {
     let deviceHash = '';
     try {

@@ -204,17 +204,24 @@ export default function App() {
       const isMpReturn = params.get('payment') === 'success' || params.get('collection_status') === 'approved' || params.get('status') === 'approved';
       const isPpReturn = params.get('payment') === 'paypal_success';
 
-      if (token && isMpReturn) {
+      if (isMpReturn) {
         try {
-          const verifyRes = await api.verifyPurchase(token, true);
-          if (verifyRes.valid && verifyRes.purchase) {
-            addUnlockedToken(token);
-            const foundMedia = mediaItems.find(m => m.id === verifyRes.purchase.mediaId);
-            if (foundMedia) {
-              setSelectedMediaForPurchase(foundMedia);
-            }
-          }
+          await api.autoApproveMercadoPagoColombiaAccess();
+          setIsColombiaPageUnlocked(true);
         } catch {}
+
+        if (token) {
+          try {
+            const verifyRes = await api.verifyPurchase(token, true);
+            if (verifyRes.valid && verifyRes.purchase) {
+              addUnlockedToken(token);
+              const foundMedia = mediaItems.find(m => m.id === verifyRes.purchase.mediaId);
+              if (foundMedia) {
+                setSelectedMediaForPurchase(foundMedia);
+              }
+            }
+          } catch {}
+        }
       } else if (token && isPpReturn) {
         try {
           const captureRes = await api.capturePayPalOrder('', token);
