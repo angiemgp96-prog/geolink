@@ -48,13 +48,14 @@ export default function App() {
   const [selectedMediaForPurchase, setSelectedMediaForPurchase] = useState<MediaItem | null>(null);
   const [pendingStripePayment, setPendingStripePayment] = useState<PendingStripePayment | null>(null);
 
-  useEffect(() => {
+  const checkAndOpenPendingStripePayment = () => {
     try {
       const saved = localStorage.getItem('geolink_pending_stripe_payment');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.status === 'pending') {
           setPendingStripePayment(parsed);
+          return;
         }
       }
     } catch {}
@@ -75,6 +76,29 @@ export default function App() {
         });
       }
     }).catch(() => {});
+  };
+
+  // Detector automático al volver de otra pestaña (Stripe Checkout)
+  useEffect(() => {
+    checkAndOpenPendingStripePayment();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkAndOpenPendingStripePayment();
+      }
+    };
+
+    const handleWindowFocus = () => {
+      checkAndOpenPendingStripePayment();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleWindowFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleWindowFocus);
+    };
   }, []);
   const [isNewCreatorModalOpen, setIsNewCreatorModalOpen] = useState<boolean>(false);
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
