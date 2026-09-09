@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { CreatorProfile, MediaItem, PurchaseRecord, VisitorLocation, VisitorLead, PaymentMethodsVisibility } from '../types';
+import { getStripePaymentUrl } from '../utils/stripeLinks';
 import { sanitizeStripeTitle, sanitizeStripeDescription, sanitizeStripeMetadata, getStripeSafeImage } from '../utils/stripeSanitizer';
 
 const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL || 'https://eqpabbrmdssgoaaqtkgu.supabase.co';
@@ -314,56 +315,117 @@ export const api = {
       throw new Error('El método de pago Stripe se encuentra desactivado.');
     }
 
-    // 1. Sanitizar título y metadatos para cumplimiento estricto de políticas de Stripe
-    const safeTitle = sanitizeStripeTitle(mediaTitle, mediaType, mediaId);
-    const safeDescription = sanitizeStripeDescription();
-    const safeImage = getStripeSafeImage();
+    const price = customPrice || 10;
+    const stripeUrl = getStripePaymentUrl(price);
+    const safeTitle = mediaTitle || 'Contenido Exclusivo VIP';
 
-    // 2. Inserción inmediata en Supabase en estado 'pending' desde el navegador del cliente
+    const pendingData = {
+      id: `stripe_pend_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      media_id: mediaId,
+      media_title: safeTitle,
+      amount: price,
+      currency: 'USD',
+      stripe_url: stripeUrl,
+      contact_info: (contactInfo || '').trim(),
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
+
+    // Inserción en Supabase tabla stripe_payments
     if (isSupabaseConfigured()) {
       try {
-        const tempPurchaseId = `stripe_purch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-        const tempUnlockToken = `unlock_stripe_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        const nowIso = new Date().toISOString();
-
-        await supabase.from('purchases').insert({
-          id: tempPurchaseId,
-          token: tempUnlockToken,
-          media_id: mediaId,
-          media_title: safeTitle,
-          creator_handle: 'creator_vip',
-          buyer_email: (contactInfo || '').trim(),
-          buyer_phone: (contactInfo || '').trim(),
-          payment_method: 'STRIPE',
-          amount: customPrice || 10,
-          currency: 'USD',
-          status: 'pending',
-          created_at: nowIso,
-          updated_at: nowIso
-        });
+        await supabase.from('stripe_payments').insert(pendingData);
       } catch (err) {
-        console.warn('[Supabase Direct Stripe Insert Warning]', err);
+        console.warn('[Supabase stripe_payments Insert Warning]', err);
       }
     }
 
-    // 3. Generar sesión de pago en Stripe mediante la API backend enviando datos 100% neutros/discretos
+    // Backend sync
     try {
-      const res = await fetch('/api/payments/stripe/create-checkout-session', {
+      await fetch('/api/payments/stripe/save-pending', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          mediaId, 
-          customPrice, 
-          contactInfo,
-          title: safeTitle,
-          description: safeDescription,
-          imageUrl: safeImage
+        body: JSON.stringify({
+          mediaId,
+          mediaTitle: safeTitle,
+          amount: price,
+          stripeUrl,
+          contactInfo: (contactInfo || '').trim()
         })
       });
-      return await res.json();
-    } catch (err: any) {
-      return { error: err.message || 'Error de conexión con la API de Stripe.' };
+    } catch {}
+
+    return {
+      url: stripeUrl,
+      pendingPayment: pendingData
+    };
+  },
+
+  async savePendingStripePayment(data: any) {
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('stripe_payments').insert({
+          id: data.id,
+          media_id: data.mediaId,
+          media_title: data.mediaTitle,
+          amount: data.amount,
+          currency: data.currency || 'USD',
+          stripe_url: data.stripeUrl,
+          contact_info: data.contactInfo || '',
+          status: 'pending',
+          created_at: data.createdAt || new Date().toISOString()
+        });
+      } catch (e) {}
     }
+    try {
+      const res = await fetch('/api/payments/stripe/save-pending', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return await res.json();
+    } catch {
+      return { success: false };
+    }
+  },
+
+  async getPendingStripePayment(contactInfo?: string) {
+    if (isSupabaseConfigured() && contactInfo) {
+      try {
+        const { data } = await supabase.from('stripe_payments')
+          .select('*')
+          .eq('contact_info', contactInfo)
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (data && data.length > 0) {
+          return { pendingPayment: data[0] };
+        }
+      } catch (e) {}
+    }
+    try {
+      const res = await fetch(`/api/payments/stripe/pending${contactInfo ? '?contactInfo=' + encodeURIComponent(contactInfo) : ''}`);
+      return await res.json();
+    } catch {
+      return { pendingPayment: null };
+    }
+  },
+
+  async markStripePaymentSent(id: string) {
+    if (isSupabaseConfigured() && id) {
+      try {
+        await supabase.from('stripe_payments').update({ status: 'sent' }).eq('id', id);
+      } catch (e) {}
+    }
+    try {
+      await fetch('/api/payments/stripe/mark-sent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+    } catch {}
+    return { success: true };
   },
 
   async verifyStripeSession(sessionId: string, token: string) {

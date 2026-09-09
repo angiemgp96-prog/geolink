@@ -220,6 +220,7 @@ var mediaItems = [...INITIAL_MEDIA_ITEMS];
 var purchases = [];
 var globalDiscountPercentage = 0;
 var colombiaMultiplier = 7;
+var stripePayments = [];
 var paymentMethodsVisibility = {
   mercadopago: true,
   paypal: true,
@@ -720,6 +721,65 @@ app.delete("/api/media/:id", async (req, res) => {
     console.error("[Supabase Media Delete Error]", err);
   }
   res.json({ success: true, message: "Contenido eliminado" });
+});
+app.post("/api/payments/stripe/save-pending", async (req, res) => {
+  try {
+    const { mediaId, mediaTitle, amount, stripeUrl, contactInfo } = req.body;
+    const pendingObj = {
+      id: `stripe_pend_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      media_id: mediaId,
+      media_title: mediaTitle,
+      amount: Number(amount) || 10,
+      currency: "USD",
+      stripe_url: stripeUrl || "",
+      contact_info: contactInfo || "",
+      status: "pending",
+      created_at: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    stripePayments.push(pendingObj);
+    try {
+      const { error } = await supabase.from("stripe_payments").upsert(pendingObj);
+      if (error) console.warn("[Supabase stripe_payments Sync Warning]", error);
+    } catch (e) {
+    }
+    res.json({ success: true, pendingPayment: pendingObj });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Error al guardar pago pendiente Stripe" });
+  }
+});
+app.get("/api/payments/stripe/pending", async (req, res) => {
+  try {
+    const { contactInfo } = req.query;
+    if (contactInfo && typeof contactInfo === "string") {
+      try {
+        const { data, error } = await supabase.from("stripe_payments").select("*").eq("contact_info", contactInfo).eq("status", "pending").order("created_at", { ascending: false }).limit(1);
+        if (!error && data && data.length > 0) {
+          return res.json({ pendingPayment: data[0] });
+        }
+      } catch {
+      }
+    }
+    const memPending = stripePayments.filter((p) => p.status === "pending").slice(-1)[0] || null;
+    res.json({ pendingPayment: memPending });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.post("/api/payments/stripe/mark-sent", async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (id) {
+      const found = stripePayments.find((p) => p.id === id);
+      if (found) found.status = "sent";
+      try {
+        await supabase.from("stripe_payments").update({ status: "sent" }).eq("id", id);
+      } catch {
+      }
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 app.post("/api/payments/stripe/create-checkout-session", async (req, res) => {
   try {

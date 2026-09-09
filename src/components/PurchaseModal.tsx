@@ -247,20 +247,37 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   // PAYPAL — Redirección Directa a Checkout Oficial PayPal Live API
   // ════════════════════════════════════════════════════════════════
   const handleStripeDirect = async () => {
-    
     setErrorMessage('');
     setIsLoading(true);
     try {
-      const data = await api.createStripeCheckoutSession(item.id, undefined, contactInfo, item.title, item.type);
+      const data = await api.createStripeCheckoutSession(item.id, item.price, contactInfo, item.title, item.type);
       if (data.error) {
         setErrorMessage(data.error);
         return;
       }
       if (data.url) {
-        window.location.href = data.url;
+        const pendingObj = {
+          id: data.pendingPayment?.id || `stripe_pend_${Date.now()}`,
+          mediaId: item.id,
+          mediaTitle: item.title,
+          amount: item.price,
+          currency: item.currency || 'USD',
+          stripeUrl: data.url,
+          contactInfo: contactInfo || '',
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        };
+
+        try {
+          localStorage.setItem('geolink_pending_stripe_payment', JSON.stringify(pendingObj));
+        } catch {}
+
+        window.open(data.url, '_blank');
+
+        if (onClose) onClose();
       }
     } catch (err: any) {
-      setErrorMessage(err.message || 'Error al conectar con la API de Stripe.');
+      setErrorMessage(err.message || 'Error al conectar con Stripe.');
     } finally {
       setIsLoading(false);
     }

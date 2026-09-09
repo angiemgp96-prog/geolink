@@ -11,6 +11,7 @@ import { NewCreatorModal } from './components/NewCreatorModal';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { VisitorLeadModal } from './components/VisitorLeadModal';
 import { ColombiaAccessGate } from './components/ColombiaAccessGate';
+import { StripePendingReceiptModal, PendingStripePayment } from './components/StripePendingReceiptModal';
 import { INITIAL_CREATORS, INITIAL_MEDIA_ITEMS } from './data/mockData';
 import { Lock } from 'lucide-react';
 
@@ -45,6 +46,36 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState<'public' | 'dashboard'>('public');
   const [selectedMediaForPurchase, setSelectedMediaForPurchase] = useState<MediaItem | null>(null);
+  const [pendingStripePayment, setPendingStripePayment] = useState<PendingStripePayment | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('geolink_pending_stripe_payment');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.status === 'pending') {
+          setPendingStripePayment(parsed);
+        }
+      }
+    } catch {}
+
+    api.getPendingStripePayment().then((res) => {
+      if (res && res.pendingPayment) {
+        const p = res.pendingPayment;
+        setPendingStripePayment({
+          id: p.id,
+          mediaId: p.media_id || p.mediaId,
+          mediaTitle: p.media_title || p.mediaTitle || 'Contenido Exclusivo',
+          amount: Number(p.amount) || 10,
+          currency: p.currency || 'USD',
+          stripeUrl: p.stripe_url || p.stripeUrl || '',
+          contactInfo: p.contact_info || p.contactInfo || '',
+          status: p.status || 'pending',
+          createdAt: p.created_at || p.createdAt || new Date().toISOString()
+        });
+      }
+    }).catch(() => {});
+  }, []);
   const [isNewCreatorModalOpen, setIsNewCreatorModalOpen] = useState<boolean>(false);
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
 
@@ -438,6 +469,23 @@ export default function App() {
             <span>{isAdminLoggedIn ? 'Panel Creadora (Activo)' : '🔑 Acceso Exclusivo Creadora'}</span>
           </button>
         </footer>
+      )}
+
+      {/* Stripe Pending Receipt Modal */}
+      {pendingStripePayment && (
+        <StripePendingReceiptModal
+          payment={pendingStripePayment}
+          onClose={() => setPendingStripePayment(null)}
+          onMarkSent={() => {
+            if (pendingStripePayment.id) {
+              api.markStripePaymentSent(pendingStripePayment.id).catch(() => {});
+            }
+            try {
+              localStorage.removeItem('geolink_pending_stripe_payment');
+            } catch {}
+            setPendingStripePayment(null);
+          }}
+        />
       )}
 
       {/* Visitor Lead Capture Modal (Only for allowed countries and non-admins) */}
