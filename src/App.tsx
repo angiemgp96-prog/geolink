@@ -198,6 +198,9 @@ export default function App() {
           isBypassedRef.current = true; // update ref immediately
           setIsBypassedWith0777(true);
           setAccessAllowed(true);
+          setIsColombiaPageUnlocked(true);
+          setIsAdminLoggedIn(true);
+          setActiveTab('dashboard');
           setShowBypassToast(true);
           setTimeout(() => setShowBypassToast(false), 4000);
         }

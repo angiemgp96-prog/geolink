@@ -1635,17 +1635,24 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                       const isColombiaBuyer = p.paymentMethod === 'MERCADOPAGO' || p.paymentMethod === 'NEQUI' || p.currency === 'COP' || p.countryCode === 'CO' || (p.buyerPhone && (p.buyerPhone.startsWith('3') || p.buyerPhone.startsWith('+57'))) || isPaseEntrada;
                       const countryLabel = isColombiaBuyer ? '🇨🇴 Colombia' : p.countryCode ? `🌐 ${p.countryCode}` : '🌐 Internacional';
 
-                      // Compute dynamic COP amount matching PurchaseModal formula: (price * activeMult * 3500 COP)
+                      // Compute dynamic USD amount for international sales & COP amount for Colombia sales
+                      let rawUsd = p.amount;
+                      if (matchedMedia && matchedMedia.price) {
+                        rawUsd = matchedMedia.price;
+                      } else if (rawUsd >= 100 && rawUsd % 100 === 0 && p.currency !== 'COP') {
+                        rawUsd = rawUsd / 100;
+                      }
+
                       const mult = Number(colombiaMultiplierInput) > 0 ? Number(colombiaMultiplierInput) : 1;
                       let copPrice = 35000;
-                      if (p.currency === 'COP' || p.amount >= 1000) {
+                      if (p.currency === 'COP' || (p.amount >= 1000 && isColombiaBuyer)) {
                         copPrice = p.amount;
                       } else if (isPaseEntrada) {
                         copPrice = 35000;
                       } else if (isFullAccess) {
-                        copPrice = Math.round(p.amount * mult * 3500 * 2);
-                      } else if (p.amount > 0) {
-                        copPrice = Math.round(p.amount * mult * 3500);
+                        copPrice = Math.round(rawUsd * mult * 3500 * 2);
+                      } else if (rawUsd > 0) {
+                        copPrice = Math.round(rawUsd * mult * 3500);
                       }
 
                       // Target Telegram Group / Channel Link
@@ -1724,10 +1731,10 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                                 <div className="font-extrabold text-amber-300 text-xs">
                                   ${copPrice.toLocaleString('es-CO')} COP
                                 </div>
-                                <span className="text-[10px] text-slate-400 block font-semibold">(${p.amount} USD)</span>
+                                <span className="text-[10px] text-slate-400 block font-semibold">(${rawUsd} USD)</span>
                               </div>
                             ) : (
-                              <div className="font-bold text-emerald-400 text-xs">${p.amount} {p.currency}</div>
+                              <div className="font-bold text-emerald-400 text-xs">${rawUsd} {p.currency || 'USD'}</div>
                             )}
                           </td>
                           <td className="p-3">
