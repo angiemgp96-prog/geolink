@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CreatorProfile } from '../types';
 import { api } from '../services/api';
 import { Lock, ShieldCheck, CheckCircle, Send, Loader2, AlertCircle, CreditCard, Smartphone } from 'lucide-react';
@@ -10,7 +10,7 @@ interface ColombiaAccessGateProps {
 
 const TELEGRAM_USER = 'Angelinaguzman69';
 
-export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator }) => {
+export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator, onUnlocked }) => {
   const [activePaymentTab, setActivePaymentTab] = useState<'mercadopago' | 'nequi'>('mercadopago');
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [contactInfo, setContactInfo] = useState(() => {
@@ -23,6 +23,26 @@ export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator 
   const [contactError, setContactError] = useState('');
   const [isLoadingMp, setIsLoadingMp] = useState(false);
   const [submittedNequi, setSubmittedNequi] = useState(false);
+
+  // Poll in real-time for manual Nequi or MercadoPago approval so screen unlocks automatically
+  useEffect(() => {
+    let isMounted = true;
+    const pollCheck = async () => {
+      try {
+        const approved = await api.checkColombiaAccessApproved();
+        if (approved && isMounted) {
+          onUnlocked();
+        }
+      } catch {}
+    };
+
+    pollCheck();
+    const interval = setInterval(pollCheck, 3500);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [onUnlocked]);
 
   const handleCopy = (text: string, fieldId: string) => {
     try {

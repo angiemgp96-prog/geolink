@@ -9,6 +9,26 @@ const SUPABASE_ANON_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'e
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 export const isSupabaseConfigured = () => Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
+export function getDeviceFingerprint(): string {
+  try {
+    let deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
+    if (!deviceHash && typeof window !== 'undefined') {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      const rawFp = [navigator.userAgent, screen.width, screen.height, screen.colorDepth, navigator.language, tz].join('|');
+      let hash = 0;
+      for (let i = 0; i < rawFp.length; i++) {
+        hash = (hash << 5) - hash + rawFp.charCodeAt(i);
+        hash |= 0;
+      }
+      deviceHash = `dev_${Math.abs(hash).toString(36)}`;
+      localStorage.setItem('geolink_device_fingerprint', deviceHash);
+    }
+    return deviceHash;
+  } catch {
+    return '';
+  }
+}
+
 export const api = {
   // 1. Geo-IP Location & Access Check
   async getVisitorLocation(simulatedCountry?: string): Promise<VisitorLocation> {
@@ -892,22 +912,7 @@ export const api = {
 
   // 6. Colombia Page Access Control ($10 USD / $35.000 COP)
   async autoApproveMercadoPagoColombiaAccess(contactInfo?: string): Promise<boolean> {
-    let deviceHash = '';
-    try {
-      deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
-      if (!deviceHash && typeof window !== 'undefined') {
-        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-        const rawFp = [navigator.userAgent, screen.width, screen.height, screen.colorDepth, navigator.language, tz].join('|');
-        let hashNum = 0;
-        for (let i = 0; i < rawFp.length; i++) {
-          hashNum = (hashNum << 5) - hashNum + rawFp.charCodeAt(i);
-          hashNum |= 0;
-        }
-        deviceHash = `dev_${Math.abs(hashNum).toString(36)}`;
-        localStorage.setItem('geolink_device_fingerprint', deviceHash);
-      }
-    } catch {}
-
+    const deviceHash = getDeviceFingerprint();
     const nowIso = new Date().toISOString();
     const reqId = `mp_auto_co_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
@@ -956,11 +961,7 @@ export const api = {
   },
 
   async saveColombiaAccessRequest(contactInfo: string, method: string = 'nequi'): Promise<boolean> {
-    let deviceHash = '';
-    try {
-      deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
-    } catch {}
-
+    const deviceHash = getDeviceFingerprint();
     const reqId = `co_acc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
     if (isSupabaseConfigured()) {
@@ -1051,23 +1052,7 @@ export const api = {
   },
 
   async checkColombiaAccessApproved(deviceHash?: string): Promise<boolean> {
-    let hash = deviceHash || '';
-    if (!hash) {
-      try {
-        hash = localStorage.getItem('geolink_device_fingerprint') || '';
-        if (!hash && typeof window !== 'undefined') {
-          const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-          const rawFp = [navigator.userAgent, screen.width, screen.height, screen.colorDepth, navigator.language, tz].join('|');
-          let hashNum = 0;
-          for (let i = 0; i < rawFp.length; i++) {
-            hashNum = (hashNum << 5) - hashNum + rawFp.charCodeAt(i);
-            hashNum |= 0;
-          }
-          hash = `dev_${Math.abs(hashNum).toString(36)}`;
-          localStorage.setItem('geolink_device_fingerprint', hash);
-        }
-      } catch {}
-    }
+    const hash = deviceHash || getDeviceFingerprint();
 
     // 1. Verificación en Supabase por dispositivo y vigencia de 30 días
     if (isSupabaseConfigured()) {
@@ -1133,22 +1118,7 @@ export const api = {
   async checkColombiaCustomCode(code: string): Promise<boolean> {
     if (!code || !code.trim()) return false;
     const cleanCode = code.trim();
-
-    let deviceHash = '';
-    try {
-      deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
-      if (!deviceHash && typeof window !== 'undefined') {
-        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-        const rawFp = [navigator.userAgent, screen.width, screen.height, screen.colorDepth, navigator.language, tz].join('|');
-        let hash = 0;
-        for (let i = 0; i < rawFp.length; i++) {
-          hash = (hash << 5) - hash + rawFp.charCodeAt(i);
-          hash |= 0;
-        }
-        deviceHash = `dev_${Math.abs(hash).toString(36)}`;
-        localStorage.setItem('geolink_device_fingerprint', deviceHash);
-      }
-    } catch {}
+    const deviceHash = getDeviceFingerprint();
 
     if (isSupabaseConfigured()) {
       try {
