@@ -1630,17 +1630,22 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                     {purchasesHistory.map((p) => {
                       const titleLower = (p.mediaTitle || '').toLowerCase();
                       const isPaseEntrada = titleLower.includes('pase') || p.mediaId === 'acceso_pagina_colombia';
+                      const isFullAccess = p.mediaId === 'acceso_full_cat_actual' || p.mediaId?.includes('acceso_full') || titleLower.includes('full');
                       const matchedMedia = mediaItems.find(m => m.id === p.mediaId || m.title?.toLowerCase() === titleLower);
                       const isColombiaBuyer = p.paymentMethod === 'MERCADOPAGO' || p.paymentMethod === 'NEQUI' || p.currency === 'COP' || p.countryCode === 'CO' || (p.buyerPhone && (p.buyerPhone.startsWith('3') || p.buyerPhone.startsWith('+57'))) || isPaseEntrada;
                       const countryLabel = isColombiaBuyer ? '🇨🇴 Colombia' : p.countryCode ? `🌐 ${p.countryCode}` : '🌐 Internacional';
 
-                      // Compute COP amount for Colombia sales
-                      const mult = Number(colombiaMultiplierInput || 7);
+                      // Compute dynamic COP amount matching PurchaseModal formula: (price * activeMult * 3500 COP)
+                      const mult = Number(colombiaMultiplierInput) > 0 ? Number(colombiaMultiplierInput) : 1;
                       let copPrice = 35000;
-                      if (p.amount >= 1000) {
+                      if (p.currency === 'COP' || p.amount >= 1000) {
                         copPrice = p.amount;
+                      } else if (isPaseEntrada) {
+                        copPrice = 35000;
+                      } else if (isFullAccess) {
+                        copPrice = Math.round(p.amount * mult * 3500 * 2);
                       } else if (p.amount > 0) {
-                        copPrice = Math.round(p.amount * mult * 1000);
+                        copPrice = Math.round(p.amount * mult * 3500);
                       }
 
                       // Target Telegram Group / Channel Link
