@@ -117,6 +117,34 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
     }
   };
 
+  const handleDeleteColombiaAccess = async (id: string) => {
+    if (confirm('¿Deseas eliminar esta solicitud de acceso?')) {
+      await api.deleteColombiaAccessRequest(id);
+      await loadColombiaRequests();
+    }
+  };
+
+  const handleClearPendingColombiaAccess = async () => {
+    if (confirm('¿Deseas eliminar TODAS las solicitudes de acceso a Colombia en estado PENDIENTE?')) {
+      await api.clearPendingColombiaAccessRequests();
+      await loadColombiaRequests();
+    }
+  };
+
+  const handleDeletePurchase = async (id: string) => {
+    if (confirm('¿Deseas eliminar este registro de venta?')) {
+      await api.deletePurchase(id);
+      await loadPurchases();
+    }
+  };
+
+  const handleClearPendingPurchases = async () => {
+    if (confirm('¿Deseas eliminar TODAS las ventas registradas en estado PENDIENTE?')) {
+      await api.clearPendingPurchases();
+      await loadPurchases();
+    }
+  };
+
   const loadColombiaRequests = () => {
     api.getColombiaAccessRequests().then(setColombiaRequests).catch(() => {});
   };
@@ -1550,24 +1578,33 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
       {activeTab === 'sales' && (
         <div className="space-y-6">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <h3 className="text-xl font-bold text-white">Historial de Ventas Verificadas</h3>
-              <button
-                id="refresh-sales-history-button"
-                onClick={async () => {
-  setIsRefreshing(true);
-  await Promise.all([
-    loadPurchases(),
-    loadVisitorLeads(),
-    loadColombiaRequests()
-  ]);
-  setTimeout(() => setIsRefreshing(false), 800);
-}}
-                className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs text-slate-300 flex items-center gap-1.5 cursor-pointer border border-slate-700/60"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-indigo-400' : ''}`} />
-                <span>{isRefreshing ? 'Actualizando...' : 'Actualizar'}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleClearPendingPurchases}
+                  className="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-500/50 text-rose-200 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                  <span>Eliminar Pendientes</span>
+                </button>
+                <button
+                  id="refresh-sales-history-button"
+                  onClick={async () => {
+    setIsRefreshing(true);
+    await Promise.all([
+      loadPurchases(),
+      loadVisitorLeads(),
+      loadColombiaRequests()
+    ]);
+    setTimeout(() => setIsRefreshing(false), 800);
+  }}
+                  className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs text-slate-300 flex items-center gap-1.5 cursor-pointer border border-slate-700/60"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-indigo-400' : ''}`} />
+                  <span>{isRefreshing ? 'Actualizando...' : 'Actualizar'}</span>
+                </button>
+              </div>
             </div>
 
             {purchasesHistory.length === 0 ? (
@@ -1630,6 +1667,13 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                                 <CheckCircle className="w-3 h-3" /> Aprobar Manual
                               </button>
                             )}
+                            <button
+                              onClick={() => handleDeletePurchase(p.id)}
+                              title="Eliminar registro"
+                              className="p-1 bg-rose-950/80 hover:bg-rose-800 border border-rose-500/50 text-rose-300 rounded-md transition-all cursor-pointer shrink-0"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </td>
                         <td className="p-3 font-mono">
@@ -1665,21 +1709,30 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                   Usuarios en Colombia que pagaron o enviaron comprobante por Nequi Llave Bre-B para ingresar a la página web.
                 </p>
               </div>
-              <button
-                onClick={async () => {
-  setIsRefreshing(true);
-  await Promise.all([
-    loadPurchases(),
-    loadVisitorLeads(),
-    loadColombiaRequests()
-  ]);
-  setTimeout(() => setIsRefreshing(false), 800);
-}}
-                className="px-3 py-1.5 bg-purple-900/60 hover:bg-purple-800 border border-purple-500/40 text-purple-200 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shrink-0"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-purple-300' : ''}`} />
-                <span>{isRefreshing ? 'Actualizando...' : 'Actualizar'}</span>
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={handleClearPendingColombiaAccess}
+                  className="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-500/50 text-rose-200 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                  <span>Eliminar Pendientes</span>
+                </button>
+                <button
+                  onClick={async () => {
+    setIsRefreshing(true);
+    await Promise.all([
+      loadPurchases(),
+      loadVisitorLeads(),
+      loadColombiaRequests()
+    ]);
+    setTimeout(() => setIsRefreshing(false), 800);
+  }}
+                  className="px-3 py-1.5 bg-purple-900/60 hover:bg-purple-800 border border-purple-500/40 text-purple-200 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shrink-0"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-purple-300' : ''}`} />
+                  <span>{isRefreshing ? 'Actualizando...' : 'Actualizar'}</span>
+                </button>
+              </div>
             </div>
 
             {/* Formulario Generador de Enlaces Únicos (?access=Axwkjl) */}
@@ -1774,16 +1827,25 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                             </span>
                           </td>
                           <td className="p-2.5">
-                            {req.status !== 'approved' ? (
+                            <div className="flex items-center gap-2">
+                              {req.status !== 'approved' ? (
+                                <button
+                                  onClick={() => handleApproveColombiaAccess(req.id)}
+                                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-extrabold shadow transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                                >
+                                  <CheckCircle className="w-3.5 h-3.5" /> Aprobar Acceso
+                                </button>
+                              ) : (
+                                <span className="text-emerald-400 font-bold text-xs">Acceso Liberado ✅</span>
+                              )}
                               <button
-                                onClick={() => handleApproveColombiaAccess(req.id)}
-                                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-extrabold shadow transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                                onClick={() => handleDeleteColombiaAccess(req.id)}
+                                title="Eliminar registro"
+                                className="p-1 bg-rose-950/80 hover:bg-rose-800 border border-rose-500/50 text-rose-300 rounded-md transition-all cursor-pointer shrink-0"
                               >
-                                <CheckCircle className="w-3.5 h-3.5" /> Aprobar Acceso
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
-                            ) : (
-                              <span className="text-emerald-400 font-bold text-xs">Acceso Liberado ✅</span>
-                            )}
+                            </div>
                           </td>
                         </tr>
                       );

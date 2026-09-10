@@ -1051,6 +1051,62 @@ export const api = {
     return true;
   },
 
+  async deleteColombiaAccessRequest(id: string): Promise<boolean> {
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('colombia_page_access').delete().eq('id', id);
+      } catch (err) {
+        console.warn('Supabase delete colombia_page_access warning:', err);
+      }
+    }
+    try {
+      await fetch(`/api/colombia-page-access/${id}`, { method: 'DELETE' });
+    } catch {}
+    return true;
+  },
+
+  async clearPendingColombiaAccessRequests(): Promise<boolean> {
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('colombia_page_access').delete().eq('status', 'pending');
+      } catch (err) {
+        console.warn('Supabase clear pending colombia_page_access warning:', err);
+      }
+    }
+    try {
+      await fetch('/api/colombia-page-access/pending', { method: 'DELETE' });
+    } catch {}
+    return true;
+  },
+
+  async deletePurchase(id: string): Promise<boolean> {
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('purchases').delete().eq('id', id);
+      } catch (err) {
+        console.warn('Supabase delete purchase warning:', err);
+      }
+    }
+    try {
+      await fetch(`/api/purchases/${id}`, { method: 'DELETE' });
+    } catch {}
+    return true;
+  },
+
+  async clearPendingPurchases(): Promise<boolean> {
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('purchases').delete().eq('status', 'pending');
+      } catch (err) {
+        console.warn('Supabase clear pending purchases warning:', err);
+      }
+    }
+    try {
+      await fetch('/api/purchases/pending', { method: 'DELETE' });
+    } catch {}
+    return true;
+  },
+
   async checkColombiaAccessApproved(deviceHash?: string): Promise<boolean> {
     const hash = deviceHash || getDeviceFingerprint();
 
