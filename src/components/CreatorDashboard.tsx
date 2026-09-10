@@ -1618,77 +1618,161 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                   <thead className="bg-slate-800 text-slate-400 uppercase">
                     <tr>
                       <th className="p-3 rounded-l-xl">Fecha</th>
-                      <th className="p-3">Contenido</th>
-                      <th className="p-3">Comprador (WhatsApp/Email)</th>
+                      <th className="p-3">Contenido Seleccionado</th>
+                      <th className="p-3">Comprador / Ubicación IP</th>
                       <th className="p-3">Método</th>
                       <th className="p-3">Monto</th>
                       <th className="p-3">Estado</th>
-                      <th className="p-3 rounded-r-xl">Descargas</th>
+                      <th className="p-3 rounded-r-xl">Grupo / Telegram Contenido</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800">
-                    {purchasesHistory.map((p) => (
-                      <tr key={p.id}>
-                        <td className="p-3 text-slate-400 font-mono text-[11px] whitespace-nowrap">
-                          {new Date(p.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                          <span className="text-zinc-500 block text-[10px]">{new Date(p.createdAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                        </td>
-                        <td className="p-3 font-semibold text-white">{p.mediaTitle}</td>
-                        <td className="p-3">
-                          <div className="font-semibold text-white">{p.buyerPhone || 'Sin teléfono'}</div>
-                          <div className="text-slate-400 text-[10px]">{p.buyerEmail}</div>
-                          {p.ipAddress && (
-                            <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                              <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/80 border border-cyan-700/50 px-1.5 py-0.5 rounded">
-                                🌐 {p.ipAddress}
+                    {purchasesHistory.map((p) => {
+                      const titleLower = (p.mediaTitle || '').toLowerCase();
+                      const isPaseEntrada = titleLower.includes('pase') || p.mediaId === 'acceso_pagina_colombia';
+                      const matchedMedia = mediaItems.find(m => m.id === p.mediaId || m.title?.toLowerCase() === titleLower);
+                      const isColombiaBuyer = p.paymentMethod === 'MERCADOPAGO' || p.paymentMethod === 'NEQUI' || p.currency === 'COP' || p.countryCode === 'CO' || (p.buyerPhone && (p.buyerPhone.startsWith('3') || p.buyerPhone.startsWith('+57'))) || isPaseEntrada;
+                      const countryLabel = isColombiaBuyer ? '🇨🇴 Colombia' : p.countryCode ? `🌐 ${p.countryCode}` : '🌐 Internacional';
+
+                      // Compute COP amount for Colombia sales
+                      const mult = Number(colombiaMultiplierInput || 7);
+                      let copPrice = 35000;
+                      if (p.amount >= 1000) {
+                        copPrice = p.amount;
+                      } else if (p.amount > 0) {
+                        copPrice = Math.round(p.amount * mult * 1000);
+                      }
+
+                      // Target Telegram Group / Channel Link
+                      const targetTelegramGroup = p.downloadUrl || matchedMedia?.downloadUrl || 'https://t.me/+vREXeP2U7Kw3ZTJh';
+                      
+                      let cleanPhoneDigits = (p.buyerPhone || '').replace(/[^0-9]/g, '');
+                      if (cleanPhoneDigits.startsWith('57') && cleanPhoneDigits.length > 10) {
+                        cleanPhoneDigits = cleanPhoneDigits.substring(2);
+                      }
+                      const clientChatUrl = cleanPhoneDigits ? `https://t.me/+57${cleanPhoneDigits}` : (p.buyerEmail && !p.buyerEmail.includes('@') ? `https://t.me/${p.buyerEmail.replace('@', '')}` : null);
+
+                      return (
+                        <tr key={p.id}>
+                          <td className="p-3 text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                            {new Date(p.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                            <span className="text-zinc-500 block text-[10px]">{new Date(p.createdAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              {isPaseEntrada ? (
+                                <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40 text-[10px] font-black uppercase shrink-0">
+                                  🇨🇴 Pase Web
+                                </span>
+                              ) : matchedMedia?.type === 'video' ? (
+                                <span className="px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/40 text-[10px] font-black uppercase shrink-0">
+                                  🎥 Video
+                                </span>
+                              ) : matchedMedia?.type === 'bundle' ? (
+                                <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black uppercase shrink-0">
+                                  📦 Pack
+                                </span>
+                              ) : (
+                                <span className="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 text-[10px] font-black uppercase shrink-0">
+                                  📸 Foto
+                                </span>
+                              )}
+                              <div className="font-bold text-white text-xs">
+                                {p.mediaTitle}
+                                {matchedMedia?.duration && (
+                                  <span className="text-[10px] text-slate-400 block font-normal">⏱️ {matchedMedia.duration}</span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3 space-y-1">
+                            <div className="font-semibold text-white">{p.buyerPhone || 'Sin teléfono'}</div>
+                            {p.buyerEmail && <div className="text-slate-400 text-[10px] truncate max-w-[140px]">{p.buyerEmail}</div>}
+                            <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                              <span className="text-[10px] font-bold text-amber-300 bg-amber-950/70 border border-amber-500/40 px-1.5 py-0.5 rounded">
+                                {countryLabel}
                               </span>
+                              {p.ipAddress ? (
+                                <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/80 border border-cyan-700/50 px-1.5 py-0.5 rounded">
+                                  🌐 {p.ipAddress}
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-mono text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">
+                                  🌐 IP No reg.
+                                </span>
+                              )}
+                              {p.ipAddress && (
+                                <button
+                                  onClick={() => handleBlockIp(p.ipAddress!)}
+                                  title={`Bloquear IP ${p.ipAddress}`}
+                                  className="px-1.5 py-0.5 bg-red-950 hover:bg-red-800 text-red-200 border border-red-500/50 rounded text-[9px] font-bold transition-all cursor-pointer shadow flex items-center gap-0.5"
+                                >
+                                  🚫 Bloquear
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-3 uppercase font-mono text-purple-300 text-xs font-bold">{p.paymentMethod}</td>
+                          <td className="p-3">
+                            {isColombiaBuyer ? (
+                              <div>
+                                <div className="font-extrabold text-amber-300 text-xs">
+                                  ${copPrice.toLocaleString('es-CO')} COP
+                                </div>
+                                <span className="text-[10px] text-slate-400 block font-semibold">(${p.amount} USD)</span>
+                              </div>
+                            ) : (
+                              <div className="font-bold text-emerald-400 text-xs">${p.amount} {p.currency}</div>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-0.5 rounded font-bold text-[11px] ${p.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}`}>
+                                {p.status}
+                              </span>
+                              {p.status !== 'completed' && (
+                                <button
+                                  onClick={() => handleApprovePurchase(p.token || p.id)}
+                                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold shadow-md transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                                >
+                                  <CheckCircle className="w-3 h-3" /> Aprobar Manual
+                                </button>
+                              )}
                               <button
-                                onClick={() => handleBlockIp(p.ipAddress)}
-                                title={`Bloquear IP ${p.ipAddress} permanentemente`}
-                                className="px-2 py-0.5 bg-red-950 hover:bg-red-800 text-red-200 border border-red-500/50 rounded text-[10px] font-bold transition-all cursor-pointer shadow flex items-center gap-1"
+                                onClick={() => handleDeletePurchase(p.id)}
+                                title="Eliminar registro"
+                                className="p-1 bg-rose-950/80 hover:bg-rose-800 border border-rose-500/50 text-rose-300 rounded-md transition-all cursor-pointer shrink-0"
                               >
-                                🚫 Bloquear IP
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
-                          )}
-                        </td>
-                        <td className="p-3 uppercase font-mono text-purple-300">{p.paymentMethod}</td>
-                        <td className="p-3 font-bold text-emerald-400">${p.amount} {p.currency}</td>
-                        <td className="p-3">
-                          <div className="flex items-center gap-2">
-                            <span className={`px-2 py-0.5 rounded font-bold text-[11px] ${p.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}`}>
-                              {p.status}
-                            </span>
-                            {p.status !== 'completed' && (
-                              <button
-                                onClick={() => handleApprovePurchase(p.token || p.id)}
-                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold shadow-md transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                          </td>
+                          <td className="p-3">
+                            <div className="flex flex-col gap-1">
+                              <a
+                                href={targetTelegramGroup}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2.5 py-1.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white rounded-xl text-[10px] font-extrabold shadow transition-all cursor-pointer inline-flex items-center gap-1.5 w-fit"
                               >
-                                <CheckCircle className="w-3 h-3" /> Aprobar Manual
-                              </button>
-                            )}
-                            <button
-                              onClick={() => handleDeletePurchase(p.id)}
-                              title="Eliminar registro"
-                              className="p-1 bg-rose-950/80 hover:bg-rose-800 border border-rose-500/50 text-rose-300 rounded-md transition-all cursor-pointer shrink-0"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                        <td className="p-3 font-mono">
-                          {p.downloadCount >= 1 ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-950/80 border border-red-500/50 text-red-300 rounded text-[11px] font-bold">
-                              {p.downloadCount} / 1 descarga (Límite)
-                            </span>
-                          ) : (
-                            <span className="text-purple-300 text-xs">
-                              {p.downloadCount} descargas
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                                <Send className="w-3 h-3" />
+                                <span>Abrir Grupo / Canal ✈️</span>
+                              </a>
+                              {clientChatUrl && (
+                                <a
+                                  href={clientChatUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] text-purple-300 hover:text-purple-200 font-semibold flex items-center gap-1 hover:underline"
+                                >
+                                  💬 Chat del comprador
+                                </a>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
