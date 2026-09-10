@@ -48,7 +48,7 @@ export default function App() {
   const [selectedMediaForPurchase, setSelectedMediaForPurchase] = useState<MediaItem | null>(null);
   const [pendingStripePayment, setPendingStripePayment] = useState<PendingStripePayment | null>(null);
 
-  const checkAndOpenPendingStripePayment = () => {
+  const checkAndOpenPendingStripePayment = async () => {
     // Si la persona ya cerró o descartó el modal en esta sesión, no volver a abrir hasta recargar
     try {
       if (sessionStorage.getItem('geolink_stripe_modal_dismissed') === 'true') {
@@ -62,6 +62,17 @@ export default function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.status === 'pending') {
+          // Verificar en la base de datos si la compra sigue pendiente o si ya fue borrada/aprobada por el admin
+          if (parsed.id) {
+            const isStillPending = await api.checkPurchaseStillPending(parsed.id);
+            if (!isStillPending) {
+              try {
+                localStorage.removeItem('geolink_pending_stripe_payment');
+              } catch {}
+              setPendingStripePayment(null);
+              return;
+            }
+          }
           setPendingStripePayment(parsed);
         }
       }

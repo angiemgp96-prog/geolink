@@ -1107,6 +1107,28 @@ export const api = {
     return true;
   },
 
+  async checkPurchaseStillPending(id: string): Promise<boolean> {
+    if (!id) return false;
+    if (isSupabaseConfigured()) {
+      try {
+        const { data } = await supabase
+          .from('purchases')
+          .select('id, status')
+          .eq('id', id)
+          .limit(1);
+
+        if (data && data.length > 0) {
+          return data[0].status === 'pending';
+        } else {
+          return false;
+        }
+      } catch (err) {
+        console.warn('Supabase checkPurchaseStillPending warning:', err);
+      }
+    }
+    return true;
+  },
+
   async checkColombiaAccessApproved(deviceHash?: string): Promise<boolean> {
     const hash = deviceHash || getDeviceFingerprint();
 
