@@ -269,6 +269,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
         };
 
         try {
+          sessionStorage.removeItem('geolink_stripe_modal_dismissed');
           localStorage.setItem('geolink_pending_stripe_payment', JSON.stringify(pendingObj));
         } catch {}
 

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Send, CreditCard, X, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Send, CreditCard, X, CheckCircle2, ShieldCheck, AlertCircle, Clock } from 'lucide-react';
 
 const TELEGRAM_USER = 'Angelinaguzman69';
 
@@ -26,7 +26,31 @@ export const StripePendingReceiptModal: React.FC<StripePendingReceiptModalProps>
   onClose,
   onMarkSent
 }) => {
+  const [timeLeft, setTimeLeft] = useState<number>(7);
   const formattedAmount = payment.amount ? `$${payment.amount.toFixed(2)} ${payment.currency || 'USD'}` : '$10.00 USD';
+
+  const handleDismiss = () => {
+    try {
+      sessionStorage.setItem('geolink_stripe_modal_dismissed', 'true');
+    } catch {}
+    onClose();
+  };
+
+  // Auto-minimize after 7 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleDismiss();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const handleSendTelegramReceipt = () => {
     const contactText = payment.contactInfo ? `\n\nMi contacto: ${payment.contactInfo}` : '';
@@ -39,14 +63,31 @@ export const StripePendingReceiptModal: React.FC<StripePendingReceiptModalProps>
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto animate-fadeIn">
-      <div className="relative w-full max-w-md bg-gradient-to-b from-slate-900 via-zinc-900 to-slate-950 border border-indigo-500/40 rounded-3xl shadow-2xl overflow-hidden my-auto text-left">
-        
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          handleDismiss();
+        }
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto animate-fadeIn cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md bg-gradient-to-b from-slate-900 via-zinc-900 to-slate-950 border border-indigo-500/40 rounded-3xl shadow-2xl overflow-hidden my-auto text-left cursor-default"
+      >
+        {/* 7-Second Progress Bar */}
+        <div className="w-full bg-white/10 h-1 overflow-hidden">
+          <div
+            className="bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400 h-full transition-all duration-1000 ease-linear"
+            style={{ width: `${(timeLeft / 7) * 100}%` }}
+          />
+        </div>
+
         {/* Close Button */}
         <button
-          onClick={onClose}
+          onClick={handleDismiss}
           className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-zinc-300 flex items-center justify-center transition-colors cursor-pointer"
-          title="Cerrar"
+          title="Cerrar (o haz clic afuera)"
         >
           <X className="w-4 h-4" />
         </button>
@@ -59,9 +100,14 @@ export const StripePendingReceiptModal: React.FC<StripePendingReceiptModalProps>
             <CreditCard className="w-7 h-7 text-white" />
           </div>
 
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-[10px] font-black uppercase tracking-wider mb-2">
-            <ShieldCheck className="w-3.5 h-3.5" /> Pago por Stripe Registrar
-          </span>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-[10px] font-black uppercase tracking-wider">
+              <ShieldCheck className="w-3.5 h-3.5" /> Pago por Stripe Registrar
+            </span>
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/10 text-amber-300 text-[10px] font-bold">
+              <Clock className="w-3 h-3 text-amber-400" /> {timeLeft}s
+            </span>
+          </div>
 
           <h3 className="text-xl font-black text-white">Comprobante Pendiente</h3>
           <p className="text-xs text-zinc-300 mt-1 max-w-xs mx-auto leading-relaxed">
@@ -113,7 +159,7 @@ export const StripePendingReceiptModal: React.FC<StripePendingReceiptModalProps>
             </button>
 
             <button
-              onClick={onMarkSent}
+              onClick={handleDismiss}
               className="w-full py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-zinc-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <CheckCircle2 className="w-3.5 h-3.5 text-zinc-500" />

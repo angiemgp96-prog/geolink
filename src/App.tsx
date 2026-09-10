@@ -49,33 +49,23 @@ export default function App() {
   const [pendingStripePayment, setPendingStripePayment] = useState<PendingStripePayment | null>(null);
 
   const checkAndOpenPendingStripePayment = () => {
+    // Si la persona ya cerró o descartó el modal en esta sesión, no volver a abrir hasta recargar
+    try {
+      if (sessionStorage.getItem('geolink_stripe_modal_dismissed') === 'true') {
+        return;
+      }
+    } catch {}
+
+    // Exclusivo del dispositivo específico que inició el pago
     try {
       const saved = localStorage.getItem('geolink_pending_stripe_payment');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.status === 'pending') {
           setPendingStripePayment(parsed);
-          return;
         }
       }
     } catch {}
-
-    api.getPendingStripePayment().then((res) => {
-      if (res && res.pendingPayment) {
-        const p = res.pendingPayment;
-        setPendingStripePayment({
-          id: p.id,
-          mediaId: p.media_id || p.mediaId,
-          mediaTitle: p.media_title || p.mediaTitle || 'Contenido Exclusivo',
-          amount: Number(p.amount) || 10,
-          currency: p.currency || 'USD',
-          stripeUrl: p.stripe_url || p.stripeUrl || '',
-          contactInfo: p.contact_info || p.contactInfo || '',
-          status: p.status || 'pending',
-          createdAt: p.created_at || p.createdAt || new Date().toISOString()
-        });
-      }
-    }).catch(() => {});
   };
 
   // Detector automático al volver de otra pestaña (Stripe Checkout)
