@@ -84,17 +84,22 @@ export function isColombianVisitor(): boolean {
     // 5. Timezone Offset UTC-5 (300 mins in getTimezoneOffset) + Spanish language
     const offset = new Date().getTimezoneOffset();
     const primaryLang = (navigator.language || '').toLowerCase();
+    
+    // Aggressive VPN catch: If they are UTC-5 (Colombia time) and speak Spanish, 
+    // we assume they are Colombian to prevent VPN bypasses. 
+    // (This also catches Peru/Ecuador, but safety against VPN bypass is priority)
     if (offset === 300 && primaryLang.startsWith('es')) {
-      if (
-        tz.includes('bogota') ||
-        tz.includes('colombia') ||
-        tz === '' ||
-        tz === 'etc/gmt+5'
-      ) {
-        markVisitorAsColombian();
-        return true;
-      }
+      markVisitorAsColombian();
+      return true;
     }
+
+    // 6. Check if timezone is explicitly New York/Miami (often used by VPNs) 
+    // but the user language is strictly es-CO
+    if (navLangs.some(l => l.toLowerCase() === 'es-co')) {
+      markVisitorAsColombian();
+      return true;
+    }
+
   } catch (err) {
     console.warn('[Colombia VPN Detector]', err);
   }

@@ -45,7 +45,7 @@ export const api = {
       if (isCoDevice) params.set('is_colombia', '1');
 
       const url = `/api/geoip?${params.toString()}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error('GeoIP fetch error');
       const data: VisitorLocation = await res.json();
 

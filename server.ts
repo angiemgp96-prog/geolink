@@ -676,7 +676,7 @@ app.post("/api/payments/stripe/save-pending", async (req, res) => {
   try {
     const { mediaId, mediaTitle, amount, stripeUrl, contactInfo } = req.body;
 
-    const cleanPhone = (contactInfo || '').replace(/[s-\(\)\.]/g, '');
+    const cleanPhone = (contactInfo || '').replace(/[\s\-\(\)\.]/g, '');
     const isColombianPhone = cleanPhone.startsWith('+57') || cleanPhone.startsWith('57') || /^3\d{9}$/.test(cleanPhone);
     const detectedCountry = await detectCountryCode(req);
 
@@ -758,7 +758,7 @@ app.post("/api/payments/stripe/create-checkout-session", async (req, res) => {
     const { mediaId, customPrice, contactInfo } = req.body;
 
     // Anti-VPN Security Check: Reject Stripe USD checkout for Colombian visitors
-    const cleanPhone = (contactInfo || '').replace(/[s-\(\)\.]/g, '');
+    const cleanPhone = (contactInfo || '').replace(/[\s\-\(\)\.]/g, '');
     const isColombianPhone = cleanPhone.startsWith('+57') || cleanPhone.startsWith('57') || /^3\d{9}$/.test(cleanPhone);
     const detectedCountry = await detectCountryCode(req);
 
