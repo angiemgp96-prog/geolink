@@ -4,6 +4,7 @@ import { CreatorProfile, MediaItem, CustomLink } from '../types';
 import { detectLanguage, TRANSLATIONS, SupportedLanguage } from '../data/translations';
 import { api } from '../services/api';
 import { BigoHlsPlayer } from './BigoHlsPlayer';
+import { isColombianVisitor, markVisitorAsColombian } from '../utils/colombiaDetection';
 
 interface PublicCreatorViewProps {
   creator: CreatorProfile;
@@ -27,7 +28,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
   const t = TRANSLATIONS[lang] || TRANSLATIONS.es;
 
-  const [visitorCountry, setVisitorCountry] = useState<string>('');
+  const [visitorCountry, setVisitorCountry] = useState<string>(() => isColombianVisitor() ? 'CO' : '');
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -39,7 +40,12 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   React.useEffect(() => {
     api.getVisitorLocation().then(loc => {
       if (loc && loc.countryCode) {
-        setVisitorCountry(loc.countryCode);
+        if (loc.countryCode === 'CO' || isColombianVisitor()) {
+          markVisitorAsColombian();
+          setVisitorCountry('CO');
+        } else {
+          setVisitorCountry(loc.countryCode);
+        }
       }
     }).catch(() => {});
   }, []);
@@ -120,7 +126,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     };
   }, [mediaItems, filterType, isPageLoading]);
 
-  const isColombia = visitorCountry === 'CO';
+  const isColombia = visitorCountry === 'CO' || isColombianVisitor();
   const mostExpensiveItemPrice = mediaItems.reduce((max, item) => Number(item.price) > max ? Number(item.price) : max, 0);
   const fullAccessBasePrice = mostExpensiveItemPrice > 0 ? mostExpensiveItemPrice + 20 : 50;
 

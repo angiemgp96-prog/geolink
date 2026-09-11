@@ -1,4 +1,4 @@
-const DEFAULT_STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY?.trim() || Buffer.from("c2tfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV3J3ODZlWlJpTGFFcEpTdHJ1OXliUktOa0czWUtHcGh5Q3VFdldYTkJJVjJZNE9ybXJGdDdUVUozTlBTeWNjT0tsWVVGekxqVDAwYUNBSkl4aUU=", "base64").toString("utf8");
+﻿const DEFAULT_STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY?.trim() || Buffer.from("c2tfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV3J3ODZlWlJpTGFFcEpTdHJ1OXliUktOa0czWUtHcGh5Q3VFdldYTkJJVjJZNE9ybXJGdDdUVUozTlBTeWNjT0tsWVVGekxqVDAwYUNBSkl4aUU=", "base64").toString("utf8");
 const DEFAULT_STRIPE_PUB_KEY = process.env.STRIPE_PUBLISHABLE_KEY?.trim() || Buffer.from("cGtfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV0EwM2V1dHY5aWJiNlVFNkthYVJSNVk0cTIyVGhGN2phYU83MEpIODA2NFluN2dKb3hPQlZEc3RlUE5vSFk3S2U1NFJnNjJtMzAwUVFIakFlTzg=", "base64").toString("utf8");
 import Stripe from 'stripe';
 import { sanitizeStripeTitle, sanitizeStripeDescription, sanitizeStripeMetadata, getStripeSafeImage } from './src/utils/stripeSanitizer';
@@ -327,9 +327,18 @@ function getCountryDetails(code: string) {
 const ipCountryCache = new Map<string, string>();
 
 async function detectCountryCode(req: express.Request): Promise<string> {
-  const simulatedCountry = (req.query.simulate_country || req.query.country) as string;
+  const simulatedCountry = (req.query.simulate_country || req.query.country || req.body?.simulate_country || req.body?.country) as string;
   if (simulatedCountry && simulatedCountry.trim() !== "") {
     return simulatedCountry.trim().toUpperCase();
+  }
+
+  // Anti-VPN Colombian Detection: Check timezone, browser language, and client signals
+  const clientTz = ((req.query.tz as string) || (req.body?.tz as string) || (req.headers["x-timezone"] as string) || "").toLowerCase();
+  const clientLang = ((req.query.lang as string) || (req.body?.lang as string) || (req.headers["accept-language"] as string) || "").toLowerCase();
+  const isForcedCo = req.query.is_colombia === "1" || req.body?.is_colombia === "1" || req.query.forced_country === "CO";
+
+  if (isForcedCo || clientTz.includes("bogota") || clientLang.includes("es-co")) {
+    return "CO";
   }
 
   const rawIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0] || req.socket.remoteAddress || "";
@@ -380,13 +389,17 @@ app.get("/api/geoip", async (req, res) => {
   const countryCode = await detectCountryCode(req);
   const details = getCountryDetails(countryCode);
   const simulatedCountry = req.query.simulate_country as string;
+  const clientTz = ((req.query.tz as string) || "").toLowerCase();
+  const clientLang = ((req.query.lang as string) || "").toLowerCase();
+  const isVpnDetected = !simulatedCountry && (clientTz.includes("bogota") || clientLang.includes("es-co") || req.query.is_colombia === "1") && countryCode === "CO";
 
   res.json({
     ip: (req.headers["x-forwarded-for"] as string)?.split(",")[0] || req.socket.remoteAddress || "Detected",
     countryCode: details.code,
     countryName: details.name,
-    city: simulatedCountry ? "Simulated Location" : "Detected Location",
+    city: simulatedCountry ? "Simulated Location" : (isVpnDetected ? "Colombia (VPN Detectada)" : "Detected Location"),
     isSimulated: Boolean(simulatedCountry),
+    isVpnDetected,
   });
 });
 
@@ -662,6 +675,17 @@ app.delete("/api/media/:id", async (req, res) => {
 app.post("/api/payments/stripe/save-pending", async (req, res) => {
   try {
     const { mediaId, mediaTitle, amount, stripeUrl, contactInfo } = req.body;
+
+    const cleanPhone = (contactInfo || '').replace(/[s-\(\)\.]/g, '');
+    const isColombianPhone = cleanPhone.startsWith('+57') || cleanPhone.startsWith('57') || /^3\d{9}$/.test(cleanPhone);
+    const detectedCountry = await detectCountryCode(req);
+
+    if (detectedCountry === 'CO' || isColombianPhone || req.body?.is_colombia === '1') {
+      return res.status(400).json({
+        error: "Para compras desde Colombia, por favor utiliza los métodos de pago en pesos colombianos (Mercado Pago o Nequi)."
+      });
+    }
+
     const pendingObj = {
       id: `stripe_pend_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       media_id: mediaId,
@@ -732,6 +756,18 @@ app.post("/api/payments/stripe/mark-sent", async (req, res) => {
 app.post("/api/payments/stripe/create-checkout-session", async (req, res) => {
   try {
     const { mediaId, customPrice, contactInfo } = req.body;
+
+    // Anti-VPN Security Check: Reject Stripe USD checkout for Colombian visitors
+    const cleanPhone = (contactInfo || '').replace(/[s-\(\)\.]/g, '');
+    const isColombianPhone = cleanPhone.startsWith('+57') || cleanPhone.startsWith('57') || /^3\d{9}$/.test(cleanPhone);
+    const detectedCountry = await detectCountryCode(req);
+
+    if (detectedCountry === 'CO' || isColombianPhone || req.body?.is_colombia === '1') {
+      return res.status(400).json({
+        error: "Para compras desde Colombia, por favor utiliza los métodos de pago en pesos colombianos (Mercado Pago o Nequi)."
+      });
+    }
+
     const media = mediaItems.find((m) => m.id === mediaId);
     if (!media) {
       return res.status(404).json({ error: "Contenido no encontrado" });
@@ -2001,3 +2037,4 @@ async function startServer() {
 }
 
 startServer();
+

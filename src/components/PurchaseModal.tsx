@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { MediaItem, PurchaseRecord, PaymentMethodsVisibility } from '../types';
 import { api } from '../services/api';
+import { isColombianVisitor, isColombianPhone, markVisitorAsColombian } from '../utils/colombiaDetection';
 
 // ─── Configuración de enlaces estáticos ──────────────────────────────
 const PAYPAL_LINK    = 'https://www.paypal.com/paypalme/angieG473';
@@ -63,7 +64,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     nequi_usa: false,
   });
 
-  const [visitorCountry, setVisitorCountry] = useState<string>('');
+  const [visitorCountry, setVisitorCountry] = useState<string>(() => isColombianVisitor() ? 'CO' : '');
   const [globalDiscount, setGlobalDiscount] = useState<number>(0);
   const [colombiaMultiplier, setColombiaMultiplier] = useState<number>(7);
 
@@ -71,7 +72,12 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     if (!item) return;
     api.getVisitorLocation().then(loc => {
       if (loc && loc.countryCode) {
-        setVisitorCountry(loc.countryCode.toUpperCase());
+        if (loc.countryCode.toUpperCase() === 'CO' || isColombianVisitor()) {
+          markVisitorAsColombian();
+          setVisitorCountry('CO');
+        } else {
+          setVisitorCountry(loc.countryCode.toUpperCase());
+        }
       }
     }).catch(() => {});
     api.getGlobalDiscount().then(res => {
@@ -82,7 +88,14 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     }).catch(() => {});
   }, [item]);
 
-  const isColombia = visitorCountry === 'CO';
+  useEffect(() => {
+    if (contactInfo && isColombianPhone(contactInfo)) {
+      markVisitorAsColombian();
+      setVisitorCountry('CO');
+    }
+  }, [contactInfo]);
+
+  const isColombia = visitorCountry === 'CO' || isColombianVisitor() || isColombianPhone(contactInfo);
 
   const getExactCopPriceNumber = (): number => {
     if (!item) return 0;
@@ -129,7 +142,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     return 'OTHER';
   };
 
-  const detectedRegion = getDetectedRegion(visitorCountry);
+  const detectedRegion = isColombia ? 'CO' : getDetectedRegion(visitorCountry);
 
   useEffect(() => {
     if (!item) return;
@@ -247,6 +260,10 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   // PAYPAL — Redirección Directa a Checkout Oficial PayPal Live API
   // ════════════════════════════════════════════════════════════════
   const handleStripeDirect = async () => {
+    if (isColombia) {
+      setErrorMessage('Para compras desde Colombia, por favor utiliza los métodos de pago en pesos colombianos (Mercado Pago o Nequi).');
+      return;
+    }
     setErrorMessage('');
     setIsLoading(true);
     try {

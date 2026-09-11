@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { CreatorProfile, MediaItem, PurchaseRecord, VisitorLocation, VisitorLead, PaymentMethodsVisibility } from '../types';
 import { getStripePaymentUrl } from '../utils/stripeLinks';
 import { sanitizeStripeTitle, sanitizeStripeDescription, sanitizeStripeMetadata, getStripeSafeImage } from '../utils/stripeSanitizer';
+import { isColombianVisitor, isColombianPhone, markVisitorAsColombian } from '../utils/colombiaDetection';
 
 const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL || 'https://eqpabbrmdssgoaaqtkgu.supabase.co';
 const SUPABASE_ANON_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcGFiYnJtZHNzZ29hYXF0a2d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxMDk2NTMsImV4cCI6MjEwMTY4NTY1M30.K09vvdfxkuBxd64RuQey9KV13Yz20fBBPkbWQOGGodQ';
@@ -33,18 +34,43 @@ export const api = {
   // 1. Geo-IP Location & Access Check
   async getVisitorLocation(simulatedCountry?: string): Promise<VisitorLocation> {
     try {
-      const url = simulatedCountry 
-        ? `/api/geoip?simulate_country=${encodeURIComponent(simulatedCountry)}`
-        : '/api/geoip';
+      const isCoDevice = !simulatedCountry && isColombianVisitor();
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      const lang = navigator.language || '';
+
+      const params = new URLSearchParams();
+      if (simulatedCountry) params.set('simulate_country', simulatedCountry);
+      if (tz) params.set('tz', tz);
+      if (lang) params.set('lang', lang);
+      if (isCoDevice) params.set('is_colombia', '1');
+
+      const url = `/api/geoip?${params.toString()}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('GeoIP fetch error');
-      return await res.json();
+      const data: VisitorLocation = await res.json();
+
+      // Anti-VPN enforcement: If device shows Colombian signals, force CO
+      if (!simulatedCountry && (isCoDevice || data.countryCode === 'CO')) {
+        markVisitorAsColombian();
+        return {
+          ...data,
+          countryCode: 'CO',
+          countryName: 'Colombia',
+          city: data.city || 'Bogotá'
+        };
+      }
+
+      return data;
     } catch {
+      const isCoDevice = !simulatedCountry && isColombianVisitor();
+      if (isCoDevice && !simulatedCountry) {
+        markVisitorAsColombian();
+      }
       return {
         ip: '181.16.2.44',
-        countryCode: simulatedCountry || 'US',
-        countryName: simulatedCountry === 'ES' ? 'España' : simulatedCountry === 'AR' ? 'Argentina' : 'Estados Unidos',
-        city: 'Simulated Location',
+        countryCode: simulatedCountry ? simulatedCountry : (isCoDevice ? 'CO' : 'US'),
+        countryName: simulatedCountry === 'ES' ? 'España' : simulatedCountry === 'AR' ? 'Argentina' : (isCoDevice ? 'Colombia' : 'Estados Unidos'),
+        city: isCoDevice ? 'Colombia' : 'Simulated Location',
         isSimulated: Boolean(simulatedCountry)
       };
     }
@@ -53,6 +79,13 @@ export const api = {
   async checkAccess(handle: string, countryCode?: string) {
     try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      const lang = navigator.language || '';
+      const isCoDevice = isColombianVisitor();
+      let effectiveCountry = countryCode;
+      if (!effectiveCountry && isCoDevice) {
+        effectiveCountry = 'CO';
+      }
+
       let deviceHash = '';
       try {
         deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
@@ -69,8 +102,10 @@ export const api = {
       } catch {}
 
       const params = new URLSearchParams();
-      if (countryCode) params.set('country', countryCode);
+      if (effectiveCountry) params.set('country', effectiveCountry);
       if (tz) params.set('tz', tz);
+      if (lang) params.set('lang', lang);
+      if (isCoDevice) params.set('is_colombia', '1');
       if (deviceHash) params.set('dh', deviceHash);
 
       const url = `/api/creators/${encodeURIComponent(handle)}/check-access?${params.toString()}`;
@@ -78,11 +113,12 @@ export const api = {
       if (!res.ok) throw new Error('Access check error');
       return await res.json();
     } catch {
+      const isCoDevice = isColombianVisitor();
       return {
         allowed: true,
-        visitorCountry: countryCode || 'US',
-        visitorCountryName: 'Estados Unidos',
-        visitorCountryFlag: '🇺🇸',
+        visitorCountry: countryCode || (isCoDevice ? 'CO' : 'US'),
+        visitorCountryName: (countryCode === 'CO' || isCoDevice) ? 'Colombia' : 'Estados Unidos',
+        visitorCountryFlag: (countryCode === 'CO' || isCoDevice) ? '🇨🇴' : '🇺🇸',
         blockedCountries: [],
         blockedMessage: 'Contenido disponible'
       };
@@ -330,6 +366,14 @@ export const api = {
   },
 
   async createStripeCheckoutSession(mediaId: string, customPrice?: number, contactInfo?: string, mediaTitle?: string, mediaType?: string) {
+    // Anti-VPN Security Check: Reject Stripe USD checkout for Colombian visitors
+    if (isColombianVisitor() || (contactInfo && isColombianPhone(contactInfo))) {
+      markVisitorAsColombian();
+      return {
+        error: 'Para compras desde Colombia, por favor utiliza los métodos de pago en pesos colombianos (Mercado Pago o Nequi).'
+      };
+    }
+
     const vis = await this.getPaymentMethodsVisibility().catch(() => null);
     if (vis && vis.stripe === false) {
       throw new Error('El método de pago Stripe se encuentra desactivado.');
@@ -569,6 +613,12 @@ export const api = {
     const trimmedContact = (contactInfo || '').trim();
     if (!trimmedContact) return { success: false };
 
+    let effectiveCountry = countryCode;
+    if (isColombianPhone(trimmedContact) || isColombianVisitor()) {
+      effectiveCountry = 'CO';
+      markVisitorAsColombian();
+    }
+
     let deviceHash = '';
     try {
       deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
@@ -594,7 +644,7 @@ export const api = {
           await supabase
             .from('visitor_leads')
             .update({
-              country_code: countryCode || undefined,
+              country_code: effectiveCountry || undefined,
               device_hash: deviceHash || undefined
             })
             .eq('id', recentSameClick[0].id);
@@ -605,7 +655,7 @@ export const api = {
         const leadObj = {
           id: `lead_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
           contact_info: trimmedContact,
-          country_code: countryCode || '',
+          country_code: effectiveCountry || '',
           device_hash: deviceHash,
           created_at: new Date().toISOString()
         };
@@ -619,7 +669,7 @@ export const api = {
       const res = await fetch('/api/visitor-leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contactInfo: trimmedContact, countryCode, deviceHash })
+        body: JSON.stringify({ contactInfo: trimmedContact, countryCode: effectiveCountry, deviceHash })
       });
       return await res.json();
     } catch {
