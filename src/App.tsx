@@ -123,6 +123,7 @@ export default function App() {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
   const [isNewCreatorModalOpen, setIsNewCreatorModalOpen] = useState<boolean>(false);
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
