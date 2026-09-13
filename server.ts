@@ -314,7 +314,7 @@ async function syncFromSupabase() {
 }
 
 // Execute Supabase sync
-syncFromSupabase();
+const initialSyncPromise = syncFromSupabase();
 
 // Helper: Map country code to Country Name & Flag
 function getCountryDetails(code: string) {
@@ -435,6 +435,7 @@ const blockedDevices = new Set<string>();
  * GET /api/creators/:handle/check-access
  */
 app.get("/api/creators/:handle/check-access", async (req, res) => {
+  await initialSyncPromise;
   const { handle } = req.params;
   let creator = creators.find((c) => c.handle.toLowerCase() === handle.toLowerCase());
 
@@ -542,7 +543,8 @@ app.post("/api/creators/block-ip", async (req, res) => {
 // ----------------------------------------------------
 
 // Get all creators
-app.get("/api/creators", (req, res) => {
+app.get("/api/creators", async (req, res) => {
+  await initialSyncPromise;
   res.json(creators);
 });
 
@@ -572,7 +574,8 @@ app.post("/api/creators/:handle/discount", async (req, res) => {
   res.json({ success: true, discountPercentage: globalDiscountPercentage, colombiaMultiplier });
 });
 
-app.get("/api/creators/:handle", (req, res) => {
+app.get("/api/creators/:handle", async (req, res) => {
+  await initialSyncPromise;
   const { handle } = req.params;
   const creator = creators.find((c) => c.handle.toLowerCase() === handle.toLowerCase());
 
