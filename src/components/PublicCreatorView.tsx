@@ -356,7 +356,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
           </p>
 
           {/* 2. BOTÓN ÚNICO DE TELEGRAM AZUL (GRUPO VIP TELEGRAM) */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+          <div className="hidden flex-wrap items-center justify-center gap-3 pt-1">
             <a
               id="telegram-channel-button"
               href="https://t.me/+vREXeP2U7Kw3ZTJh"
