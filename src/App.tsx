@@ -443,7 +443,7 @@ export default function App() {
     <div className="min-h-screen bg-[#030712] font-sans text-zinc-100 antialiased relative overflow-x-hidden selection:bg-indigo-500 selection:text-white">
       {/* CUBIERTA DEL BESO (KISS OVERLAY) */}
       {showKissOverlay && (
-        <div className={\`fixed inset-0 z-[9999] bg-[#030712] flex items-center justify-center transition-opacity duration-700 \${isKissFadingOut ? 'opacity-0' : 'opacity-100'}\`}>
+        <div className={`fixed inset-0 z-[9999] bg-[#030712] flex items-center justify-center transition-opacity duration-700 ${isKissFadingOut ? 'opacity-0' : 'opacity-100'}`}>
           <div className="fixed top-[-20%] left-[-10%] w-[600px] h-[600px] bg-pink-600/20 rounded-full blur-[150px] pointer-events-none" />
           <div className="fixed bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[150px] pointer-events-none" />
           <div className="relative z-10 flex flex-col items-center justify-center animate-pulse">
