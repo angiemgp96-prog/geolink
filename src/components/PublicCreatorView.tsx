@@ -419,6 +419,10 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                 if (isUnlocked) {
                   const targetUrl = item.downloadUrl || 'https://t.me/+vREXeP2U7Kw3ZTJh';
                   window.open(targetUrl, '_blank');
+                } else if (paymentVisibility?.direct_telegram_mode) {
+                  const finalPrice = globalDiscount > 0 ? (item.price * (1 - globalDiscount / 100)).toFixed(2) : item.price;
+                  const msg = encodeURIComponent(`Hola, quiero comprar el contenido "${item.title}" por $${finalPrice} ${item.currency}.`);
+                  window.open(`https://t.me/Angelinaguzman69?text=${msg}`, '_blank');
                 } else {
                   onOpenPurchaseModal(item);
                 }
