@@ -272,7 +272,7 @@ export default function App() {
         } catch {}
       }
 
-      const token = params.get('token') || params.get('unlock');
+      const token = params.get('token') || params.get('unlock') || params.get('external_reference');
       const isMpReturn = params.get('payment') === 'success' || params.get('collection_status') === 'approved' || params.get('status') === 'approved';
       const isPpReturn = params.get('payment') === 'paypal_success';
 
@@ -287,10 +287,8 @@ export default function App() {
             const verifyRes = await api.verifyPurchase(token, true);
             if (verifyRes.valid && verifyRes.purchase) {
               addUnlockedToken(token);
-              const foundMedia = mediaItems.find(m => m.id === verifyRes.purchase.mediaId);
-              if (foundMedia) {
-                setSelectedMediaForPurchase(foundMedia);
-              }
+              // Force clean reload so the user sees the store fully unlocked
+              window.location.href = window.location.pathname;
             }
           } catch {}
         }
