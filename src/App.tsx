@@ -277,21 +277,30 @@ export default function App() {
       const isPpReturn = params.get('payment') === 'paypal_success';
 
       if (isMpReturn) {
-        try {
-          await api.autoApproveMercadoPagoColombiaAccess();
-          setIsColombiaPageUnlocked(true);
-        } catch {}
-
         if (token) {
           try {
+            // This verification call also tells the server to check MP API and mark the purchase as "completed" in Supabase
             const verifyRes = await api.verifyPurchase(token, true);
             if (verifyRes.valid && verifyRes.purchase) {
-              addUnlockedToken(token);
+              if (verifyRes.purchase.mediaId === 'acceso_pagina_colombia') {
+                await api.autoApproveMercadoPagoColombiaAccess();
+                setIsColombiaPageUnlocked(true);
+              } else {
+                addUnlockedToken(token);
+              }
               // Force clean reload so the user sees the store fully unlocked
               window.location.href = window.location.pathname;
+              return;
             }
           } catch {}
         }
+        
+        // Fallback for old links or if token is missing
+        try {
+          await api.autoApproveMercadoPagoColombiaAccess();
+          setIsColombiaPageUnlocked(true);
+          window.location.href = window.location.pathname;
+        } catch {}
       } else if (token && isPpReturn) {
         try {
           const captureRes = await api.capturePayPalOrder('', token);
