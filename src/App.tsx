@@ -332,6 +332,29 @@ export default function App() {
   const loadCreatorDetails = async (handle: string) => {
     try {
       const data = await api.getCreator(handle);
+      
+      const imageUrls = [
+        data.creator.avatar,
+        data.creator.banner,
+        ...data.mediaItems.map(m => m.thumbnailUrl)
+      ].filter(Boolean) as string[];
+
+      if (imageUrls.length > 0) {
+        await new Promise<void>((resolve) => {
+          let loadedCount = 0;
+          const checkDone = () => {
+            loadedCount++;
+            if (loadedCount >= imageUrls.length) resolve();
+          };
+          imageUrls.forEach(url => {
+            const img = new Image();
+            img.onload = checkDone;
+            img.onerror = checkDone;
+            img.src = url;
+          });
+        });
+      }
+
       setCurrentCreator(data.creator);
       setMediaItems(data.mediaItems);
       checkGeoAccess(handle, simulatedCountry);
