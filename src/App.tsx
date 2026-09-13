@@ -86,27 +86,26 @@ export default function App() {
     } catch {}
   };
 
-  // Detector automático al volver de otra pestaña (Stripe Checkout)
+  // Detector automático al volver de otra pestaña
   useEffect(() => {
     checkAndOpenPendingStripePayment();
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         checkAndOpenPendingStripePayment();
+        // Force refresh of unlocked items and creator data to prevent stale views (e.g. old mock products)
+        checkUnlockedItems();
+        if (currentCreator?.handle) {
+          loadCreatorDetails(currentCreator.handle);
+        } else {
+          initAppData();
+        }
       }
     };
 
-    const handleWindowFocus = () => {
-      checkAndOpenPendingStripePayment();
-    };
-
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleWindowFocus);
-
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleWindowFocus);
-    };
   }, []);
   const [isNewCreatorModalOpen, setIsNewCreatorModalOpen] = useState<boolean>(false);
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
