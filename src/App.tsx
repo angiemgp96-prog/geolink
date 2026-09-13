@@ -352,17 +352,31 @@ export default function App() {
       
       const imageUrls = [
         data.creator.avatar,
-        data.creator.banner,
-        ...data.mediaItems.map(m => m.thumbnailUrl)
+        data.creator.banner
       ].filter(Boolean) as string[];
 
       if (imageUrls.length > 0) {
         await new Promise<void>((resolve) => {
           let loadedCount = 0;
+          let isResolved = false;
+          
           const checkDone = () => {
+            if (isResolved) return;
             loadedCount++;
-            if (loadedCount >= imageUrls.length) resolve();
+            if (loadedCount >= imageUrls.length) {
+              isResolved = true;
+              resolve();
+            }
           };
+
+          // Timeout de seguridad: Si tardan ms de 1.5s, forzar entrada
+          setTimeout(() => {
+            if (!isResolved) {
+              isResolved = true;
+              resolve();
+            }
+          }, 1500);
+
           imageUrls.forEach(url => {
             const img = new Image();
             img.onload = checkDone;
@@ -449,9 +463,6 @@ export default function App() {
           <div className="relative z-10 flex flex-col items-center justify-center animate-pulse">
             <div className="text-[120px] drop-shadow-[0_0_30px_rgba(236,72,153,0.8)] filter transition-transform duration-1000 scale-110 hover:scale-125">
               💋
-            </div>
-            <div className="mt-6 text-pink-400/80 font-light tracking-[0.3em] uppercase text-xs">
-              Siente la magia
             </div>
           </div>
         </div>
