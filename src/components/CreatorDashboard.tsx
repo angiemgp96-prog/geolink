@@ -1152,6 +1152,26 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                 </div>
               </div>
 
+              {/* MODO DIRECTO TELEGRAM TOGGLE */}
+              <div className="flex items-center justify-between p-4 bg-emerald-950/20 border border-emerald-900/30 rounded-2xl mb-4">
+                <div className="pr-4">
+                  <h4 className="text-sm font-semibold text-emerald-100 flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-emerald-400" />
+                    MODO DIRECTO TELEGRAM
+                  </h4>
+                  <p className="text-xs text-emerald-200/70 mt-1">
+                    Si activas esto, al hacer clic en un producto los clientes irán directo a tu Telegram para solicitártelo manualmente. Se ocultarán todas las pasarelas.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleTogglePaymentVisibility('direct_telegram_mode', !paymentVisibility.direct_telegram_mode)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentVisibility.direct_telegram_mode ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                >
+                  <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${paymentVisibility.direct_telegram_mode ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 {/* Stripe (Tarjetas Internacionales) */}
                 <div className="flex items-center justify-between p-3.5 bg-slate-900/80 border border-slate-700/60 rounded-xl">

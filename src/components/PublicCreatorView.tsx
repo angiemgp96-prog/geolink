@@ -52,12 +52,14 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
   const [globalDiscount, setGlobalDiscount] = useState<number>(0);
   const [colombiaMultiplier, setColombiaMultiplier] = useState<number>(7);
+  const [paymentVisibility, setPaymentVisibility] = useState<any>(null);
   const [bigoSettings, setBigoSettings] = useState<{ isLive: boolean; streamUrl: string }>({
     isLive: false,
     streamUrl: 'https://www.bigo.tv/es/sid/2525959848_1493541244_1775323289?c=7&p=2&t=0&b=690015288&h=angelinaguzman'
   });
 
   React.useEffect(() => {
+    api.getPaymentMethodsVisibility().then(setPaymentVisibility).catch(() => {});
     api.getGlobalDiscount().then((res) => {
       setGlobalDiscount(res.discountPercentage);
       if (res.colombiaMultiplier !== undefined && res.colombiaMultiplier !== null) {

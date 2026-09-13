@@ -776,6 +776,7 @@ export const api = {
       paypal: true,
       paypal_telegram: true,
       nequi_usa: true,
+      direct_telegram_mode: false,
     };
 
     let localVis: Partial<PaymentMethodsVisibility> | null = null;
@@ -796,6 +797,7 @@ export const api = {
             paypal: typeof vis.paypal === 'boolean' ? vis.paypal : true,
             paypal_telegram: typeof vis.paypal_telegram === 'boolean' ? vis.paypal_telegram : true,
             nequi_usa: typeof vis.nequi_usa === 'boolean' ? vis.nequi_usa : true,
+            direct_telegram_mode: typeof vis.direct_telegram_mode === 'boolean' ? vis.direct_telegram_mode : false,
           };
         }
 
@@ -809,6 +811,7 @@ export const api = {
             paypal: typeof row.paypal === 'boolean' ? row.paypal : true,
             paypal_telegram: typeof row.paypal_telegram === 'boolean' ? row.paypal_telegram : true,
             nequi_usa: typeof row.nequi_usa === 'boolean' ? row.nequi_usa : true,
+            direct_telegram_mode: typeof row.direct_telegram_mode === 'boolean' ? row.direct_telegram_mode : false,
           };
         }
       } catch (err) {
@@ -845,6 +848,7 @@ export const api = {
           paypal: visibility.paypal,
           paypal_telegram: visibility.paypal_telegram,
           nequi_usa: visibility.nequi_usa,
+          direct_telegram_mode: visibility.direct_telegram_mode || false,
           updated_at: new Date().toISOString()
         }, { onConflict: 'id' });
       } catch (_err) {}

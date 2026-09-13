@@ -13,6 +13,7 @@ export interface PaymentMethodsVisibility {
   paypal: boolean;
   paypal_telegram: boolean;
   nequi_usa: boolean;
+  direct_telegram_mode?: boolean;
 }
 
 export interface PaymentSettings {
