@@ -10,23 +10,40 @@ const SUPABASE_ANON_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'e
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 export const isSupabaseConfigured = () => Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
+export function getDeviceFingerprints(): string[] {
+  try {
+    if (typeof window === 'undefined') return ['dev_fallback'];
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    const lang = navigator.language || '';
+    const ua = navigator.userAgent || '';
+    const cd = screen.colorDepth || 24;
+    
+    // Hash A: Current orientation
+    const rawFpA = [ua, screen.width, screen.height, cd, lang, tz].join('|');
+    let hashA = 0;
+    for (let i = 0; i < rawFpA.length; i++) { hashA = (hashA << 5) - hashA + rawFpA.charCodeAt(i); hashA |= 0; }
+    
+    // Hash B: Swapped orientation (robust against rotating phone)
+    const rawFpB = [ua, screen.height, screen.width, cd, lang, tz].join('|');
+    let hashB = 0;
+    for (let i = 0; i < rawFpB.length; i++) { hashB = (hashB << 5) - hashB + rawFpB.charCodeAt(i); hashB |= 0; }
+    
+    return [`dev_${Math.abs(hashA).toString(36)}`, `dev_${Math.abs(hashB).toString(36)}`];
+  } catch {
+    return ['dev_fallback'];
+  }
+}
+
 export function getDeviceFingerprint(): string {
   try {
     let deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
-    if (!deviceHash && typeof window !== 'undefined') {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-      const rawFp = [navigator.userAgent, screen.width, screen.height, screen.colorDepth, navigator.language, tz].join('|');
-      let hash = 0;
-      for (let i = 0; i < rawFp.length; i++) {
-        hash = (hash << 5) - hash + rawFp.charCodeAt(i);
-        hash |= 0;
-      }
-      deviceHash = `dev_${Math.abs(hash).toString(36)}`;
+    if (!deviceHash) {
+      deviceHash = getDeviceFingerprints()[0];
       localStorage.setItem('geolink_device_fingerprint', deviceHash);
     }
     return deviceHash;
   } catch {
-    return '';
+    return 'dev_fallback';
   }
 }
 
@@ -1184,16 +1201,16 @@ export const api = {
   },
 
   async checkColombiaAccessApproved(deviceHash?: string): Promise<boolean> {
-    const hash = deviceHash || getDeviceFingerprint();
+    const hashes = deviceHash ? [deviceHash] : getDeviceFingerprints();
 
     // 1. Verificación en Supabase por dispositivo y vigencia de 30 días
     if (isSupabaseConfigured()) {
       try {
-        if (hash) {
+        if (hashes.length > 0) {
           const { data } = await supabase
             .from('colombia_page_access')
             .select('id, status, approved_at, created_at')
-            .eq('device_hash', hash)
+            .in('device_hash', hashes)
             .eq('status', 'approved')
             .order('approved_at', { ascending: false, nullsFirst: false })
             .limit(1);
