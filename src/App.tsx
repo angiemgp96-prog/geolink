@@ -17,6 +17,7 @@ import { Lock } from 'lucide-react';
 import { isColombianVisitor, markVisitorAsColombian } from './utils/colombiaDetection';
 
 export default function App() {
+  const [isAppReady, setIsAppReady] = useState<boolean>(false);
   const [creators, setCreators] = useState<CreatorProfile[]>(INITIAL_CREATORS);
   const [currentCreator, setCurrentCreator] = useState<CreatorProfile>(INITIAL_CREATORS[0]);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>(INITIAL_MEDIA_ITEMS);
@@ -239,9 +240,9 @@ export default function App() {
       const allCreators = await api.getCreators();
       if (allCreators && allCreators.length > 0) {
         setCreators(allCreators);
-        loadCreatorDetails(allCreators[0].handle);
+        await loadCreatorDetails(allCreators[0].handle);
       } else {
-        loadCreatorDetails(INITIAL_CREATORS[0].handle);
+        await loadCreatorDetails(INITIAL_CREATORS[0].handle);
       }
 
       const loc = await api.getVisitorLocation(simulatedCountry);
@@ -314,6 +315,8 @@ export default function App() {
       }
     } catch (e) {
       console.warn('Init error, using defaults:', e);
+    } finally {
+      setIsAppReady(true);
     }
   };
 
@@ -371,6 +374,22 @@ export default function App() {
   const handleRefreshData = () => {
     loadCreatorDetails(currentCreator.handle);
   };
+
+  if (!isAppReady) {
+    return (
+      <div className="min-h-screen bg-[#030712] font-sans flex items-center justify-center relative overflow-hidden">
+        {/* Background Ambient Orbs */}
+        <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none z-0" />
+        <div className="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none z-0" />
+        <div className="fixed top-[40%] right-[30%] w-[400px] h-[400px] bg-pink-600/10 rounded-full blur-[140px] pointer-events-none z-0" />
+        
+        <div className="relative z-10 flex flex-col items-center gap-6 animate-pulse">
+          <div className="w-16 h-16 rounded-full border-4 border-t-indigo-500 border-r-purple-500 border-b-pink-500 border-l-transparent animate-spin" />
+          <div className="text-zinc-300 font-semibold tracking-widest text-sm uppercase">Preparando experiencia...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#030712] font-sans text-zinc-100 antialiased relative overflow-x-hidden selection:bg-indigo-500 selection:text-white">
