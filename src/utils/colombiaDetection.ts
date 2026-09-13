@@ -64,30 +64,7 @@ export function isColombianVisitor(): boolean {
       return true;
     }
 
-    // 3. System Timezone (America/Bogota)
-    // All devices in Colombia default to America/Bogota timezone
-    const tz = (Intl.DateTimeFormat().resolvedOptions().timeZone || '').toLowerCase();
-    if (tz.includes('bogota') || tz === 'america/bogota') {
-      markVisitorAsColombian();
-      return true;
-    }
-
-    // 4. Browser Languages (es-CO)
-    const navLangs = navigator.languages ? Array.from(navigator.languages) : [navigator.language || ''];
-    for (const lang of navLangs) {
-      if (lang && lang.toLowerCase().includes('es-co')) {
-        markVisitorAsColombian();
-        return true;
-      }
-    }
-
-    // 5. Check if timezone is explicitly New York/Miami (often used by VPNs) 
-    // but the user language is strictly es-CO
-    if (navLangs.some(l => l.toLowerCase() === 'es-co')) {
-      markVisitorAsColombian();
-      return true;
-    }
-
+    // Timezone and language checks have been removed to prevent false positives for US/MX clients.
   } catch (err) {
     console.warn('[Colombia VPN Detector]', err);
   }

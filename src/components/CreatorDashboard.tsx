@@ -339,6 +339,22 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
     setProfile({ ...profile, blockedCountries: updatedList });
   };
 
+  const MIDDLE_EAST_COUNTRIES = ['MA', 'SA', 'AE', 'QA', 'BH', 'KW', 'OM', 'EG', 'IQ', 'IR', 'JO', 'LB'];
+
+  const toggleMiddleEastGroupBlock = () => {
+    const isGroupBlocked = MIDDLE_EAST_COUNTRIES.every(c => profile.blockedCountries.includes(c));
+    let updatedList: string[];
+    if (isGroupBlocked) {
+      // Remove all of them
+      updatedList = profile.blockedCountries.filter(c => !MIDDLE_EAST_COUNTRIES.includes(c));
+    } else {
+      // Add all missing
+      updatedList = [...new Set([...profile.blockedCountries, ...MIDDLE_EAST_COUNTRIES])];
+    }
+    setProfile({ ...profile, blockedCountries: updatedList });
+  };
+
+
   // Add new media item
   const handleSaveMediaItem = async () => {
     if (!newMedia.title || !newMedia.price) return;
@@ -566,6 +582,30 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                 </p>
               </div>
             </div>
+
+            {/* Middle East & Morocco Master Toggle */}
+            <button
+              type="button"
+              onClick={toggleMiddleEastGroupBlock}
+              className={`w-full p-4 rounded-2xl border flex items-center justify-between transition-all cursor-pointer mb-4 ${
+                MIDDLE_EAST_COUNTRIES.every(c => profile.blockedCountries.includes(c))
+                  ? 'bg-red-950/60 border-red-500/80 text-red-300 shadow-md'
+                  : 'bg-slate-800/60 border-slate-700/80 text-slate-300 hover:border-slate-600'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🌍</span>
+                <div className="text-left">
+                  <span className="text-sm font-bold block">Bloquear Todo Medio Oriente y Marruecos</span>
+                  <span className="text-xs opacity-70">Aplica a Arabia Saudita, Emiratos Árabes, Marruecos, Qatar, etc.</span>
+                </div>
+              </div>
+              {MIDDLE_EAST_COUNTRIES.every(c => profile.blockedCountries.includes(c)) ? (
+                <span className="text-xs bg-red-500/20 text-red-400 px-3 py-1 rounded-full font-bold">BLOQUEADO</span>
+              ) : (
+                <span className="text-xs text-emerald-400 font-semibold">Visible</span>
+              )}
+            </button>
 
             {/* Blocked Countries Selector Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">

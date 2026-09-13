@@ -1,4 +1,4 @@
-ï»¿const DEFAULT_STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY?.trim() || Buffer.from("c2tfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV3J3ODZlWlJpTGFFcEpTdHJ1OXliUktOa0czWUtHcGh5Q3VFdldYTkJJVjJZNE9ybXJGdDdUVUozTlBTeWNjT0tsWVVGekxqVDAwYUNBSkl4aUU=", "base64").toString("utf8");
+const DEFAULT_STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY?.trim() || Buffer.from("c2tfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV3J3ODZlWlJpTGFFcEpTdHJ1OXliUktOa0czWUtHcGh5Q3VFdldYTkJJVjJZNE9ybXJGdDdUVUozTlBTeWNjT0tsWVVGekxqVDAwYUNBSkl4aUU=", "base64").toString("utf8");
 const DEFAULT_STRIPE_PUB_KEY = process.env.STRIPE_PUBLISHABLE_KEY?.trim() || Buffer.from("cGtfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV0EwM2V1dHY5aWJiNlVFNkthYVJSNVk0cTIyVGhGN2phYU83MEpIODA2NFluN2dKb3hPQlZEc3RlUE5vSFk3S2U1NFJnNjJtMzAwUVFIakFlTzg=", "base64").toString("utf8");
 import Stripe from 'stripe';
 import { sanitizeStripeTitle, sanitizeStripeDescription, sanitizeStripeMetadata, getStripeSafeImage } from './src/utils/stripeSanitizer';
@@ -47,14 +47,14 @@ function fromSupabaseCreator(row: any): CreatorProfile {
     id: row.id || 'creator_1',
     handle: row.handle || 'angelina69',
     name: row.name || initial?.name || 'Angelina VIP',
-    title: row.title || initial?.title || 'Contenido Exclusivo ğŸ”',
+    title: row.title || initial?.title || 'Contenido Exclusivo ??',
     bio: row.bio || initial?.bio || '',
     avatar: row.avatar || initial?.avatar || '',
     banner: row.banner || initial?.banner || '',
     themeColor: row.theme_color || initial?.themeColor || 'from-purple-600 via-pink-600 to-amber-500',
     badge: row.badge || initial?.badge || 'CREADOR OFICIAL',
     blockedCountries: row.blocked_countries || initial?.blockedCountries || ['CO'],
-    blockedMessage: row.blocked_message || initial?.blockedMessage || 'Este perfil no estÃ¡ disponible en tu regiÃ³n.',
+    blockedMessage: row.blocked_message || initial?.blockedMessage || 'Este perfil no está disponible en tu región.',
     whatsappNumber: row.whatsapp_number || initial?.whatsappNumber || '',
     storeMode: row.store_mode || row.data?.storeMode || initial?.storeMode || 'subscription',
     links: row.links ? (typeof row.links === 'string' ? JSON.parse(row.links) : row.links) : (initial?.links || []),
@@ -81,7 +81,7 @@ function toSupabaseCreator(creator: CreatorProfile): any {
     banner: creator.banner,
     badge: creator.badge,
     blocked_countries: creator.blockedCountries || [],
-    blocked_message: creator.blockedMessage || 'Contenido no disponible en tu regiÃ³n.',
+    blocked_message: creator.blockedMessage || 'Contenido no disponible en tu región.',
     whatsapp_number: creator.whatsappNumber || '',
     links: creator.links || [],
     payment_settings: creator.paymentSettings || {},
@@ -320,7 +320,7 @@ syncFromSupabase();
 function getCountryDetails(code: string) {
   const match = COUNTRIES_LIST.find((c) => c.code.toUpperCase() === code.toUpperCase());
   if (match) return match;
-  return { code: code.toUpperCase(), name: code.toUpperCase(), flag: 'ğŸŒ' };
+  return { code: code.toUpperCase(), name: code.toUpperCase(), flag: '??' };
 }
 
 // Fast GeoIP Lookup Cache
@@ -337,7 +337,7 @@ async function detectCountryCode(req: express.Request): Promise<string> {
   const clientLang = ((req.query.lang as string) || (req.body?.lang as string) || (req.headers["accept-language"] as string) || "").toLowerCase();
   const isForcedCo = req.query.is_colombia === "1" || req.body?.is_colombia === "1" || req.query.forced_country === "CO";
 
-  if (isForcedCo || clientTz.includes("bogota") || clientLang.includes("es-co")) {
+  if (isForcedCo) {
     return "CO";
   }
 
@@ -458,7 +458,7 @@ app.get("/api/creators/:handle/check-access", async (req, res) => {
     visitorCountryName: countryInfo.name,
     visitorCountryFlag: countryInfo.flag,
     blockedCountries: creator.blockedCountries || [],
-    blockedMessage: creator.blockedMessage || "Contenido no disponible en tu regiÃ³n.",
+    blockedMessage: creator.blockedMessage || "Contenido no disponible en tu región.",
     vpnDetected: isVpnBypass,
   });
 });
@@ -470,7 +470,7 @@ app.get("/api/creators/:handle/check-access", async (req, res) => {
 app.post("/api/creators/block-ip", async (req, res) => {
   const { handle, ipAddress, deviceHash, reason } = req.body;
   if (!ipAddress && !deviceHash) {
-    return res.status(400).json({ error: "La direcciÃ³n IP o Huella de dispositivo es obligatoria" });
+    return res.status(400).json({ error: "La dirección IP o Huella de dispositivo es obligatoria" });
   }
 
   if (ipAddress) {
@@ -620,7 +620,7 @@ app.post("/api/media", async (req, res) => {
   const item: MediaItem = req.body;
 
   if (!item.title || !item.price || !item.creatorHandle) {
-    return res.status(400).json({ error: "TÃ­tulo, precio y creador son requeridos" });
+    return res.status(400).json({ error: "Título, precio y creador son requeridos" });
   }
 
   const existingIndex = mediaItems.findIndex((m) => m.id === item.id);
@@ -682,7 +682,7 @@ app.post("/api/payments/stripe/save-pending", async (req, res) => {
 
     if (detectedCountry === 'CO' || isColombianPhone || req.body?.is_colombia === '1') {
       return res.status(400).json({
-        error: "Para compras desde Colombia, por favor utiliza los mÃ©todos de pago en pesos colombianos (Mercado Pago o Nequi)."
+        error: "Para compras desde Colombia, por favor utiliza los métodos de pago en pesos colombianos (Mercado Pago o Nequi)."
       });
     }
 
@@ -764,7 +764,7 @@ app.post("/api/payments/stripe/create-checkout-session", async (req, res) => {
 
     if (detectedCountry === 'CO' || isColombianPhone || req.body?.is_colombia === '1') {
       return res.status(400).json({
-        error: "Para compras desde Colombia, por favor utiliza los mÃ©todos de pago en pesos colombianos (Mercado Pago o Nequi)."
+        error: "Para compras desde Colombia, por favor utiliza los métodos de pago en pesos colombianos (Mercado Pago o Nequi)."
       });
     }
 
@@ -823,7 +823,7 @@ app.post("/api/payments/stripe/create-checkout-session", async (req, res) => {
           currency: 'usd',
           product_data: {
             name: media.title,
-            description: `Desbloqueo de Contenido VIP â€” @${media.creatorHandle}`,
+            description: `Desbloqueo de Contenido VIP — @${media.creatorHandle}`,
             images: media.previewUrl ? [media.previewUrl] : [],
           },
           unit_amount: Math.round(finalPriceUsd * 100),
@@ -855,7 +855,7 @@ app.post("/api/payments/stripe/create-checkout-session", async (req, res) => {
     console.error('[Stripe Session Error]', err);
     let errorMsg = err.message || 'Error al iniciar Stripe Checkout';
     if (errorMsg.includes('cannot currently make live charges')) {
-      errorMsg = 'âš ï¸ La cuenta de Stripe requiere completar la activaciÃ³n de cobros en vivo (Live Charges) en dashboard.stripe.com o verificar las llaves API activas.';
+      errorMsg = '?? La cuenta de Stripe requiere completar la activación de cobros en vivo (Live Charges) en dashboard.stripe.com o verificar las llaves API activas.';
     }
     res.status(500).json({ error: errorMsg });
   }
@@ -867,7 +867,7 @@ app.post("/api/payments/stripe/verify", async (req, res) => {
     const record = purchases.find((p) => (p.paymentId === sessionId || p.token === token || p.id === sessionId));
 
     if (!record) {
-      return res.status(404).json({ error: "TransacciÃ³n no encontrada" });
+      return res.status(404).json({ error: "Transacción no encontrada" });
     }
 
     if (record.status === "completed") {
@@ -907,8 +907,8 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
         id: mediaId || 'acceso_pagina_colombia',
         creatorId: 'creator_1',
         creatorHandle: 'angelina69',
-        title: mediaId?.includes('pagina') ? 'ğŸ‡¨ğŸ‡´ Pase de Entrada a la PÃ¡gina Web' : 'ğŸ”‘ ACCESO FULL - Desbloquear CatÃ¡logo Actual',
-        description: mediaId?.includes('pagina') ? 'Acceso a explorar la pÃ¡gina web de la creadora.' : 'Acceso inmediato a todas las fotos y videos publicados hasta la fecha.',
+        title: mediaId?.includes('pagina') ? '???? Pase de Entrada a la Página Web' : '?? ACCESO FULL - Desbloquear Catálogo Actual',
+        description: mediaId?.includes('pagina') ? 'Acceso a explorar la página web de la creadora.' : 'Acceso inmediato a todas las fotos y videos publicados hasta la fecha.',
         type: 'bundle',
         price: mediaId?.includes('pagina') ? 30 : 50,
         currency: 'USD',
@@ -967,7 +967,7 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
     const host = req.headers.host || 'geolink-3tze.onrender.com';
     const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
 
-    // Convertir a Pesos Colombianos (COP) para la cuenta de Mercado Pago Colombia ($1 USD â‰ˆ $4.000 COP)
+    // Convertir a Pesos Colombianos (COP) para la cuenta de Mercado Pago Colombia ($1 USD ˜ $4.000 COP)
     const userCountry = await detectCountryCode(req);
     let copUnitPrice = 0;
     if (customPrice && Number(customPrice) > 100) {
@@ -983,7 +983,7 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
       copUnitPrice = isUsd ? Math.round(effectivePrice * 3500) : Math.round(effectivePrice);
     }
 
-    // 1. Generar la preferencia oficial vÃ­a la API de Mercado Pago Colombia
+    // 1. Generar la preferencia oficial vía la API de Mercado Pago Colombia
     try {
       const mpResponse = await fetch("https://api.mercadopago.com/checkout/preferences", {
         method: "POST",
@@ -1025,7 +1025,7 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
         const errJson = await mpResponse.json().catch(() => ({}));
         console.error("[MercadoPago API Error]:", errJson);
         return res.status(400).json({
-          error: `Error de API MercadoPago: ${errJson.message || errJson.error || "Preferencias invÃ¡lidas"}`
+          error: `Error de API MercadoPago: ${errJson.message || errJson.error || "Preferencias inválidas"}`
         });
       }
     } catch (err: any) {
@@ -1129,8 +1129,8 @@ app.post("/api/payments/paypal/create-order", async (req, res) => {
         id: mediaId || 'acceso_pagina_colombia',
         creatorId: 'creator_1',
         creatorHandle: 'angelina69',
-        title: mediaId?.includes('pagina') ? 'ğŸ‡¨ğŸ‡´ Pase de Entrada a la PÃ¡gina Web' : 'ğŸ”‘ ACCESO FULL - Desbloquear CatÃ¡logo Actual',
-        description: mediaId?.includes('pagina') ? 'Acceso a explorar la pÃ¡gina web de la creadora.' : 'Acceso inmediato a todas las fotos y videos publicados hasta la fecha.',
+        title: mediaId?.includes('pagina') ? '???? Pase de Entrada a la Página Web' : '?? ACCESO FULL - Desbloquear Catálogo Actual',
+        description: mediaId?.includes('pagina') ? 'Acceso a explorar la página web de la creadora.' : 'Acceso inmediato a todas las fotos y videos publicados hasta la fecha.',
         type: 'bundle',
         price: mediaId?.includes('pagina') ? 30 : 50,
         currency: 'USD',
@@ -1426,11 +1426,11 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
   if (!purchase) {
     return res.status(404).json({
       valid: false,
-      error: "Token de descarga invÃ¡lido o compra no encontrada",
+      error: "Token de descarga inválido o compra no encontrada",
     });
   }
 
-  // Si el pago aÃºn no estÃ¡ marcado como completado, consultar a la API de Mercado Pago obligatoriamente
+  // Si el pago aún no está marcado como completado, consultar a la API de Mercado Pago obligatoriamente
   if (purchase.status !== "completed" && purchase.paymentMethod === "mercadopago") {
     const creator = creators.find((c) => c.handle.toLowerCase() === purchase.creatorHandle.toLowerCase())
       || INITIAL_CREATORS.find((c) => c.handle.toLowerCase() === purchase.creatorHandle.toLowerCase());
@@ -1462,7 +1462,7 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
     }
   }
 
-  // SI Y SOLO SI la API confirmÃ³ el pago aprobado, se valida la descarga
+  // SI Y SOLO SI la API confirmó el pago aprobado, se valida la descarga
   if (purchase.status === "completed") {
     await savePurchase(purchase);
     return res.json({
@@ -1485,7 +1485,7 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
 
 /**
  * POST /api/purchases/pending-direct
- * Registrar compras pendientes por Nequi, Telegram o MÃ©todos Directos
+ * Registrar compras pendientes por Nequi, Telegram o Métodos Directos
  */
 app.post("/api/purchases/pending-direct", async (req, res) => {
   try {
@@ -1901,21 +1901,21 @@ app.get("/api/media/download/:token", async (req, res) => {
   if (!purchase || purchase.status !== "completed") {
     return res.status(403).send(`
       <div style="font-family: system-ui, sans-serif; text-align: center; padding: 50px; background: #030712; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-        <h2 style="color: #ef4444;">â›” Enlace de Descarga InvÃ¡lido o Pago No Confirmado</h2>
+        <h2 style="color: #ef4444;">? Enlace de Descarga Inválido o Pago No Confirmado</h2>
         <p style="color: #9ca3af;">No se pudo verificar un pago completado para esta descarga.</p>
         <a href="/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #4f46e5; color: white; border-radius: 8px; text-decoration: none;">Volver a la Tienda</a>
       </div>
     `);
   }
 
-  // Estricto: MÃ¡ximo 1 descarga autorizada por token de compra
+  // Estricto: Máximo 1 descarga autorizada por token de compra
   if (purchase.downloadCount >= 1) {
     return res.status(403).send(`
       <div style="font-family: system-ui, sans-serif; text-align: center; padding: 50px; background: #030712; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-        <div style="font-size: 54px; margin-bottom: 20px;">ğŸ”’</div>
-        <h2 style="color: #ef4444; margin-bottom: 12px; font-size: 24px;">LÃ­mite de Descarga Alcanzado</h2>
-        <p style="color: #9ca3af; max-width: 440px; line-height: 1.6; font-size: 14px;">Este enlace ya ha sido utilizado para descargar el archivo previamente. Por razones de seguridad, cada compra autoriza <strong>mÃ¡ximo 1 descarga Ãºnica</strong>.</p>
-        <p style="color: #6b7280; font-size: 12px; margin-top: 15px;">ID de Compra: ${purchase.id} Â· IP Comprador: ${purchase.ipAddress || 'Registrada'} Â· Descargas efectuadas: ${purchase.downloadCount}</p>
+        <div style="font-size: 54px; margin-bottom: 20px;">??</div>
+        <h2 style="color: #ef4444; margin-bottom: 12px; font-size: 24px;">Límite de Descarga Alcanzado</h2>
+        <p style="color: #9ca3af; max-width: 440px; line-height: 1.6; font-size: 14px;">Este enlace ya ha sido utilizado para descargar el archivo previamente. Por razones de seguridad, cada compra autoriza <strong>máximo 1 descarga única</strong>.</p>
+        <p style="color: #6b7280; font-size: 12px; margin-top: 15px;">ID de Compra: ${purchase.id} · IP Comprador: ${purchase.ipAddress || 'Registrada'} · Descargas efectuadas: ${purchase.downloadCount}</p>
         <a href="/" style="display: inline-block; margin-top: 25px; padding: 12px 24px; background: #4f46e5; color: white; border-radius: 12px; text-decoration: none; font-weight: bold;">Volver a la Tienda</a>
       </div>
     `);
@@ -1943,7 +1943,7 @@ async function sendWhatsAppReceipt(record: PurchaseRecord) {
   }
 
   const downloadLink = `${process.env.APP_URL || "http://localhost:3000"}?unlock=${record.token}`;
-  const message = `ğŸ‰ Â¡Pago Confirmado con Ã‰xito!\n\nHola, tu compra de "*${record.mediaTitle}*" ha sido verificada con Ã©xito.\n\nğŸ‘‡ Haz clic en el enlace para descargar tu contenido en alta resoluciÃ³n:\n${downloadLink}\n\nÂ¡Gracias por tu compra!`;
+  const message = `?? ¡Pago Confirmado con Éxito!\n\nHola, tu compra de "*${record.mediaTitle}*" ha sido verificada con éxito.\n\n?? Haz clic en el enlace para descargar tu contenido en alta resolución:\n${downloadLink}\n\n¡Gracias por tu compra!`;
 
   try {
     const response = await fetch(`https://api.ultramsg.com/${instanceId}/messages/chat`, {
@@ -1975,7 +1975,7 @@ app.post("/api/whatsapp/send-confirmation", async (req, res) => {
   const token = process.env.ULTRAMSG_TOKEN;
 
   const downloadLink = `${process.env.APP_URL || "http://localhost:3000"}?unlock=${downloadToken}`;
-  const messageText = `ğŸ‰ *Â¡Contenido Desbloqueado!*\n\nSe ha confirmado la compra de "${mediaTitle}".\n\nğŸ“¥ Enlace directo de descarga:\n${downloadLink}`;
+  const messageText = `?? *¡Contenido Desbloqueado!*\n\nSe ha confirmado la compra de "${mediaTitle}".\n\n?? Enlace directo de descarga:\n${downloadLink}`;
 
   if (instanceId && token) {
     try {
@@ -2032,9 +2032,10 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`ğŸš€ GeoLink App Server running on http://0.0.0.0:${PORT}`);
+    console.log(`?? GeoLink App Server running on http://0.0.0.0:${PORT}`);
   });
 }
 
 startServer();
+
 
