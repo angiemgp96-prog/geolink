@@ -108,8 +108,9 @@ export interface VisitorLocation {
   ip: string;
   countryCode: string; // e.g. 'AR', 'ES', 'US', 'MX', 'CO'
   countryName: string;
-  city: string;
+  city?: string;
   isSimulated?: boolean;
+  hasApprovedPurchaseByIp?: boolean;
 }
 
 export interface CountryOption {

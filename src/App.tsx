@@ -181,8 +181,13 @@ export default function App() {
       const savedTokensRaw = localStorage.getItem('geolink_unlocked_tokens');
       const savedTokens: string[] = savedTokensRaw ? JSON.parse(savedTokensRaw) : [];
       const res = await api.getUnlockedItems(savedTokens);
-      setUnlockedMediaIds(res.unlockedMediaIds || []);
+      const mediaIds = res.unlockedMediaIds || [];
+      setUnlockedMediaIds(mediaIds);
       setUnlockedTokensMap(res.unlockedTokensMap || {});
+
+      if (mediaIds.includes('acceso_pagina_colombia')) {
+        setIsColombiaPageUnlocked(true);
+      }
     } catch (e) {
       console.warn('Error fetching unlocked items:', e);
     }
@@ -255,6 +260,9 @@ export default function App() {
       setVisitorLocation(loc);
       if (isCo) {
         api.checkColombiaAccessApproved().then(setIsColombiaPageUnlocked).catch(() => {});
+      }
+      if (loc.hasApprovedPurchaseByIp) {
+        setIsColombiaPageUnlocked(true);
       }
 
       // Check for returning payment redirect parameters or direct VIP access codes (?access=Axwkjl)
