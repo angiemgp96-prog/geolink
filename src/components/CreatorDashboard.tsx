@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, ShieldCheck, CreditCard, ShoppingBag, Link as LinkIcon, MessageSquare, History, Plus, Trash2, Edit, Save, CheckCircle, AlertCircle, RefreshCw, Send, DollarSign, Globe, Lock, UserCheck, Sparkles, Eye } from 'lucide-react';
+import { ShieldAlert, ShieldCheck, CreditCard, ShoppingBag, Link as LinkIcon, MessageSquare, MessageCircle, History, Plus, Trash2, Edit, Save, CheckCircle, AlertCircle, RefreshCw, Send, DollarSign, Globe, Lock, UserCheck, Sparkles, Eye } from 'lucide-react';
 import { CreatorProfile, MediaItem, PurchaseRecord, CustomLink, VisitorLead, PaymentMethodsVisibility } from '../types';
 import { COUNTRIES_LIST } from '../data/countries';
 import { api } from '../services/api';
