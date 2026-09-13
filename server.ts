@@ -375,7 +375,7 @@ async function detectCountryCode(req: express.Request): Promise<string> {
   if (clientIp.startsWith("80.") || clientIp.startsWith("81.")) return "ES";
   if (clientIp.startsWith("187.")) return "MX";
 
-  return "CO"; // Default fallback for local testing
+  return "US"; // Default fallback for local testing
 }
 
 // ----------------------------------------------------

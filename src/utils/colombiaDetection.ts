@@ -33,9 +33,9 @@ export function isColombianPhone(contact: string): boolean {
 export function markVisitorAsColombian(): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem('geolink_is_colombia', 'true');
-    localStorage.setItem('geolink_forced_country', 'CO');
-    sessionStorage.setItem('geolink_is_colombia', 'true');
+    localStorage.setItem('geolink_is_co_v2', 'true');
+    localStorage.setItem('geolink_forced_country_v2', 'CO');
+    sessionStorage.setItem('geolink_is_co_v2', 'true');
   } catch {}
 }
 
@@ -50,9 +50,9 @@ export function isColombianVisitor(): boolean {
   try {
     // 1. Check permanent localStorage / sessionStorage flags
     if (
-      localStorage.getItem('geolink_is_colombia') === 'true' ||
-      localStorage.getItem('geolink_forced_country') === 'CO' ||
-      sessionStorage.getItem('geolink_is_colombia') === 'true'
+      localStorage.getItem('geolink_is_co_v2') === 'true' ||
+      localStorage.getItem('geolink_forced_country_v2') === 'CO' ||
+      sessionStorage.getItem('geolink_is_co_v2') === 'true'
     ) {
       return true;
     }
