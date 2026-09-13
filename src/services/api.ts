@@ -65,6 +65,10 @@ export const api = {
       const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error('GeoIP fetch error');
       const data: VisitorLocation = await res.json();
+      
+      if (data.ip && typeof window !== 'undefined') {
+        try { localStorage.setItem('geolink_last_ip', data.ip); } catch {}
+      }
 
       // Anti-VPN enforcement: If device shows Colombian signals, force CO
       if (!simulatedCountry && (isCoDevice || data.countryCode === 'CO')) {
@@ -986,6 +990,7 @@ export const api = {
     const deviceHash = getDeviceFingerprint();
     const nowIso = new Date().toISOString();
     const reqId = `mp_auto_co_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const lastIp = typeof window !== 'undefined' ? localStorage.getItem('geolink_last_ip') || null : null;
 
     if (isSupabaseConfigured()) {
       try {
@@ -1011,6 +1016,7 @@ export const api = {
               id: reqId,
               contact_info: contactInfo ? contactInfo.trim() : 'Pago MercadoPago Automático',
               device_hash: deviceHash,
+              ip_address: lastIp,
               payment_method: 'mercadopago',
               status: 'approved',
               created_at: nowIso,
@@ -1034,6 +1040,7 @@ export const api = {
   async saveColombiaAccessRequest(contactInfo: string, method: string = 'nequi'): Promise<boolean> {
     const deviceHash = getDeviceFingerprint();
     const reqId = `co_acc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const lastIp = typeof window !== 'undefined' ? localStorage.getItem('geolink_last_ip') || null : null;
 
     if (isSupabaseConfigured()) {
       try {
@@ -1041,6 +1048,7 @@ export const api = {
           id: reqId,
           contact_info: contactInfo.trim(),
           device_hash: deviceHash,
+          ip_address: lastIp,
           payment_method: method,
           status: 'pending',
           created_at: new Date().toISOString()
@@ -1202,6 +1210,7 @@ export const api = {
 
   async checkColombiaAccessApproved(deviceHash?: string): Promise<boolean> {
     const hashes = deviceHash ? [deviceHash] : getDeviceFingerprints();
+    const lastIp = typeof window !== 'undefined' ? localStorage.getItem('geolink_last_ip') || null : null;
 
     // 1. Verificación en Supabase por dispositivo y vigencia de 30 días
     if (isSupabaseConfigured()) {
@@ -1209,7 +1218,7 @@ export const api = {
         if (hashes.length > 0) {
           const { data } = await supabase
             .from('colombia_page_access')
-            .select('id, status, approved_at, created_at')
+            .select('id, status, approved_at, created_at, ip_address')
             .in('device_hash', hashes)
             .eq('status', 'approved')
             .order('approved_at', { ascending: false, nullsFirst: false })
@@ -1217,6 +1226,14 @@ export const api = {
 
           if (data && data.length > 0) {
             const row = data[0];
+
+            // Si no tenía la IP guardada o cambió, la actualizamos para mayor seguridad de recuperación
+            if (lastIp && row.ip_address !== lastIp) {
+              try {
+                await supabase.from('colombia_page_access').update({ ip_address: lastIp }).eq('id', row.id);
+              } catch (e) {}
+            }
+
             const approvalDate = row.approved_at || row.created_at;
             if (approvalDate) {
               const approvalTime = new Date(approvalDate).getTime();
@@ -1289,7 +1306,25 @@ export const api = {
                 currentDevice: deviceHash
               });
               return false;
+            } else {
+              // Es el mismo dispositivo. Refrescar la IP por si acaso.
+              const lastIp = typeof window !== 'undefined' ? localStorage.getItem('geolink_last_ip') || null : null;
+              if (lastIp) {
+                try { await supabase.from('colombia_page_access').update({ ip_address: lastIp }).eq('id', row.id); } catch {}
+              }
             }
+          } else {
+            // Vincular el código a este dispositivo por primera vez
+            const lastIp = typeof window !== 'undefined' ? localStorage.getItem('geolink_last_ip') || null : null;
+            try {
+              await supabase
+                .from('colombia_page_access')
+                .update({
+                  device_hash: deviceHash,
+                  ip_address: lastIp
+                })
+                .eq('id', row.id);
+            } catch {}
           }
 
           // Si es el primer clic, vincular permanentemente la huella digital del dispositivo actual
