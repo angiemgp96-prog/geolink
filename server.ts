@@ -394,11 +394,27 @@ app.get("/api/geoip", async (req, res) => {
   const isVpnDetected = !simulatedCountry && (clientTz.includes("bogota") || clientLang.includes("es-co") || req.query.is_colombia === "1") && countryCode === "CO";
 
   const clientIp = getClientIp(req);
-  const hasApprovedPurchaseByIp = purchases.some(p => 
+  let hasApprovedPurchaseByIp = purchases.some(p => 
     p.mediaId === 'acceso_pagina_colombia' && 
     p.status === 'completed' && 
     p.ipAddress === clientIp
   );
+
+  if (!hasApprovedPurchaseByIp && clientIp) {
+    try {
+      const { data } = await supabase
+        .from('colombia_page_access')
+        .select('id')
+        .eq('ip_address', clientIp)
+        .eq('status', 'approved')
+        .limit(1);
+      if (data && data.length > 0) {
+        hasApprovedPurchaseByIp = true;
+      }
+    } catch (e) {
+      console.warn("Supabase IP Check error:", e);
+    }
+  }
 
   res.json({
     ip: clientIp,
