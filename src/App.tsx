@@ -276,7 +276,9 @@ export default function App() {
       }
       setVisitorLocation(loc);
       if (isCo) {
-        api.checkColombiaAccessApproved().then(setIsColombiaPageUnlocked).catch(() => {});
+        api.checkColombiaAccessApproved().then(approved => {
+          if (approved) setIsColombiaPageUnlocked(true);
+        }).catch(() => {});
       }
       if (loc.hasApprovedPurchaseByIp) {
         setIsColombiaPageUnlocked(true);
