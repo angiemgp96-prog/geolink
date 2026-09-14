@@ -835,13 +835,23 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
 
                 <div>
                   <label className="block text-xs text-slate-300 mb-1">URL de Descarga Directa (Archivo Real):</label>
-                  <input
-                    id="new-media-download-url-input"
-                    type="text"
-                    value={newMedia.downloadUrl}
-                    onChange={(e) => setNewMedia({ ...newMedia, downloadUrl: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      id="new-media-download-url-input"
+                      type="text"
+                      value={newMedia.downloadUrl}
+                      onChange={(e) => setNewMedia({ ...newMedia, downloadUrl: e.target.value })}
+                      className="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
+                    />
+                    <label className="bg-indigo-600 hover:bg-indigo-500 cursor-pointer px-3 py-2.5 rounded-xl text-xs font-bold text-white flex items-center justify-center shrink-0">
+                      Subir
+                      <input type="file" accept="video/*,image/*,.zip,.rar" className="hidden" onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleFileUpload(e.target.files[0], (url) => setNewMedia({ ...newMedia, downloadUrl: url }));
+                        }
+                      }} />
+                    </label>
+                  </div>
                 </div>
 
                 <div>
