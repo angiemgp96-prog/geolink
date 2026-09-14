@@ -90,15 +90,15 @@ export default function App() {
     } catch {}
   };
 
-  // Detector automático  // Manejo de la animacin del beso al cargar
+  // Manejo de la animacion del beso al cargar (0.5s)
   useEffect(() => {
     if (isAppReady) {
       const fadeTimer = setTimeout(() => {
         setIsKissFadingOut(true);
-      }, 800);
+      }, 500);
       const removeTimer = setTimeout(() => {
         setShowKissOverlay(false);
-      }, 1500);
+      }, 900);
       return () => { clearTimeout(fadeTimer); clearTimeout(removeTimer); };
     }
   }, [isAppReady]);
@@ -351,43 +351,6 @@ export default function App() {
   const loadCreatorDetails = async (handle: string) => {
     try {
       const data = await api.getCreator(handle);
-      
-      const imageUrls = [
-        data.creator.avatar,
-        data.creator.banner
-      ].filter(Boolean) as string[];
-
-      if (imageUrls.length > 0) {
-        await new Promise<void>((resolve) => {
-          let loadedCount = 0;
-          let isResolved = false;
-          
-          const checkDone = () => {
-            if (isResolved) return;
-            loadedCount++;
-            if (loadedCount >= imageUrls.length) {
-              isResolved = true;
-              resolve();
-            }
-          };
-
-          // Timeout de seguridad: Si tardan ms de 1.5s, forzar entrada
-          setTimeout(() => {
-            if (!isResolved) {
-              isResolved = true;
-              resolve();
-            }
-          }, 1500);
-
-          imageUrls.forEach(url => {
-            const img = new Image();
-            img.onload = checkDone;
-            img.onerror = checkDone;
-            img.src = url;
-          });
-        });
-      }
-
       setCurrentCreator(data.creator);
       setMediaItems(data.mediaItems);
       checkGeoAccess(handle, simulatedCountry);

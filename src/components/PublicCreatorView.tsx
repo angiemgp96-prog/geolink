@@ -214,6 +214,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
         <img
           src={creator.banner}
           alt={creator.name}
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
           className="w-full h-full object-cover opacity-60 scale-105 transition-transform duration-1000 hover:scale-100"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-[#030712]" />
@@ -299,6 +302,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               src={creator.avatar}
               alt={creator.name}
               draggable="false"
+              fetchPriority="high"
+              loading="eager"
+              decoding="async"
               onContextMenu={(e) => e.preventDefault()}
               className="w-full h-full object-cover rounded-full border-2 border-[#030712] pointer-events-none select-none"
             />
@@ -419,6 +425,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                     <img
                       src={item.previewUrl}
                       alt={item.title}
+                      loading="lazy"
+                      decoding="async"
                       className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
                         !isUnlocked ? 'blur-[3px] scale-105 opacity-80' : 'opacity-100 blur-none'
                       }`}
