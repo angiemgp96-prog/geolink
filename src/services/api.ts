@@ -1310,34 +1310,28 @@ export const api = {
               // Es el mismo dispositivo. Refrescar la IP por si acaso.
               const lastIp = typeof window !== 'undefined' ? localStorage.getItem('geolink_last_ip') || null : null;
               if (lastIp) {
-                try { await supabase.from('colombia_page_access').update({ ip_address: lastIp }).eq('id', row.id); } catch {}
+                try {
+                  await fetch('/api/purchases/link-custom-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: row.id, deviceHash, ipAddress: lastIp })
+                  });
+                } catch {}
               }
             }
           } else {
             // Vincular el código a este dispositivo por primera vez
             const lastIp = typeof window !== 'undefined' ? localStorage.getItem('geolink_last_ip') || null : null;
             try {
-              await supabase
-                .from('colombia_page_access')
-                .update({
-                  device_hash: deviceHash,
-                  ip_address: lastIp
-                })
-                .eq('id', row.id);
+              await fetch('/api/purchases/link-custom-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: row.id, deviceHash, ipAddress: lastIp })
+              });
             } catch {}
           }
 
-          // Si es el primer clic, vincular permanentemente la huella digital del dispositivo actual
-          try {
-            await supabase
-              .from('colombia_page_access')
-              .update({
-                status: 'approved',
-                device_hash: row.device_hash || deviceHash,
-                approved_at: new Date().toISOString()
-              })
-              .eq('id', row.id);
-          } catch {}
+          // La vinculacin y actualizacin del estado se maneja completamente en el backend mediante el endpoint /api/purchases/link-custom-code
 
           try {
             localStorage.setItem('geolink_colombia_page_unlocked', 'true');
