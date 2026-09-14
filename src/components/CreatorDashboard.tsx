@@ -25,6 +25,23 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   const [profile, setProfile] = useState<CreatorProfile>({ ...creator });
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  const handleFileUpload = async (file: File, callback: (url: string) => void) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success && data.url) {
+        callback(data.url);
+      } else {
+        alert('Error al subir imagen: ' + (data.error || 'Verifica configuración Supabase'));
+      }
+    } catch (err) {
+      alert('Error de red al subir imagen');
+    }
+  };
+
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [visitorLeads, setVisitorLeads] = useState<VisitorLead[]>([]);
 
@@ -797,13 +814,23 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
 
                 <div>
                   <label className="block text-xs text-slate-300 mb-1">URL de Vista Previa (Blur/Portada):</label>
-                  <input
-                    id="new-media-preview-url-input"
-                    type="text"
-                    value={newMedia.previewUrl}
-                    onChange={(e) => setNewMedia({ ...newMedia, previewUrl: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      id="new-media-preview-url-input"
+                      type="text"
+                      value={newMedia.previewUrl}
+                      onChange={(e) => setNewMedia({ ...newMedia, previewUrl: e.target.value })}
+                      className="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white"
+                    />
+                    <label className="bg-indigo-600 hover:bg-indigo-500 cursor-pointer px-3 py-2.5 rounded-xl text-xs font-bold text-white flex items-center justify-center shrink-0">
+                      Subir
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleFileUpload(e.target.files[0], (url) => setNewMedia({ ...newMedia, previewUrl: url }));
+                        }
+                      }} />
+                    </label>
+                  </div>
                 </div>
 
                 <div>
