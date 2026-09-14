@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
+import multer from "multer";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { createClient } from "@supabase/supabase-js";
@@ -14,6 +15,7 @@ import { COUNTRIES_LIST } from "./src/data/countries";
 import { CreatorProfile, MediaItem, PurchaseRecord, VisitorLocation } from "./src/types";
 
 const app = express();
+const upload = multer({ storage: multer.memoryStorage() });
 const PORT = 3000;
 
 app.use(express.json());
@@ -643,6 +645,45 @@ app.post("/api/creators", async (req, res) => {
 // ----------------------------------------------------
 
 // Add or update media item
+
+app.post("/api/upload", upload.single("file"), async (req, res) => {
+  if (!isSupabaseConfigured()) {
+    return res.status(500).json({ error: "Supabase not configured" });
+  }
+
+  try {
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ error: "No file provided" });
+    }
+
+    const fileExt = file.originalname.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+    const filePath = `public/${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from('media-store')
+      .upload(filePath, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false
+      });
+
+    if (error) {
+      console.error("[Supabase Upload Error]", error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('media-store')
+      .getPublicUrl(filePath);
+
+    res.json({ success: true, url: publicUrl });
+  } catch (err) {
+    console.error("[Upload Exception]", err);
+    res.status(500).json({ error: "Server error during upload" });
+  }
+});
+
 app.post("/api/media", async (req, res) => {
   const item: MediaItem = req.body;
 
@@ -1514,6 +1555,41 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
  * POST /api/purchases/pending-direct
  * Registrar compras pendientes por Nequi, Telegram o M�todos Directos
  */
+
+app.post("/api/purchases/link-custom-code", async (req, res) => {
+  const { id, deviceHash, ipAddress } = req.body;
+  if (!id || !deviceHash) {
+    return res.status(400).json({ error: "Missing parameters" });
+  }
+  
+  if (!isSupabaseConfigured()) {
+    return res.status(500).json({ error: "Supabase not configured" });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('colombia_page_access')
+      .update({
+        device_hash: deviceHash,
+        ip_address: ipAddress || null,
+        status: 'approved',
+        approved_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select();
+
+    if (error) {
+      console.error("[Link Custom Code Error]", error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error("[Link Custom Code Exception]", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 app.post("/api/purchases/pending-direct", async (req, res) => {
   try {
     const { id, token, mediaId, mediaTitle, buyerPhone, buyerEmail, paymentMethod, amount } = req.body;
