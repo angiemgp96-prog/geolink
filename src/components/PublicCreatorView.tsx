@@ -25,6 +25,23 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   const [downloadedMediaIds, setDownloadedMediaIds] = useState<string[]>([]);
   const [lang, setLang] = useState<SupportedLanguage>('es');
 
+  // Animacion del Beso con efecto Zoom al entrar a la tienda (0.5s)
+  const [showKiss, setShowKiss] = useState(true);
+  const [isKissFading, setIsKissFading] = useState(false);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsKissFading(true);
+    }, 500);
+    const removeTimer = setTimeout(() => {
+      setShowKiss(false);
+    }, 850);
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(removeTimer);
+    };
+  }, []);
+
   const t = TRANSLATIONS[lang] || TRANSLATIONS.es;
 
   const [visitorCountry, setVisitorCountry] = useState<string>(() => isColombianVisitor() ? 'CO' : '');
@@ -209,6 +226,19 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
   return (
     <div className="min-h-screen bg-[#030712] text-zinc-100 font-sans pb-24 selection:bg-indigo-500 selection:text-white">
+      {/* CUBIERTA DEL BESO CON EFECTO DE ZOOM (0.5s) */}
+      {showKiss && (
+        <div className={`fixed inset-0 z-50 bg-[#030712] flex items-center justify-center transition-opacity duration-350 ${isKissFading ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+          <div className="fixed top-[-20%] left-[-10%] w-[600px] h-[600px] bg-pink-600/20 rounded-full blur-[150px] pointer-events-none" />
+          <div className="fixed bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[150px] pointer-events-none" />
+          <div className="relative z-10 flex flex-col items-center justify-center">
+            <div className="text-[120px] sm:text-[150px] drop-shadow-[0_0_40px_rgba(236,72,153,0.9)] animate-kiss-zoom filter select-none">
+              💋
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* HEADER BANNER TOP */}
       <div className="relative h-44 sm:h-72 w-full overflow-hidden bg-slate-900">
         <img

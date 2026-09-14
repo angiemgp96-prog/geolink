@@ -18,8 +18,6 @@ import { isColombianVisitor, markVisitorAsColombian } from './utils/colombiaDete
 
 export default function App() {
   const [isAppReady, setIsAppReady] = useState<boolean>(false);
-  const [showKissOverlay, setShowKissOverlay] = useState<boolean>(true);
-  const [isKissFadingOut, setIsKissFadingOut] = useState<boolean>(false);
 
   const [creators, setCreators] = useState<CreatorProfile[]>(INITIAL_CREATORS);
   const [currentCreator, setCurrentCreator] = useState<CreatorProfile>(INITIAL_CREATORS[0]);
@@ -89,19 +87,6 @@ export default function App() {
       }
     } catch {}
   };
-
-  // Manejo de la animacion del beso al cargar (0.5s)
-  useEffect(() => {
-    if (isAppReady) {
-      const fadeTimer = setTimeout(() => {
-        setIsKissFadingOut(true);
-      }, 500);
-      const removeTimer = setTimeout(() => {
-        setShowKissOverlay(false);
-      }, 900);
-      return () => { clearTimeout(fadeTimer); clearTimeout(removeTimer); };
-    }
-  }, [isAppReady]);
 
   // Manejo de scroll para efecto glassmorphism
   useEffect(() => {
@@ -402,20 +387,24 @@ export default function App() {
     loadCreatorDetails(currentCreator.handle);
   };
 
+  if (!isAppReady) {
+    return (
+      <div className="min-h-screen bg-[#030712] font-sans flex items-center justify-center relative overflow-hidden">
+        {/* Background Ambient Orbs */}
+        <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none z-0" />
+        <div className="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none z-0" />
+        <div className="fixed top-[40%] right-[30%] w-[400px] h-[400px] bg-pink-600/10 rounded-full blur-[140px] pointer-events-none z-0" />
+        
+        <div className="relative z-10 flex flex-col items-center gap-6 animate-pulse">
+          <div className="w-16 h-16 rounded-full border-4 border-t-indigo-500 border-r-purple-500 border-b-pink-500 border-l-transparent animate-spin" />
+          <div className="text-zinc-300 font-semibold tracking-widest text-sm uppercase">Preparando experiencia...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#030712] font-sans text-zinc-100 antialiased relative overflow-x-hidden selection:bg-indigo-500 selection:text-white">
-      {/* CUBIERTA DEL BESO (KISS OVERLAY) */}
-      {showKissOverlay && (
-        <div className={`fixed inset-0 z-[9999] bg-[#030712] flex items-center justify-center transition-opacity duration-700 ${isKissFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-          <div className="fixed top-[-20%] left-[-10%] w-[600px] h-[600px] bg-pink-600/20 rounded-full blur-[150px] pointer-events-none" />
-          <div className="fixed bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[150px] pointer-events-none" />
-          <div className="relative z-10 flex flex-col items-center justify-center animate-pulse">
-            <div className="text-[120px] drop-shadow-[0_0_30px_rgba(236,72,153,0.8)] filter transition-transform duration-1000 scale-110 hover:scale-125 select-none">
-              💋
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Background Glowing Ambient Orbs for Frosted Glass Theme */}
       <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none z-0" />
