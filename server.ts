@@ -647,9 +647,7 @@ app.post("/api/creators", async (req, res) => {
 // Add or update media item
 
 app.post("/api/upload", upload.single("file"), async (req, res) => {
-  if (!isSupabaseConfigured()) {
-    return res.status(500).json({ error: "Supabase not configured" });
-  }
+
 
   try {
     const file = req.file;
@@ -1562,9 +1560,7 @@ app.post("/api/purchases/link-custom-code", async (req, res) => {
     return res.status(400).json({ error: "Missing parameters" });
   }
   
-  if (!isSupabaseConfigured()) {
-    return res.status(500).json({ error: "Supabase not configured" });
-  }
+
 
   try {
     const { data, error } = await supabase
