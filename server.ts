@@ -214,7 +214,7 @@ function getClientIp(req: express.Request): string {
 async function syncFromSupabase() {
   try {
     const { data: dbCreators, error: cErr } = await supabase.from("creators").select("*");
-    if (!cErr && dbCreators && dbCreators.length > 0) {
+    if (!cErr && dbCreators) {
       creators = dbCreators.map(fromSupabaseCreator);
       console.log(`[Supabase DB] Loaded ${creators.length} creator profiles.`);
     }
@@ -292,7 +292,7 @@ async function syncFromSupabase() {
     } catch (_err) {}
 
     const { data: dbMedia, error: mErr } = await supabase.from("media_items").select("*");
-    if (!mErr && dbMedia && dbMedia.length > 0) {
+    if (!mErr && dbMedia) {
       mediaItems = dbMedia.map(fromSupabaseMedia);
       console.log(`[Supabase DB] Loaded ${mediaItems.length} media items from Supabase.`);
       // Auto-heal is_extra_premium column in Supabase
