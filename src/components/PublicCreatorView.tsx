@@ -22,20 +22,12 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   onOpenPurchaseModal,
 }) => {
   const [filterType, setFilterType] = useState<'all' | 'video' | 'photo' | 'bundle'>('all');
-  const [isPageLoading, setIsPageLoading] = useState(true);
   const [downloadedMediaIds, setDownloadedMediaIds] = useState<string[]>([]);
   const [lang, setLang] = useState<SupportedLanguage>('es');
 
   const t = TRANSLATIONS[lang] || TRANSLATIONS.es;
 
   const [visitorCountry, setVisitorCountry] = useState<string>(() => isColombianVisitor() ? 'CO' : '');
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsPageLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
 
   React.useEffect(() => {
     api.getVisitorLocation().then(loc => {
@@ -126,7 +118,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
       clearTimeout(timer);
       if (observer) observer.disconnect();
     };
-  }, [mediaItems, filterType, isPageLoading]);
+  }, [mediaItems, filterType]);
 
   const isColombia = visitorCountry === 'CO' || isColombianVisitor();
   const mostExpensiveItemPrice = mediaItems.reduce((max, item) => Number(item.price) > max ? Number(item.price) : max, 0);
@@ -214,25 +206,6 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     isFeatured: true,
     createdAt: new Date().toISOString(),
   };
-
-  if (isPageLoading) {
-    return (
-      <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center p-4">
-        <div className="relative w-20 h-20 mb-6">
-          <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20 animate-ping" />
-          <div className="absolute inset-0 rounded-full border-4 border-t-indigo-500 border-r-purple-500 border-b-pink-500 border-l-amber-500 animate-spin" />
-          <div className="absolute inset-2 rounded-full bg-slate-900 flex items-center justify-center">
-            <Sparkles className="w-6 h-6 text-amber-400 animate-pulse" />
-          </div>
-        </div>
-        <div className="flex items-center gap-2 text-white font-extrabold text-lg tracking-wider">
-          <span>GEOLINK</span>
-          <span className="text-xs bg-indigo-600 text-white font-black px-2 py-0.5 rounded-full">VIP</span>
-        </div>
-        <p className="text-xs text-indigo-300/70 font-medium mt-1">Cargando perfil exclusivo y tienda digital...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#030712] text-zinc-100 font-sans pb-24 selection:bg-indigo-500 selection:text-white">
