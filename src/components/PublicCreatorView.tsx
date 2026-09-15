@@ -417,8 +417,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             </div>
           </div>
 
-          {/* GRID DE PRODUCTOS DE LA TIENDA */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* GRID DE PRODUCTOS DE LA TIENDA (2 POR LÍNEA EN CELULARES Y PC) */}
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
             {filteredItems.map((item) => {
               const isUnlocked = unlockedMediaIds.includes(item.id);
               const prices = getCalculatedPrices(item.price, item.id);
@@ -444,7 +444,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                   key={item.id}
                   data-item-id={item.id}
                   onClick={handleCardClick}
-                  className={`rounded-3xl overflow-hidden transition-all duration-300 flex flex-col group shadow-xl hover:-translate-y-1 cursor-pointer ${
+                  className={`rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-300 flex flex-col group shadow-xl hover:-translate-y-1 cursor-pointer ${
                     isUnlocked
                       ? 'bg-gradient-to-b from-sky-950/60 to-slate-950 border-2 border-sky-500/60 hover:border-sky-400 shadow-sky-500/25'
                       : 'bg-slate-900/80 border border-white/10 hover:border-indigo-500/40'
@@ -464,27 +464,27 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
 
                     {/* Badges */}
-                    <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 z-10">
-                      <span className="bg-slate-950/80 border border-white/20 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full backdrop-blur-md flex items-center gap-1">
-                        {item.type === 'video' ? <Film className="w-3 h-3 text-indigo-400" /> : <ImageIcon className="w-3 h-3 text-pink-400" />}
+                    <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-wrap items-center gap-1 sm:gap-1.5 z-10">
+                      <span className="bg-slate-950/80 border border-white/20 text-white text-[8px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full backdrop-blur-md flex items-center gap-1">
+                        {item.type === 'video' ? <Film className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-indigo-400" /> : <ImageIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-pink-400" />}
                         <span>{item.type === 'video' ? 'Video HD' : 'Galería'}</span>
                       </span>
 
                       {item.isExtraPremium && (
-                        <span className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 text-slate-950 text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg border border-amber-300 flex items-center gap-1">
-                          <span>💎 EXTRA PREMIUM</span>
+                        <span className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 text-slate-950 text-[8px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-lg border border-amber-300 flex items-center gap-1">
+                          <span>💎 EXTRA</span>
                         </span>
                       )}
 
                       {isUnlocked ? (
-                        <span className="bg-sky-500 text-slate-950 text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1">
-                          <Send className="w-3 h-3 fill-slate-950" />
+                        <span className="bg-sky-500 text-slate-950 text-[8px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-lg flex items-center gap-1">
+                          <Send className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-slate-950" />
                           <span>{t.unlockedBadge}</span>
                         </span>
                       ) : (
                         isLatest && (
-                          <span className="bg-gradient-to-r from-rose-600 to-pink-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1 animate-pulse">
-                            <Flame className="w-3 h-3 text-amber-300 fill-amber-300" />
+                          <span className="bg-gradient-to-r from-rose-600 to-pink-600 text-white text-[8px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-lg flex items-center gap-1 animate-pulse">
+                            <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-300 fill-amber-300" />
                             <span>{t.newBadge}</span>
                           </span>
                         )
@@ -493,27 +493,27 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
                     {/* Lock Overlay with Animated Open Lock & Unlock Badge on Hover & Single Focused Mobile Card */}
                     {!isUnlocked && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center pointer-events-none z-10">
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-2 sm:p-4 text-center pointer-events-none z-10">
                         <div className="flex flex-col items-center group-hover:scale-105 transition-all duration-300">
-                          <div className={`relative w-12 h-12 rounded-2xl bg-indigo-600/40 border border-indigo-400/60 flex items-center justify-center backdrop-blur-md shadow-lg shadow-indigo-600/30 group-hover:bg-gradient-to-br group-hover:from-amber-500/40 group-hover:to-indigo-600/60 group-hover:border-amber-400/80 group-hover:shadow-amber-500/40 transition-all duration-300 ${
+                          <div className={`relative w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-600/40 border border-indigo-400/60 flex items-center justify-center backdrop-blur-md shadow-lg shadow-indigo-600/30 group-hover:bg-gradient-to-br group-hover:from-amber-500/40 group-hover:to-indigo-600/60 group-hover:border-amber-400/80 group-hover:shadow-amber-500/40 transition-all duration-300 ${
                             isMobileFocused ? 'mobile-active-box' : ''
                           }`}>
-                            {/* Closed Lock (Default state, shrinks & fades out on hover/mobile focus) */}
-                            <Lock className={`w-6 h-6 text-indigo-200 transition-all duration-300 group-hover:opacity-0 group-hover:scale-50 group-hover:-rotate-12 absolute ${
+                            {/* Closed Lock */}
+                            <Lock className={`w-4 h-4 sm:w-6 sm:h-6 text-indigo-200 transition-all duration-300 group-hover:opacity-0 group-hover:scale-50 group-hover:-rotate-12 absolute ${
                               isMobileFocused ? 'mobile-active-closed-lock' : ''
                             }`} />
                             
-                            {/* Open Lock (Pops open & glows amber on hover/mobile focus) */}
-                            <Unlock className={`w-6 h-6 text-amber-300 opacity-0 scale-50 rotate-12 group-hover:opacity-100 group-hover:scale-110 group-hover:rotate-0 transition-all duration-300 ease-out absolute ${
+                            {/* Open Lock */}
+                            <Unlock className={`w-4 h-4 sm:w-6 sm:h-6 text-amber-300 opacity-0 scale-50 rotate-12 group-hover:opacity-100 group-hover:scale-110 group-hover:rotate-0 transition-all duration-300 ease-out absolute ${
                               isMobileFocused ? 'mobile-active-open-lock' : ''
                             }`} />
                           </div>
 
                           {/* "Unlock" Badge sliding up on hover & mobile focus */}
-                          <span className={`mt-2 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-out bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 text-[11px] font-black uppercase px-3 py-1 rounded-full shadow-lg shadow-amber-400/40 tracking-wider border border-amber-200/80 flex items-center gap-1 ${
+                          <span className={`mt-1 sm:mt-2 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-out bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 text-[9px] sm:text-[11px] font-black uppercase px-2 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-lg shadow-amber-400/40 tracking-wider border border-amber-200/80 flex items-center gap-1 ${
                             isMobileFocused ? 'mobile-active-badge' : ''
                           }`}>
-                            <Unlock className="w-3 h-3 stroke-[2.5]" />
+                            <Unlock className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5]" />
                             <span>Unlock</span>
                           </span>
                         </div>
@@ -522,38 +522,38 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                   </div>
 
                   {/* Body Info */}
-                  <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                  <div className="p-2.5 sm:p-4 flex-1 flex flex-col justify-between space-y-2 sm:space-y-3">
                     <div>
-                      <h3 className={`font-extrabold text-base line-clamp-1 transition-colors ${
+                      <h3 className={`font-extrabold text-xs sm:text-base line-clamp-1 transition-colors ${
                         isUnlocked ? 'text-sky-300 group-hover:text-sky-200' : 'text-white group-hover:text-indigo-300'
                       }`}>
                         {item.title}
                       </h3>
                       {item.description && (
-                        <p className="text-xs text-zinc-400 line-clamp-2 mt-1 leading-relaxed">
+                        <p className="text-[10px] sm:text-xs text-zinc-400 line-clamp-1 sm:line-clamp-2 mt-0.5 sm:mt-1 leading-relaxed">
                           {item.description}
                         </p>
                       )}
                     </div>
 
                     {/* Meta Info & Price */}
-                    <div className="pt-2 border-t border-white/10 flex items-center justify-between">
+                    <div className="pt-1.5 sm:pt-2 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-0">
                       <div className="text-left">
-                        <div className="text-[10px] text-zinc-400 font-medium">
-                          {isUnlocked ? 'Estado del Ítem:' : 'Precio Exclusivo:'}
+                        <div className="text-[9px] sm:text-[10px] text-zinc-400 font-medium">
+                          {isUnlocked ? 'Estado:' : 'Precio:'}
                         </div>
-                        <div className="flex items-baseline gap-1.5">
+                        <div className="flex items-baseline gap-1">
                           {isUnlocked ? (
-                            <span className="text-xs font-black text-emerald-400 uppercase tracking-wide">
-                              Comprado / Acceso Activo
+                            <span className="text-[10px] sm:text-xs font-black text-emerald-400 uppercase tracking-wide">
+                              Comprado
                             </span>
                           ) : (
                             <>
-                              <span className="text-lg font-black text-amber-300">
+                              <span className="text-sm sm:text-lg font-black text-amber-300">
                                 {prices.hasDiscount ? prices.discountedFormatted : prices.originalFormatted}
                               </span>
                               {prices.hasDiscount && (
-                                <span className="line-through text-xs text-rose-400 opacity-80 font-bold">
+                                <span className="line-through text-[9px] sm:text-xs text-rose-400 opacity-80 font-bold">
                                   {prices.originalFormatted}
                                 </span>
                               )}
@@ -568,7 +568,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                           e.stopPropagation();
                           handleCardClick();
                         }}
-                        className={`py-2.5 px-4 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all shadow-lg cursor-pointer ${
+                        className={`w-full sm:w-auto justify-center py-1.5 sm:py-2.5 px-2.5 sm:px-4 rounded-lg sm:rounded-xl font-black text-[10px] sm:text-xs flex items-center gap-1 sm:gap-1.5 transition-all shadow-lg cursor-pointer ${
                           isUnlocked
                             ? 'bg-gradient-to-r from-sky-500 via-sky-400 to-emerald-400 text-slate-950 shadow-sky-500/30 hover:scale-105'
                             : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-600/30 hover:scale-105'
@@ -576,13 +576,13 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       >
                         {isUnlocked ? (
                           <>
-                            <Send className="w-4 h-4 fill-slate-950" />
+                            <Send className="w-3 h-3 sm:w-4 sm:h-4 fill-slate-950" />
                             <span>{t.viewTelegramBtn}</span>
                           </>
                         ) : (
                           <>
-                            <Lock className="w-4 h-4 group-hover:hidden transition-all duration-300" />
-                            <Unlock className="w-4 h-4 text-amber-300 hidden group-hover:inline transition-all duration-300" />
+                            <Lock className="w-3 h-3 sm:w-4 sm:h-4 group-hover:hidden transition-all duration-300" />
+                            <Unlock className="w-3 h-3 sm:w-4 sm:h-4 text-amber-300 hidden group-hover:inline transition-all duration-300" />
                             <span>{t.unlockBtn}</span>
                           </>
                         )}
