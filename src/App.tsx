@@ -88,12 +88,40 @@ export default function App() {
     } catch {}
   };
 
+  const checkAndRedirectPendingTelegramPayment = () => {
+    try {
+      const raw = localStorage.getItem('geolink_pending_telegram_payment');
+      if (!raw) return;
+
+      const data = JSON.parse(raw);
+      if (!data || !data.mediaTitle) return;
+
+      const elapsed = Date.now() - (data.timestamp || 0);
+      // Wait at least 2.5 seconds to avoid accidental immediate focus shifts, and expire after 24h
+      if (elapsed < 2500 || elapsed > 24 * 60 * 60 * 1000) return;
+
+      // Clean up storage immediately so it never repeats or causes a loop
+      localStorage.removeItem('geolink_pending_telegram_payment');
+
+      const formattedAmount = data.amount ? `$${Number(data.amount).toFixed(2)} ${data.currency || 'USD'}` : '';
+      const msg = encodeURIComponent(
+        `¡Hola Angelina! Acabo de realizar el pago por Stripe (${formattedAmount}) para el contenido: "${data.mediaTitle}".\n\nAquí te adjunto mi comprobante de pago para recibir mi contenido 📎`
+      );
+      const telegramUrl = `https://t.me/angelinaguz69?text=${msg}`;
+      window.location.href = telegramUrl;
+    } catch (err) {
+      console.warn('Error checking pending telegram redirect:', err);
+    }
+  };
+
   // Manejo de scroll para efecto glassmorphism
   useEffect(() => {
+    checkAndRedirectPendingTelegramPayment();
     checkAndOpenPendingStripePayment();
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
+        checkAndRedirectPendingTelegramPayment();
         checkAndOpenPendingStripePayment();
         // Force refresh of unlocked items and creator data to prevent stale views (e.g. old mock products)
         checkUnlockedItems();
@@ -105,9 +133,15 @@ export default function App() {
       }
     };
 
+    const handleFocus = () => {
+      checkAndRedirectPendingTelegramPayment();
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
     };
   }, []);
   const [isNewCreatorModalOpen, setIsNewCreatorModalOpen] = useState<boolean>(false);

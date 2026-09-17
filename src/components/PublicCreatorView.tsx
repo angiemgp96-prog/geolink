@@ -5,6 +5,7 @@ import { detectLanguage, TRANSLATIONS, SupportedLanguage } from '../data/transla
 import { api } from '../services/api';
 import { BigoHlsPlayer } from './BigoHlsPlayer';
 import { isColombianVisitor, markVisitorAsColombian } from '../utils/colombiaDetection';
+import { getStripePaymentUrl } from '../utils/stripeLinks';
 
 interface PublicCreatorViewProps {
   creator: CreatorProfile;
@@ -429,9 +430,19 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                   const targetUrl = item.downloadUrl || 'https://t.me/+vREXeP2U7Kw3ZTJh';
                   window.open(targetUrl, '_blank');
                 } else if (paymentVisibility?.direct_telegram_mode) {
-                  const finalPrice = globalDiscount > 0 ? (item.price * (1 - globalDiscount / 100)).toFixed(2) : item.price;
-                  const msg = encodeURIComponent(`Hola, quiero comprar el contenido "${item.title}" por $${finalPrice} ${item.currency}.`);
-                  window.open(`https://t.me/Angelinaguzman69?text=${msg}`, '_blank');
+                  const finalPrice = globalDiscount > 0 ? (item.price * (1 - globalDiscount / 100)) : item.price;
+                  const stripeUrl = getStripePaymentUrl(Number(finalPrice));
+                  try {
+                    localStorage.setItem('geolink_pending_telegram_payment', JSON.stringify({
+                      mediaId: item.id,
+                      mediaTitle: item.title,
+                      amount: Number(finalPrice),
+                      currency: item.currency || 'USD',
+                      stripeUrl,
+                      timestamp: Date.now(),
+                    }));
+                  } catch {}
+                  window.open(stripeUrl, '_blank');
                 } else {
                   onOpenPurchaseModal(item);
                 }
