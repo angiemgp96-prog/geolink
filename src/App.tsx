@@ -107,7 +107,7 @@ export default function App() {
       const msg = encodeURIComponent(
         `¡Hola Angelina! Acabo de realizar el pago por Stripe (${formattedAmount}) para el contenido: "${data.mediaTitle}".\n\nAquí te adjunto mi comprobante de pago para recibir mi contenido 📎`
       );
-      const telegramUrl = `https://t.me/angelinaguz69?text=${msg}`;
+      const telegramUrl = `https://t.me/Angelinaguzman69?text=${msg}`;
       window.location.href = telegramUrl;
     } catch (err) {
       console.warn('Error checking pending telegram redirect:', err);
