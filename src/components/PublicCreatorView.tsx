@@ -433,6 +433,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       amount: Number(finalPrice),
                       currency: item.currency || 'USD',
                       stripeUrl,
+                      downloadUrl: item.downloadUrl || '',
                       timestamp: Date.now(),
                     }));
                   } catch {}

@@ -846,16 +846,18 @@ export const api = {
 
 
 
-  async createPendingDirectPurchase(data: { mediaId: string; mediaTitle: string; paymentMethod: string; amount: string; contactInfo: string }) {
+  async createPendingDirectPurchase(data: { mediaId: string; mediaTitle: string; paymentMethod: string; amount: string | number; contactInfo: string; downloadUrl?: string }) {
     const purchaseId = `dir_purch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const unlockToken = `unlock_dir_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     let numericAmount = 50;
     let currency = 'USD';
 
-    if (typeof data.amount === 'string') {
-      const digits = data.amount.replace(/[^0-9]/g, '');
-      if (digits) numericAmount = Number(digits);
+    if (typeof data.amount === 'number') {
+      numericAmount = data.amount;
+    } else if (typeof data.amount === 'string') {
+      const cleanNum = data.amount.replace(/[^0-9\.]/g, '');
+      if (cleanNum) numericAmount = Number(cleanNum);
       if (data.amount.toUpperCase().includes('COP')) currency = 'COP';
     }
 
@@ -873,6 +875,7 @@ export const api = {
           amount: numericAmount,
           currency: currency,
           status: 'pending',
+          download_url: data.downloadUrl || '',
           created_at: new Date().toISOString()
         });
       } catch (err) {
@@ -892,7 +895,9 @@ export const api = {
           buyerPhone: data.contactInfo,
           buyerEmail: data.contactInfo,
           paymentMethod: data.paymentMethod,
-          amount: data.amount,
+          amount: numericAmount,
+          currency: currency,
+          downloadUrl: data.downloadUrl || '',
           status: 'pending'
         })
       });

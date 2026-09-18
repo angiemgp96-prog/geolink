@@ -81,7 +81,7 @@ export default function App() {
     } catch {}
   };
 
-  const checkAndRedirectPendingTelegramPayment = () => {
+  const checkAndRedirectPendingTelegramPayment = async () => {
     try {
       const raw = localStorage.getItem('geolink_pending_telegram_payment');
       if (!raw) return;
@@ -95,6 +95,21 @@ export default function App() {
 
       // Clean up storage immediately so it never repeats or causes a loop
       localStorage.removeItem('geolink_pending_telegram_payment');
+
+      // Registrar la intención de compra / redirección en el historial de ventas del admin
+      const contactStr = localStorage.getItem('geolink_visitor_contact') || 'Cliente Stripe ➔ Telegram';
+      try {
+        await api.createPendingDirectPurchase({
+          mediaId: data.mediaId,
+          mediaTitle: data.mediaTitle,
+          paymentMethod: 'STRIPE',
+          amount: data.amount ? Number(data.amount) : 10,
+          contactInfo: contactStr,
+          downloadUrl: data.downloadUrl || '',
+        });
+      } catch (e) {
+        console.warn('Error recording pending telegram purchase:', e);
+      }
 
       const formattedAmount = data.amount ? `$${Number(data.amount).toFixed(2)} ${data.currency || 'USD'}` : '';
       const msg = encodeURIComponent(

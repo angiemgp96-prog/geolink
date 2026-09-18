@@ -266,7 +266,13 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
         const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
         return tB - tA;
       });
-      setPurchasesHistory(list);
+      // Filtrar pases de entrada a la página de Colombia del historial de ventas de contenido
+      const filtered = list.filter((p) => {
+        const titleLower = (p.mediaTitle || '').toLowerCase();
+        const isPase = p.mediaId === 'acceso_pagina_colombia' || titleLower.includes('pase') || titleLower.includes('página web') || titleLower.includes('pagina web');
+        return !isPase;
+      });
+      setPurchasesHistory(filtered);
     } catch {
       setPurchasesHistory([]);
     }
@@ -1724,9 +1730,14 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800">
-                    {purchasesHistory.map((p) => {
+                    {purchasesHistory
+                      .filter((p) => {
+                        const titleLower = (p.mediaTitle || '').toLowerCase();
+                        return p.mediaId !== 'acceso_pagina_colombia' && !titleLower.includes('pase') && !titleLower.includes('página web') && !titleLower.includes('pagina web');
+                      })
+                      .map((p) => {
                       const titleLower = (p.mediaTitle || '').toLowerCase();
-                      const isPaseEntrada = titleLower.includes('pase') || p.mediaId === 'acceso_pagina_colombia';
+                      const isPaseEntrada = false;
                       const isFullAccess = p.mediaId === 'acceso_full_cat_actual' || p.mediaId?.includes('acceso_full') || titleLower.includes('full');
                       const matchedMedia = mediaItems.find(m => m.id === p.mediaId || m.title?.toLowerCase() === titleLower);
                       const isColombiaBuyer = p.paymentMethod === 'MERCADOPAGO' || p.paymentMethod === 'NEQUI' || p.currency === 'COP' || p.countryCode === 'CO' || (p.buyerPhone && (p.buyerPhone.startsWith('3') || p.buyerPhone.startsWith('+57'))) || isPaseEntrada;

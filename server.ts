@@ -854,7 +854,7 @@ app.post("/api/payments/stripe/create-checkout-session", async (req, res) => {
       paymentMethod: 'stripe',
       paymentId: '',
       status: 'pending',
-      ipAddress: getClientIp(req),
+            ipAddress: getClientIp(req),
       downloadCount: 0,
       createdAt: new Date().toISOString(),
       downloadUrl: media.downloadUrl,
@@ -1569,7 +1569,9 @@ app.post("/api/purchases/link-custom-code", async (req, res) => {
 
 app.post("/api/purchases/pending-direct", async (req, res) => {
   try {
-    const { id, token, mediaId, mediaTitle, buyerPhone, buyerEmail, paymentMethod, amount } = req.body;
+    const { id, token, mediaId, mediaTitle, buyerPhone, buyerEmail, paymentMethod, amount, downloadUrl } = req.body;
+    const matchedMedia = mediaItems.find(m => m.id === mediaId);
+    const resolvedDownloadUrl = downloadUrl || matchedMedia?.downloadUrl || 'https://t.me/+vREXeP2U7Kw3ZTJh';
 
     let parsedAmount = 50;
     let currency = 'USD';
