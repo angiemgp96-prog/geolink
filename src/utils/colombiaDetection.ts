@@ -27,60 +27,36 @@ export function isColombianPhone(contact: string): boolean {
 }
 
 /**
- * Permanently marks the current device/browser as a Colombian visitor in localStorage.
- * Once marked, subsequent visits stay locked to Colombia even if the user activates a VPN.
+ * Clean up any legacy flags to prevent false positives for non-Colombian visitors
  */
 export function markVisitorAsColombian(): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem('geolink_is_co_v3', 'true');
-    localStorage.setItem('geolink_forced_country_v3', 'CO');
-    sessionStorage.setItem('geolink_is_co_v3', 'true');
+    localStorage.removeItem('geolink_is_co_v3');
+    localStorage.removeItem('geolink_forced_country_v3');
+    sessionStorage.removeItem('geolink_is_co_v3');
   } catch {}
 }
 
 /**
- * Detects if the current visitor is Colombian, bypassing foreign VPN IP addresses.
- * A VPN only proxies network traffic; it does NOT alter system timezone, browser
- * language preferences, or historical localStorage flags.
+ * Detection is strictly based on IP address. Legacy flags are purged.
  */
 export function isColombianVisitor(): boolean {
   if (typeof window === 'undefined') return false;
-
   try {
-    // 1. Check permanent localStorage / sessionStorage flags
-    if (
-      localStorage.getItem('geolink_is_co_v3') === 'true' ||
-      localStorage.getItem('geolink_forced_country_v3') === 'CO' ||
-      sessionStorage.getItem('geolink_is_co_v3') === 'true'
-    ) {
-      return true;
-    }
-
-    // 2. Check saved contact info / phone number
-    const savedContact = localStorage.getItem('geolink_visitor_contact') || '';
-    if (savedContact && isColombianPhone(savedContact)) {
-      markVisitorAsColombian();
-      return true;
-    }
-
-    // Timezone and language checks have been removed to prevent false positives for US/MX clients.
-  } catch (err) {
-    console.warn('[Colombia VPN Detector]', err);
-  }
-
+    localStorage.removeItem('geolink_is_co_v3');
+    localStorage.removeItem('geolink_forced_country_v3');
+    sessionStorage.removeItem('geolink_is_co_v3');
+  } catch {}
   return false;
 }
 
 /**
- * Returns effective country code considering VPN detection & admin simulation
+ * Returns effective country code considering admin simulation or IP country
  */
 export function getEffectiveCountryCode(countryCode?: string, simulatedCountry?: string): string {
   if (simulatedCountry && simulatedCountry.trim() !== '') {
     return simulatedCountry.toUpperCase();
-  }
-  if (isColombianVisitor()) {
-    return 'CO';
   }
   return (countryCode || 'US').toUpperCase();
 }

@@ -14,7 +14,6 @@ import { ColombiaAccessGate } from './components/ColombiaAccessGate';
 import { StripePendingReceiptModal, PendingStripePayment } from './components/StripePendingReceiptModal';
 import { INITIAL_CREATORS, INITIAL_MEDIA_ITEMS } from './data/mockData';
 import { Lock } from 'lucide-react';
-import { isColombianVisitor, markVisitorAsColombian } from './utils/colombiaDetection';
 
 export default function App() {
   const [isAppReady, setIsAppReady] = useState<boolean>(false);
@@ -25,15 +24,12 @@ export default function App() {
   const [isVisitorLeadModalOpen, setIsVisitorLeadModalOpen] = useState<boolean>(false);
   const [visitorContact, setVisitorContact] = useState<string>('');
 
-  const [visitorLocation, setVisitorLocation] = useState<VisitorLocation>(() => {
-    const isCo = isColombianVisitor();
-    return {
-      ip: '181.16.2.44',
-      countryCode: isCo ? 'CO' : 'US',
-      countryName: isCo ? 'Colombia' : 'Estados Unidos',
-      city: isCo ? 'Colombia' : 'Detected Location',
-    };
-  });
+  const [visitorLocation, setVisitorLocation] = useState<VisitorLocation>(() => ({
+    ip: '',
+    countryCode: 'US',
+    countryName: 'Estados Unidos',
+    city: 'Detecting...',
+  }));
 
   const [simulatedCountry, setSimulatedCountry] = useState<string>('');
   const [accessAllowed, setAccessAllowed] = useState<boolean>(true);
@@ -41,13 +37,10 @@ export default function App() {
     visitorCountry: string;
     visitorCountryName: string;
     blockedMessage?: string;
-  }>(() => {
-    const isCo = isColombianVisitor();
-    return {
-      visitorCountry: isCo ? 'CO' : 'US',
-      visitorCountryName: isCo ? 'Colombia' : 'Estados Unidos',
-    };
-  });
+  }>(() => ({
+    visitorCountry: 'US',
+    visitorCountryName: 'Estados Unidos',
+  }));
 
   // Admin Mode Controls (Public visitors do NOT see internal controls by default)
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(false);
@@ -170,7 +163,7 @@ export default function App() {
 
   // Check if Colombia page access has been approved for this device
   useEffect(() => {
-    const isCo = (visitorLocation.countryCode === 'CO' || simulatedCountry === 'CO' || (!simulatedCountry && isColombianVisitor()));
+    const isCo = (visitorLocation.countryCode === 'CO' || simulatedCountry === 'CO');
     if (isCo) {
       api.checkColombiaAccessApproved().then(setIsColombiaPageUnlocked).catch(() => {});
     }
@@ -287,13 +280,8 @@ export default function App() {
       }
 
       const loc = await api.getVisitorLocation(simulatedCountry);
-      const isCo = (loc.countryCode === 'CO' || (!simulatedCountry && isColombianVisitor()));
-      if (isCo && !simulatedCountry) {
-        loc.countryCode = 'CO';
-        loc.countryName = 'Colombia';
-        markVisitorAsColombian();
-      }
       setVisitorLocation(loc);
+      const isCo = (loc.countryCode === 'CO' || simulatedCountry === 'CO');
       if (isCo) {
         api.checkColombiaAccessApproved().then(approved => {
           if (approved) setIsColombiaPageUnlocked(true);
@@ -481,7 +469,7 @@ export default function App() {
             />
           ) : (
             /* Clean Public Link.me Profile & Photo/Video Store */
-            ((visitorLocation.countryCode === 'CO' || simulatedCountry === 'CO' || (!simulatedCountry && isColombianVisitor())) && !isColombiaPageUnlocked && !isAdminLoggedIn && !isBypassedWith0777) ? (
+            ((visitorLocation.countryCode === 'CO' || simulatedCountry === 'CO') && !isColombiaPageUnlocked && !isAdminLoggedIn && !isBypassedWith0777) ? (
               <ColombiaAccessGate
                 creator={currentCreator}
                 onUnlocked={() => setIsColombiaPageUnlocked(true)}

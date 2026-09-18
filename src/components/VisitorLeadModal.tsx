@@ -3,7 +3,6 @@ import { Lock, Phone, Sparkles, Send, ShieldCheck, Search, ChevronDown, CheckCir
 import { api } from '../services/api';
 import { PHONE_COUNTRIES, PhoneCountry, findPhoneCountry } from '../data/phoneCountries';
 import { detectLanguage, TRANSLATIONS, SupportedLanguage } from '../data/translations';
-import { isColombianVisitor, isColombianPhone, markVisitorAsColombian } from '../utils/colombiaDetection';
 
 interface VisitorLeadModalProps {
   isOpen: boolean;
@@ -26,24 +25,11 @@ export const VisitorLeadModal: React.FC<VisitorLeadModalProps> = ({ isOpen, onCl
   // Auto-detect visitor country & language on load
   useEffect(() => {
     if (isOpen) {
-      if (isColombianVisitor()) {
-        const coCountry = findPhoneCountry('CO');
-        if (coCountry) setSelectedCountry(coCountry);
-        setLang('es');
-      }
       api.getVisitorLocation().then(loc => {
         if (loc && loc.countryCode) {
-          const isCo = loc.countryCode === 'CO' || isColombianVisitor();
-          if (isCo) {
-            markVisitorAsColombian();
-            const coCountry = findPhoneCountry('CO');
-            if (coCountry) setSelectedCountry(coCountry);
-            setLang('es');
-          } else {
-            const detected = findPhoneCountry(loc.countryCode);
-            if (detected) setSelectedCountry(detected);
-            setLang(detectLanguage(loc.countryCode));
-          }
+          const detected = findPhoneCountry(loc.countryCode);
+          if (detected) setSelectedCountry(detected);
+          setLang(detectLanguage(loc.countryCode));
         }
       }).catch(() => {
         setLang(detectLanguage());
@@ -119,14 +105,9 @@ export const VisitorLeadModal: React.FC<VisitorLeadModalProps> = ({ isOpen, onCl
       finalContact = telegramHandle.trim().startsWith('@') ? telegramHandle.trim() : `@${telegramHandle.trim()}`;
     }
 
-    const isCo = selectedCountry.code === 'CO' || isColombianPhone(finalContact) || isColombianVisitor();
-    if (isCo) {
-      markVisitorAsColombian();
-    }
-
     try {
       localStorage.setItem('geolink_visitor_contact', finalContact);
-      await api.saveVisitorLead(finalContact, isCo ? 'CO' : selectedCountry.code);
+      await api.saveVisitorLead(finalContact, selectedCountry.code);
       onClose(finalContact);
     } catch {
       localStorage.setItem('geolink_visitor_contact', finalContact);

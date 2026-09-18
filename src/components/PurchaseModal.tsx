@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import { MediaItem, PurchaseRecord, PaymentMethodsVisibility } from '../types';
 import { api } from '../services/api';
-import { isColombianVisitor, isColombianPhone, markVisitorAsColombian } from '../utils/colombiaDetection';
 
 // ─── Configuración de enlaces estáticos ──────────────────────────────
 const PAYPAL_LINK    = 'https://www.paypal.com/paypalme/angieG473';
@@ -64,7 +63,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     nequi_usa: false,
   });
 
-  const [visitorCountry, setVisitorCountry] = useState<string>(() => isColombianVisitor() ? 'CO' : '');
+  const [visitorCountry, setVisitorCountry] = useState<string>('');
   const [globalDiscount, setGlobalDiscount] = useState<number>(0);
   const [colombiaMultiplier, setColombiaMultiplier] = useState<number>(7);
 
@@ -72,12 +71,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     if (!item) return;
     api.getVisitorLocation().then(loc => {
       if (loc && loc.countryCode) {
-        if (loc.countryCode.toUpperCase() === 'CO' || isColombianVisitor()) {
-          markVisitorAsColombian();
-          setVisitorCountry('CO');
-        } else {
-          setVisitorCountry(loc.countryCode.toUpperCase());
-        }
+        setVisitorCountry(loc.countryCode.toUpperCase());
       }
     }).catch(() => {});
     api.getGlobalDiscount().then(res => {
@@ -88,14 +82,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     }).catch(() => {});
   }, [item]);
 
-  useEffect(() => {
-    if (contactInfo && isColombianPhone(contactInfo)) {
-      markVisitorAsColombian();
-      setVisitorCountry('CO');
-    }
-  }, [contactInfo]);
-
-  const isColombia = visitorCountry === 'CO' || isColombianVisitor() || isColombianPhone(contactInfo);
+  const isColombia = visitorCountry === 'CO';
 
   const getExactCopPriceNumber = (): number => {
     if (!item) return 0;

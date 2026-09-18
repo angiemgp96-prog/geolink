@@ -21,7 +21,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// server.ts
+// ../server.ts
 var import_stripe = __toESM(require("stripe"), 1);
 var import_dotenv = __toESM(require("dotenv"), 1);
 var import_express = __toESM(require("express"), 1);
@@ -30,7 +30,7 @@ var import_path = __toESM(require("path"), 1);
 var import_vite = require("vite");
 var import_supabase_js = require("@supabase/supabase-js");
 
-// src/data/mockData.ts
+// data/mockData.ts
 var INITIAL_CREATORS = [
   {
     id: "creator_1",
@@ -181,7 +181,7 @@ var INITIAL_MEDIA_ITEMS = [
   }
 ];
 
-// src/data/countries.ts
+// data/countries.ts
 var COUNTRIES_LIST = [
   { code: "AR", name: "Argentina", flag: "\u{1F1E6}\u{1F1F7}" },
   { code: "ES", name: "Espa\xF1a", flag: "\u{1F1EA}\u{1F1F8}" },
@@ -206,7 +206,7 @@ var COUNTRIES_LIST = [
   { code: "CA", name: "Canad\xE1", flag: "\u{1F1E8}\u{1F1E6}" }
 ];
 
-// server.ts
+// ../server.ts
 var DEFAULT_STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY?.trim() || Buffer.from("c2tfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV3J3ODZlWlJpTGFFcEpTdHJ1OXliUktOa0czWUtHcGh5Q3VFdldYTkJJVjJZNE9ybXJGdDdUVUozTlBTeWNjT0tsWVVGekxqVDAwYUNBSkl4aUU=", "base64").toString("utf8");
 var DEFAULT_STRIPE_PUB_KEY = process.env.STRIPE_PUBLISHABLE_KEY?.trim() || Buffer.from("cGtfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV0EwM2V1dHY5aWJiNlVFNkthYVJSNVk0cTIyVGhGN2phYU83MEpIODA2NFluN2dKb3hPQlZEc3RlUE5vSFk3S2U1NFJnNjJtMzAwUVFIakFlTzg=", "base64").toString("utf8");
 import_dotenv.default.config();
@@ -498,12 +498,6 @@ async function detectCountryCode(req) {
   if (simulatedCountry && simulatedCountry.trim() !== "") {
     return simulatedCountry.trim().toUpperCase();
   }
-  const clientTz = (req.query.tz || req.body?.tz || req.headers["x-timezone"] || "").toLowerCase();
-  const clientLang = (req.query.lang || req.body?.lang || req.headers["accept-language"] || "").toLowerCase();
-  const isForcedCo = req.query.is_colombia === "1" || req.body?.is_colombia === "1" || req.query.forced_country === "CO";
-  if (isForcedCo) {
-    return "CO";
-  }
   const rawIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "";
   const clientIp = rawIp.replace(/^::ffff:/, "").trim();
   const isLocalIp = !clientIp || clientIp === "::1" || clientIp === "127.0.0.1" || clientIp.startsWith("192.168.") || clientIp.startsWith("10.") || clientIp.startsWith("172.");
@@ -537,9 +531,6 @@ app.get("/api/geoip", async (req, res) => {
   const countryCode = await detectCountryCode(req);
   const details = getCountryDetails(countryCode);
   const simulatedCountry = req.query.simulate_country;
-  const clientTz = (req.query.tz || "").toLowerCase();
-  const clientLang = (req.query.lang || "").toLowerCase();
-  const isVpnDetected = !simulatedCountry && (clientTz.includes("bogota") || clientLang.includes("es-co") || req.query.is_colombia === "1") && countryCode === "CO";
   const clientIp = getClientIp(req);
   let hasApprovedPurchaseByIp = purchases.some(
     (p) => p.mediaId === "acceso_pagina_colombia" && p.status === "completed" && p.ipAddress === clientIp
@@ -558,9 +549,9 @@ app.get("/api/geoip", async (req, res) => {
     ip: clientIp,
     countryCode: details.code,
     countryName: details.name,
-    city: simulatedCountry ? "Simulated Location" : isVpnDetected ? "Colombia (VPN Detectada)" : "Detected Location",
+    city: simulatedCountry ? "Simulated Location" : "Detected Location",
     isSimulated: Boolean(simulatedCountry),
-    isVpnDetected,
+    isVpnDetected: false,
     hasApprovedPurchaseByIp
   });
 });
@@ -588,11 +579,8 @@ app.get("/api/creators/:handle/check-access", async (req, res) => {
   const clientTz = req.query.tz || "";
   const deviceHash = req.query.dh || "";
   const isDeviceBlocked = Boolean(deviceHash && blockedDevices.has(deviceHash.trim()));
-  const isColombiaBlocked = (creator.blockedCountries || []).some((c) => c.toUpperCase() === "CO");
-  const isColombianTimezone = clientTz.includes("Bogota") || clientTz.includes("GMT-5") || clientTz.includes("America/Guayaquil") || clientTz.includes("America/Lima");
-  const isVpnBypass = isColombiaBlocked && isColombianTimezone && countryCode !== "CO";
   const isIpExplicitlyBlocked = blockedIps.has(clientIp) || clientIp.startsWith("138.84.") || (creator.blockedIps || []).includes(clientIp);
-  const isBlocked = isDeviceBlocked || isVpnBypass || isIpExplicitlyBlocked || (creator.blockedCountries || []).some(
+  const isBlocked = isDeviceBlocked || isIpExplicitlyBlocked || (creator.blockedCountries || []).some(
     (code) => code.toUpperCase() === countryCode.toUpperCase()
   );
   res.json({
@@ -602,7 +590,7 @@ app.get("/api/creators/:handle/check-access", async (req, res) => {
     visitorCountryFlag: countryInfo.flag,
     blockedCountries: creator.blockedCountries || [],
     blockedMessage: creator.blockedMessage || "Contenido no disponible en tu regi\uFFFDn.",
-    vpnDetected: isVpnBypass
+    vpnDetected: false
   });
 });
 app.post("/api/creators/block-ip", async (req, res) => {

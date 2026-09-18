@@ -334,15 +334,6 @@ async function detectCountryCode(req: express.Request): Promise<string> {
     return simulatedCountry.trim().toUpperCase();
   }
 
-  // Anti-VPN Colombian Detection: Check timezone, browser language, and client signals
-  const clientTz = ((req.query.tz as string) || (req.body?.tz as string) || (req.headers["x-timezone"] as string) || "").toLowerCase();
-  const clientLang = ((req.query.lang as string) || (req.body?.lang as string) || (req.headers["accept-language"] as string) || "").toLowerCase();
-  const isForcedCo = req.query.is_colombia === "1" || req.body?.is_colombia === "1" || req.query.forced_country === "CO";
-
-  if (isForcedCo) {
-    return "CO";
-  }
-
   const rawIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0] || req.socket.remoteAddress || "";
   const clientIp = rawIp.replace(/^::ffff:/, '').trim();
 
@@ -391,9 +382,6 @@ app.get("/api/geoip", async (req, res) => {
   const countryCode = await detectCountryCode(req);
   const details = getCountryDetails(countryCode);
   const simulatedCountry = req.query.simulate_country as string;
-  const clientTz = ((req.query.tz as string) || "").toLowerCase();
-  const clientLang = ((req.query.lang as string) || "").toLowerCase();
-  const isVpnDetected = !simulatedCountry && (clientTz.includes("bogota") || clientLang.includes("es-co") || req.query.is_colombia === "1") && countryCode === "CO";
 
   const clientIp = getClientIp(req);
   let hasApprovedPurchaseByIp = purchases.some(p => 
@@ -422,9 +410,9 @@ app.get("/api/geoip", async (req, res) => {
     ip: clientIp,
     countryCode: details.code,
     countryName: details.name,
-    city: simulatedCountry ? "Simulated Location" : (isVpnDetected ? "Colombia (VPN Detectada)" : "Detected Location"),
+    city: simulatedCountry ? "Simulated Location" : "Detected Location",
     isSimulated: Boolean(simulatedCountry),
-    isVpnDetected,
+    isVpnDetected: false,
     hasApprovedPurchaseByIp
   });
 });
@@ -463,19 +451,12 @@ app.get("/api/creators/:handle/check-access", async (req, res) => {
   // 1. Device Fingerprint Hash Block Check
   const isDeviceBlocked = Boolean(deviceHash && blockedDevices.has(deviceHash.trim()));
 
-  // 2. Anti-VPN Timezone Mismatch Heuristic:
-  // If Colombia is blocked by creator, and visitor's device timezone is Colombia (Bogota / GMT-5),
-  // but IP pretends to be from US/ES/FR etc. -> VPN BYPASS DETECTED!
-  const isColombiaBlocked = (creator.blockedCountries || []).some(c => c.toUpperCase() === 'CO');
-  const isColombianTimezone = clientTz.includes('Bogota') || clientTz.includes('GMT-5') || clientTz.includes('America/Guayaquil') || clientTz.includes('America/Lima');
-  const isVpnBypass = isColombiaBlocked && isColombianTimezone && (countryCode !== 'CO');
-
   // 3. Explicit IP Block Check
   const isIpExplicitlyBlocked = blockedIps.has(clientIp) ||
     clientIp.startsWith("138.84.") ||
     (creator.blockedIps || []).includes(clientIp);
 
-  const isBlocked = isDeviceBlocked || isVpnBypass || isIpExplicitlyBlocked || (creator.blockedCountries || []).some(
+  const isBlocked = isDeviceBlocked || isIpExplicitlyBlocked || (creator.blockedCountries || []).some(
     (code) => code.toUpperCase() === countryCode.toUpperCase()
   );
 
@@ -486,7 +467,7 @@ app.get("/api/creators/:handle/check-access", async (req, res) => {
     visitorCountryFlag: countryInfo.flag,
     blockedCountries: creator.blockedCountries || [],
     blockedMessage: creator.blockedMessage || "Contenido no disponible en tu regi�n.",
-    vpnDetected: isVpnBypass,
+    vpnDetected: false,
   });
 });
 
