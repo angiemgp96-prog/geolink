@@ -184,13 +184,11 @@ export default function App() {
     }
   }, [visitorLocation.countryCode, simulatedCountry]);
 
-  // Reactively trigger lead modal or perform silent IP capture
+  // Reactively trigger lead modal if enabled
   useEffect(() => {
     if (accessAllowed && !isAdminLoggedIn) {
       if (!requireLeadCapture) {
-        // OFF MODE: Silent IP & Location logging in Supabase
         setIsVisitorLeadModalOpen(false);
-        api.saveVisitorLead('Captura Silenciosa por IP', visitorLocation.countryCode).catch(() => {});
         return;
       }
 
@@ -205,7 +203,7 @@ export default function App() {
         }
       } catch {}
     }
-  }, [accessAllowed, isAdminLoggedIn, requireLeadCapture, visitorLocation.countryCode]);
+  }, [accessAllowed, isAdminLoggedIn, requireLeadCapture]);
 
   const [unlockedMediaIds, setUnlockedMediaIds] = useState<string[]>([]);
   const [unlockedTokensMap, setUnlockedTokensMap] = useState<Record<string, string>>({});

@@ -587,68 +587,9 @@ export const api = {
     return await res.json();
   },
 
-    async saveVisitorLead(contactInfo: string, countryCode?: string) {
-    const trimmedContact = (contactInfo || '').trim();
-    if (!trimmedContact) return { success: false };
-
-    let effectiveCountry = countryCode || 'US';
-
-    let deviceHash = '';
-    try {
-      deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
-    } catch {}
-
-    if (isSupabaseConfigured()) {
-      try {
-        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        await supabase.from('visitor_leads').delete().lt('created_at', oneDayAgo);
-
-        // Deduplicate ONLY double-clicks/double-calls within the last 10 seconds for the SAME contact and device
-        const tenSecondsAgo = new Date(Date.now() - 10 * 1000).toISOString();
-        const { data: recentSameClick } = await supabase
-          .from('visitor_leads')
-          .select('id, ip_address')
-          .eq('contact_info', trimmedContact)
-          .gte('created_at', tenSecondsAgo)
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        if (recentSameClick && recentSameClick.length > 0) {
-          // Double-call within 10s: Update IP/country of existing row instead of inserting duplicate
-          await supabase
-            .from('visitor_leads')
-            .update({
-              country_code: effectiveCountry || undefined,
-              device_hash: deviceHash || undefined
-            })
-            .eq('id', recentSameClick[0].id);
-          return { success: true, updated: true };
-        }
-
-        // Insert new clean lead entry for every new visit/entry
-        const leadObj = {
-          id: `lead_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-          contact_info: trimmedContact,
-          country_code: effectiveCountry || '',
-          device_hash: deviceHash,
-          created_at: new Date().toISOString()
-        };
-        await supabase.from('visitor_leads').upsert(leadObj);
-      } catch (err) {
-        console.warn('Supabase lead save warning:', err);
-      }
-    }
-
-    try {
-      const res = await fetch('/api/visitor-leads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contactInfo: trimmedContact, countryCode: effectiveCountry, deviceHash })
-      });
-      return await res.json();
-    } catch {
-      return { success: true };
-    }
+  async saveVisitorLead(_contactInfo: string, _countryCode?: string) {
+    // Almacenamiento de prospectos/leads suspendido temporalmente para evitar saturación de datos y peticiones
+    return { success: true };
   },
 
     async getVisitorLeads(): Promise<VisitorLead[]> {

@@ -1597,56 +1597,7 @@ app.get("/api/purchases/unlocked-items", async (req, res) => {
 });
 var visitorLeads = [];
 app.post("/api/visitor-leads", async (req, res) => {
-  try {
-    const { contactInfo, countryCode, deviceHash } = req.body;
-    const finalContact = contactInfo && contactInfo.trim().length >= 3 ? contactInfo.trim() : "Captura Silenciosa por IP";
-    const clientIp = getClientIp(req);
-    const detectIpCountry = countryCode || await detectCountryCode(req);
-    const cleanPhone = (finalContact || "").replace(/[^0-9+]/g, "");
-    const isColombiaPhone = cleanPhone.startsWith("+57") || cleanPhone.startsWith("57") || cleanPhone.length >= 10 && cleanPhone.startsWith("3");
-    if (isColombiaPhone && detectIpCountry !== "CO") {
-      console.warn(`[Anti-VPN Phone Evasion] Phone ${cleanPhone} (CO) vs IP ${detectIpCountry} (${clientIp}). Auto-blocking.`);
-      blockedIps.add(clientIp);
-      if (deviceHash) blockedDevices.add(deviceHash.trim());
-      try {
-        await supabase.from("blocked_ips").upsert({
-          id: `block_${clientIp.replace(/[^a-z0-9]/gi, "_")}`,
-          ip_address: clientIp,
-          creator_handle: "angelina69",
-          reason: `Bloqueo automatico: Inconsistencia VPN (Telefono +57 Colombia vs IP ${detectIpCountry})`,
-          created_at: (/* @__PURE__ */ new Date()).toISOString()
-        });
-        if (deviceHash) {
-          await supabase.from("blocked_devices").upsert({
-            id: `dev_${deviceHash.replace(/[^a-z0-9]/gi, "_")}`,
-            device_hash: deviceHash.trim(),
-            creator_handle: "angelina69",
-            reason: `Bloqueo automatico: Inconsistencia VPN (Telefono +57 Colombia vs IP ${detectIpCountry})`,
-            created_at: (/* @__PURE__ */ new Date()).toISOString()
-          });
-        }
-      } catch (bErr) {
-        console.warn("[Auto Block Lead VPN Error]", bErr);
-      }
-    }
-    const leadObj = {
-      id: `lead_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      contact_info: finalContact,
-      ip_address: clientIp,
-      country_code: detectIpCountry || "",
-      device_hash: deviceHash || "",
-      created_at: (/* @__PURE__ */ new Date()).toISOString()
-    };
-    visitorLeads.push(leadObj);
-    try {
-      const { error } = await supabase.from("visitor_leads").upsert(leadObj);
-      if (error) console.warn("[Supabase Lead Sync Error]", error);
-    } catch {
-    }
-    res.json({ success: true, lead: leadObj });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  return res.json({ success: true });
 });
 app.get("/api/visitor-leads", async (req, res) => {
   try {
