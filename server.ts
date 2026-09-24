@@ -45,22 +45,22 @@ let paymentMethodsVisibility = {
 // Cuando desees reactivar la base de datos en el futuro, solo debes comentar este bloque.
 // =========================================================================
 const EXTERNAL_PREVIEW_MAP: Record<string, string> = {
-  'media_1786139686398': 'https://i.postimg.cc/cL8vzNTf/Captura-de-pantalla-2026-08-07-165034.png',
+  'media_1786139686398': 'https://i.postimg.cc/vxrJbf0r/Captura-de-pantalla-2026-08-07-165400.png',
   'media_1786193399803': 'https://i.postimg.cc/PqdDQ20h/Captura-de-pantalla-2026-08-08-074919.png',
   'media_1786193279456': 'https://i.postimg.cc/cH4Q0XcX/Captura-de-pantalla-2026-08-08-074735.png',
   'media_1786139499820': 'https://i.postimg.cc/cL8vzNTf/Captura-de-pantalla-2026-08-07-165034.png',
-  'media_1787968790580': 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
-  'media_1787798435018': 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=80',
-  'media_1788360145934': 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80',
+  'media_1787968790580': 'https://i.postimg.cc/hPcHw643/Captura-de-pantalla-2026-08-28-205656.png',
+  'media_1787798435018': 'https://i.postimg.cc/cHfbkMVb/Captura-de-pantalla-2026-08-27-122552.png',
+  'media_1788360145934': 'https://i.postimg.cc/hfMYsS6p/Captura-de-pantalla-2026-09-02-094437.png',
   'media_1788007984824': 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80',
-  'media_1788638697559': 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
+  'media_1788638697559': 'https://i.postimg.cc/QVDsndYZ/Captura-de-pantalla-2026-09-05-150206.png',
   'media_1789321394895': 'https://i.postimg.cc/1fyFDyLN/0912-(4)-Cover.jpg',
   'media_1786470365967': 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80',
-  'media_1789319543796': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
-  'media_1788094364764': 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=800&q=80',
-  'media_1786470016517': 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80',
-  'media_1788438475594': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
-  'media_1789948815305': 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80',
+  'media_1789319543796': 'https://i.postimg.cc/xJrp8qJw/0912-(4)(1)-Cover.jpg',
+  'media_1788094364764': 'https://i.postimg.cc/hJxWpkV5/Captura-de-pantalla-2026-08-30-075041.png',
+  'media_1786470016517': 'https://i.postimg.cc/FzBsW-vt6/Captura-de-pantalla-2026-08-11-123726.png',
+  'media_1788438475594': 'https://i.postimg.cc/JzPmPmbk/Captura-de-pantalla-2026-09-13-201710.png',
+  'media_1789948815305': 'https://i.postimg.cc/d7hgDzWd/Captura-de-pantalla-2026-09-23-231444.png',
   'acceso_full_cat_actual': 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg'
 };
 const FALLBACK_AVATAR = 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg';
