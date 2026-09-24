@@ -198,7 +198,7 @@ export const api = {
                 avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
                 banner: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80',
                 badge: 'VIP CREATOR',
-                blockedCountries: [],
+                blockedCountries: ['VE', 'BR', 'MA', 'SA', 'AE', 'QA', 'BH', 'KW', 'OM', 'EG', 'IQ', 'IR', 'JO', 'LB'],
                 blockedMessage: '',
                 whatsappNumber: '',
                 links: [],

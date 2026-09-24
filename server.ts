@@ -119,7 +119,7 @@ function fromSupabaseCreator(row: any): CreatorProfile {
     banner: (row.banner && !row.banner.includes('supabase.co')) ? row.banner : (initial?.banner || FALLBACK_BANNER),
     themeColor: row.theme_color || initial?.themeColor || 'from-purple-600 via-pink-600 to-amber-500',
     badge: row.badge || initial?.badge || 'CREADOR OFICIAL',
-    blockedCountries: row.blocked_countries || initial?.blockedCountries || ['CO'],
+    blockedCountries: (row.blocked_countries && Array.isArray(row.blocked_countries) && row.blocked_countries.length > 0) ? row.blocked_countries : (initial?.blockedCountries || ['VE', 'BR', 'MA', 'SA', 'AE', 'QA', 'BH', 'KW', 'OM', 'EG', 'IQ', 'IR', 'JO', 'LB']),
     blockedMessage: row.blocked_message || initial?.blockedMessage || 'Este perfil no est� disponible en tu regi�n.',
     whatsappNumber: row.whatsapp_number || initial?.whatsappNumber || '',
     storeMode: row.store_mode || row.data?.storeMode || initial?.storeMode || 'subscription',

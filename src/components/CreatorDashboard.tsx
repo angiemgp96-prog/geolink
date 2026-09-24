@@ -241,7 +241,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
     if (creator) {
       setProfile({
         ...creator,
-        blockedCountries: Array.isArray(creator.blockedCountries) ? creator.blockedCountries : ['CO'],
+        blockedCountries: (Array.isArray(creator.blockedCountries) && creator.blockedCountries.length > 0) ? creator.blockedCountries : ['VE', 'BR', 'MA', 'SA', 'AE', 'QA', 'BH', 'KW', 'OM', 'EG', 'IQ', 'IR', 'JO', 'LB'],
         links: Array.isArray(creator.links) ? creator.links : [],
         paymentSettings: creator.paymentSettings || {
           mercadoPagoAccessToken: '',

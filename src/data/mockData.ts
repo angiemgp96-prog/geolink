@@ -11,7 +11,7 @@ export const INITIAL_CREATORS: CreatorProfile[] = [
     banner: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
     themeColor: 'from-pink-600 via-purple-600 to-indigo-700',
     badge: 'TOP 0.1% CREATOR',
-    blockedCountries: ['ES'], // Blocks Spain by default for demonstration
+    blockedCountries: ['VE', 'BR', 'MA', 'SA', 'AE', 'QA', 'BH', 'KW', 'OM', 'EG', 'IQ', 'IR', 'JO', 'LB'], // Bloquear Venezuela, Brasil y todo Medio Oriente por defecto
     blockedMessage: '⛔ Contenido no disponible en tu ubicación geográfica por privacidad de la creadora.',
     whatsappNumber: '+5491155443322',
     createdAt: new Date().toISOString(),
@@ -43,7 +43,7 @@ export const INITIAL_CREATORS: CreatorProfile[] = [
     banner: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80',
     themeColor: 'from-amber-500 via-rose-600 to-red-700',
     badge: 'FITNESS VIP',
-    blockedCountries: ['AR'], // Blocks Argentina by default
+    blockedCountries: ['VE', 'BR', 'MA', 'SA', 'AE', 'QA', 'BH', 'KW', 'OM', 'EG', 'IQ', 'IR', 'JO', 'LB'],
     blockedMessage: '⚠️ Este perfil no está disponible en Argentina según las preferencias del usuario.',
     whatsappNumber: '+573009988776',
     createdAt: new Date().toISOString(),

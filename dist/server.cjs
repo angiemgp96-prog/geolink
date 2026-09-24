@@ -42,8 +42,8 @@ var INITIAL_CREATORS = [
     banner: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
     themeColor: "from-pink-600 via-purple-600 to-indigo-700",
     badge: "TOP 0.1% CREATOR",
-    blockedCountries: ["ES"],
-    // Blocks Spain by default for demonstration
+    blockedCountries: ["VE", "BR", "MA", "SA", "AE", "QA", "BH", "KW", "OM", "EG", "IQ", "IR", "JO", "LB"],
+    // Bloquear Venezuela, Brasil y todo Medio Oriente por defecto
     blockedMessage: "\u26D4 Contenido no disponible en tu ubicaci\xF3n geogr\xE1fica por privacidad de la creadora.",
     whatsappNumber: "+5491155443322",
     createdAt: (/* @__PURE__ */ new Date()).toISOString(),
@@ -75,8 +75,7 @@ var INITIAL_CREATORS = [
     banner: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80",
     themeColor: "from-amber-500 via-rose-600 to-red-700",
     badge: "FITNESS VIP",
-    blockedCountries: ["AR"],
-    // Blocks Argentina by default
+    blockedCountries: ["VE", "BR", "MA", "SA", "AE", "QA", "BH", "KW", "OM", "EG", "IQ", "IR", "JO", "LB"],
     blockedMessage: "\u26A0\uFE0F Este perfil no est\xE1 disponible en Argentina seg\xFAn las preferencias del usuario.",
     whatsappNumber: "+573009988776",
     createdAt: (/* @__PURE__ */ new Date()).toISOString(),
@@ -442,7 +441,7 @@ function fromSupabaseCreator(row) {
     banner: row.banner && !row.banner.includes("supabase.co") ? row.banner : initial?.banner || FALLBACK_BANNER,
     themeColor: row.theme_color || initial?.themeColor || "from-purple-600 via-pink-600 to-amber-500",
     badge: row.badge || initial?.badge || "CREADOR OFICIAL",
-    blockedCountries: row.blocked_countries || initial?.blockedCountries || ["CO"],
+    blockedCountries: row.blocked_countries && Array.isArray(row.blocked_countries) && row.blocked_countries.length > 0 ? row.blocked_countries : initial?.blockedCountries || ["VE", "BR", "MA", "SA", "AE", "QA", "BH", "KW", "OM", "EG", "IQ", "IR", "JO", "LB"],
     blockedMessage: row.blocked_message || initial?.blockedMessage || "Este perfil no est\uFFFD disponible en tu regi\uFFFDn.",
     whatsappNumber: row.whatsapp_number || initial?.whatsappNumber || "",
     storeMode: row.store_mode || row.data?.storeMode || initial?.storeMode || "subscription",
