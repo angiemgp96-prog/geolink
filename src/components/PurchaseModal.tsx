@@ -65,7 +65,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
 
   const [visitorCountry, setVisitorCountry] = useState<string>('');
   const [globalDiscount, setGlobalDiscount] = useState<number>(0);
-  const [colombiaMultiplier, setColombiaMultiplier] = useState<number>(7);
+  const [colombiaMultiplier, setColombiaMultiplier] = useState<number>(2);
 
   useEffect(() => {
     if (!item) return;

@@ -190,14 +190,14 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   };
 
   const [globalDiscountInput, setGlobalDiscountInput] = useState<string>('');
-  const [colombiaMultiplierInput, setColombiaMultiplierInput] = useState<string>('7');
+  const [colombiaMultiplierInput, setColombiaMultiplierInput] = useState<string>('2');
   const [savedDiscountActive, setSavedDiscountActive] = useState<number>(0);
 
   useEffect(() => {
     api.getGlobalDiscount().then((res) => {
       setSavedDiscountActive(res.discountPercentage);
       setGlobalDiscountInput(res.discountPercentage > 0 ? String(res.discountPercentage) : '');
-      setColombiaMultiplierInput(res.colombiaMultiplier !== undefined && res.colombiaMultiplier !== null ? String(res.colombiaMultiplier) : '7');
+      setColombiaMultiplierInput(res.colombiaMultiplier !== undefined && res.colombiaMultiplier !== null ? String(res.colombiaMultiplier) : '2');
     });
   }, []);
 
@@ -1210,7 +1210,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                     <button
                       onClick={() => {
                         setGlobalDiscountInput('');
-                        api.saveGlobalDiscount(0, Number(colombiaMultiplierInput) || 7).then(() => setSavedDiscountActive(0));
+                        api.saveGlobalDiscount(0, Number(colombiaMultiplierInput) || 2).then(() => setSavedDiscountActive(0));
                       }}
                       className="px-3.5 py-2.5 bg-rose-900/60 hover:bg-rose-800 border border-rose-500/40 text-rose-200 font-bold text-xs rounded-xl transition-all cursor-pointer shrink-0"
                     >

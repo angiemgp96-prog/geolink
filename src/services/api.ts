@@ -1324,7 +1324,7 @@ export const api = {
           const row = data[0];
           return {
             discountPercentage: row.is_active ? (Number(row.discount_percentage) || 0) : 0,
-            colombiaMultiplier: row.colombia_multiplier !== null && row.colombia_multiplier !== undefined ? Number(row.colombia_multiplier) : 7
+            colombiaMultiplier: row.colombia_multiplier !== null && row.colombia_multiplier !== undefined ? Number(row.colombia_multiplier) : 2
           };
         }
       } catch (err) {
@@ -1338,15 +1338,15 @@ export const api = {
         const result = await res.json();
         return {
           discountPercentage: Number(result.discountPercentage) || 0,
-          colombiaMultiplier: result.colombiaMultiplier !== undefined ? Number(result.colombiaMultiplier) : 7
+          colombiaMultiplier: result.colombiaMultiplier !== undefined ? Number(result.colombiaMultiplier) : 2
         };
       }
     } catch {}
 
-    return { discountPercentage: 0, colombiaMultiplier: 7 };
+    return { discountPercentage: 0, colombiaMultiplier: 2 };
   },
 
-  async saveGlobalDiscount(percentage: number | null, multiplier: number | null = 7, handle: string = 'angelina69'): Promise<boolean> {
+  async saveGlobalDiscount(percentage: number | null, multiplier: number | null = 2, handle: string = 'angelina69'): Promise<boolean> {
     const cleanPercentage = percentage && Number(percentage) > 0 ? Number(percentage) : 0;
     const cleanMultiplier = multiplier !== null && multiplier !== undefined && Number(multiplier) > 0 ? Number(multiplier) : null;
 

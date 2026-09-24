@@ -30,7 +30,7 @@ let creators: CreatorProfile[] = [...INITIAL_CREATORS];
 let mediaItems: MediaItem[] = [...INITIAL_MEDIA_ITEMS];
 let purchases: PurchaseRecord[] = [];
 let globalDiscountPercentage = 0;
-let colombiaMultiplier = 7;
+let colombiaMultiplier = 2;
 let stripePayments: any[] = [];
 
 let paymentMethodsVisibility = {
@@ -92,10 +92,8 @@ const EXTERNAL_PREVIEW_MAP: Record<string, string> = {
   'media_1787968790580': 'https://i.postimg.cc/hPcHw643/Captura-de-pantalla-2026-08-28-205656.png',
   'media_1787798435018': 'https://i.postimg.cc/cHfbkMVb/Captura-de-pantalla-2026-08-27-122552.png',
   'media_1788360145934': 'https://i.postimg.cc/hfMYsS6p/Captura-de-pantalla-2026-09-02-094437.png',
-  'media_1788007984824': 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80',
   'media_1788638697559': 'https://i.postimg.cc/QVDsndYZ/Captura-de-pantalla-2026-09-05-150206.png',
   'media_1789321394895': 'https://i.postimg.cc/1fyFDyLN/0912-(4)-Cover.jpg',
-  'media_1786470365967': 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80',
   'media_1789319543796': 'https://i.postimg.cc/xJrp8qJw/0912-(4)(1)-Cover.jpg',
   'media_1788094364764': 'https://i.postimg.cc/hJxWpkV5/Captura-de-pantalla-2026-08-30-075041.png',
   'media_1786470016517': 'https://i.postimg.cc/FzBsW-vt6/Captura-de-pantalla-2026-08-11-123726.png',
@@ -610,7 +608,7 @@ app.post("/api/creators/:handle/discount", async (req, res) => {
   const { discountPercentage, colombiaMultiplier: reqMult } = req.body;
   const percentage = Number(discountPercentage) || 0;
   globalDiscountPercentage = percentage > 0 ? percentage : 0;
-  colombiaMultiplier = reqMult !== null && reqMult !== undefined && Number(reqMult) > 0 ? Number(reqMult) : 7;
+  colombiaMultiplier = reqMult !== null && reqMult !== undefined && Number(reqMult) > 0 ? Number(reqMult) : 2;
 
   try {
     await supabase.from("global_discounts").upsert({

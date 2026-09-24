@@ -193,22 +193,6 @@ export const INITIAL_MEDIA_ITEMS: MediaItem[] = [
     createdAt: '2026-09-02T00:00:00.000Z'
   },
   {
-    id: 'media_1788007984824',
-    creatorId: 'creator_1',
-    creatorHandle: 'angelina69',
-    title: 'Masturbanción 2',
-    description: '',
-    type: 'video',
-    price: 10,
-    currency: 'USD',
-    previewUrl: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80',
-    downloadUrl: 'https://t.me/+Rz298tnSgvo4ZTgx',
-    purchasesCount: 0,
-    isFeatured: false,
-    isExtraPremium: false,
-    createdAt: '2026-08-29T00:00:00.000Z'
-  },
-  {
     id: 'media_1788638697559',
     creatorId: 'creator_1',
     creatorHandle: 'angelina69',
@@ -239,22 +223,6 @@ export const INITIAL_MEDIA_ITEMS: MediaItem[] = [
     isFeatured: false,
     isExtraPremium: false,
     createdAt: '2026-09-12T00:00:00.000Z'
-  },
-  {
-    id: 'media_1786470365967',
-    creatorId: 'creator_1',
-    creatorHandle: 'angelina69',
-    title: 'Te gustan mis pies?',
-    description: '',
-    type: 'video',
-    price: 5,
-    currency: 'USD',
-    previewUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80',
-    downloadUrl: 'https://t.me/+jq-i_pPsqXRmZDNh',
-    purchasesCount: 0,
-    isFeatured: false,
-    isExtraPremium: false,
-    createdAt: '2026-08-11T00:00:00.000Z'
   },
   {
     id: 'media_1789319543796',
