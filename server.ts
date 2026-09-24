@@ -40,6 +40,46 @@ let paymentMethodsVisibility = {
   nequi_usa: true,
 };
 
+let requireLeadCapture = false; // Desactivado por defecto para no bloquear visitantes
+
+interface ColombiaAccessRecord {
+  id: string;
+  contactInfo: string;
+  customCode: string;
+  ipAddress?: string | null;
+  deviceHash?: string | null;
+  paymentMethod: string;
+  status: 'pending' | 'approved';
+  createdAt: string;
+  approvedAt?: string | null;
+}
+
+const COLOMBIA_ACCESS_FILE = path.resolve(__dirname, 'colombia_access_store.json');
+
+function loadColombiaAccess(): ColombiaAccessRecord[] {
+  try {
+    const fs = require('fs');
+    if (fs.existsSync(COLOMBIA_ACCESS_FILE)) {
+      const raw = fs.readFileSync(COLOMBIA_ACCESS_FILE, 'utf8');
+      return JSON.parse(raw);
+    }
+  } catch (err) {
+    console.warn('[Storage] Failed to read colombia_access_store.json:', err);
+  }
+  return [];
+}
+
+function saveColombiaAccess(records: ColombiaAccessRecord[]) {
+  try {
+    const fs = require('fs');
+    fs.writeFileSync(COLOMBIA_ACCESS_FILE, JSON.stringify(records, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('[Storage] Failed to write colombia_access_store.json:', err);
+  }
+}
+
+let colombiaAccessRequests: ColombiaAccessRecord[] = loadColombiaAccess();
+
 // =========================================================================
 // ENLACES EXTERNOS FIJOS PARA IMÁGENES (Sin depender de Supabase Storage)
 // Cuando desees reactivar la base de datos en el futuro, solo debes comentar este bloque.
@@ -417,18 +457,22 @@ app.get("/api/geoip", async (req, res) => {
   );
 
   if (!hasApprovedPurchaseByIp && clientIp) {
-    try {
-      const { data } = await supabase
-        .from('colombia_page_access')
-        .select('id')
-        .eq('ip_address', clientIp)
-        .eq('status', 'approved')
-        .limit(1);
-      if (data && data.length > 0) {
-        hasApprovedPurchaseByIp = true;
+    if (colombiaAccessRequests.some(r => r.status === 'approved' && r.ipAddress === clientIp)) {
+      hasApprovedPurchaseByIp = true;
+    } else {
+      try {
+        const { data } = await supabase
+          .from('colombia_page_access')
+          .select('id')
+          .eq('ip_address', clientIp)
+          .eq('status', 'approved')
+          .limit(1);
+        if (data && data.length > 0) {
+          hasApprovedPurchaseByIp = true;
+        }
+      } catch (e) {
+        console.warn("Supabase IP Check error:", e);
       }
-    } catch (e) {
-      console.warn("Supabase IP Check error:", e);
     }
   }
 
@@ -1568,6 +1612,232 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
  * POST /api/purchases/pending-direct
  * Registrar compras pendientes por Nequi, Telegram o M�todos Directos
  */
+
+// ----------------------------------------------------
+// COLOMBIA PAGE ACCESS & VIP CUSTOM LINK ENDPOINTS
+// (Almacenado local en Render sin depender de Supabase)
+// ----------------------------------------------------
+
+// Listar solicitudes / links de acceso para el Creator Dashboard
+app.get("/api/colombia-page-access", (req, res) => {
+  res.json(colombiaAccessRequests);
+});
+
+// Registrar nueva solicitud (ej: Nequi manual)
+app.post("/api/colombia-page-access", async (req, res) => {
+  const { id, contactInfo, method, deviceHash, ipAddress } = req.body;
+  const clientIp = ipAddress || getClientIp(req);
+  const reqId = id || `co_acc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  
+  const record: ColombiaAccessRecord = {
+    id: reqId,
+    contactInfo: contactInfo || '',
+    customCode: '',
+    ipAddress: clientIp,
+    deviceHash: deviceHash || null,
+    paymentMethod: method || 'nequi',
+    status: 'pending',
+    createdAt: new Date().toISOString()
+  };
+
+  colombiaAccessRequests.unshift(record);
+  saveColombiaAccess(colombiaAccessRequests);
+
+  try {
+    await supabase.from('colombia_page_access').insert({
+      id: record.id,
+      contact_info: record.contactInfo,
+      device_hash: record.deviceHash,
+      ip_address: record.ipAddress,
+      payment_method: record.paymentMethod,
+      status: 'pending',
+      created_at: record.createdAt
+    });
+  } catch (e) {}
+
+  res.json({ success: true, record });
+});
+
+// Generar link de acceso VIP personalizado (Aprobado de inmediato)
+app.post("/api/colombia-page-access/custom-link", async (req, res) => {
+  const { contactInfo, customCode } = req.body;
+  const code = (customCode && customCode.trim()) ? customCode.trim() : Math.random().toString(36).substring(2, 8);
+  const reqId = `co_link_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  
+  const record: ColombiaAccessRecord = {
+    id: reqId,
+    contactInfo: (contactInfo && contactInfo.trim()) ? contactInfo.trim() : 'Acceso Directo Telegram',
+    customCode: code,
+    ipAddress: null,
+    deviceHash: null,
+    paymentMethod: 'manual',
+    status: 'approved',
+    createdAt: new Date().toISOString(),
+    approvedAt: new Date().toISOString()
+  };
+
+  colombiaAccessRequests.unshift(record);
+  saveColombiaAccess(colombiaAccessRequests);
+
+  try {
+    await supabase.from('colombia_page_access').insert({
+      id: record.id,
+      contact_info: record.contactInfo,
+      custom_code: record.customCode,
+      payment_method: record.paymentMethod,
+      status: 'approved',
+      created_at: record.createdAt,
+      approved_at: record.approvedAt
+    });
+  } catch (e) {}
+
+  const host = `${req.protocol}://${req.get('host')}`;
+  res.json({ success: true, code, link: `${host}/?access=${code}` });
+});
+
+// Verificar y vincular enlace de acceso (Candado de 1 solo dispositivo)
+app.post("/api/colombia-page-access/verify-code", async (req, res) => {
+  const { code, deviceHash, deviceHashes, ipAddress } = req.body;
+  if (!code || !code.trim()) {
+    return res.status(400).json({ valid: false, message: 'Código requerido' });
+  }
+
+  const cleanCode = code.trim();
+  const clientIp = ipAddress || getClientIp(req);
+  const incomingHashes: string[] = Array.isArray(deviceHashes) && deviceHashes.length > 0 
+    ? deviceHashes 
+    : (deviceHash ? [deviceHash] : []);
+
+  // 1. Buscar en memoria
+  let record = colombiaAccessRequests.find(r => r.customCode && r.customCode.toLowerCase() === cleanCode.toLowerCase());
+
+  // 2. Si no está en memoria, intentar buscar en Supabase
+  if (!record) {
+    try {
+      const { data } = await supabase
+        .from('colombia_page_access')
+        .select('*')
+        .eq('custom_code', cleanCode)
+        .limit(1);
+      if (data && data.length > 0) {
+        const row = data[0];
+        record = {
+          id: row.id,
+          contactInfo: row.contact_info || '',
+          customCode: row.custom_code || cleanCode,
+          ipAddress: row.ip_address || clientIp,
+          deviceHash: row.device_hash || null,
+          paymentMethod: row.payment_method || 'manual',
+          status: row.status || 'approved',
+          createdAt: row.created_at || new Date().toISOString(),
+          approvedAt: row.approved_at || new Date().toISOString()
+        };
+        colombiaAccessRequests.unshift(record);
+        saveColombiaAccess(colombiaAccessRequests);
+      }
+    } catch (e) {}
+  }
+
+  if (!record) {
+    return res.status(404).json({ valid: false, message: 'Código de acceso no válido o no encontrado' });
+  }
+
+  if (record.status !== 'approved') {
+    return res.status(403).json({ valid: false, message: 'Este código aún no ha sido aprobado' });
+  }
+
+  // Candado de 1 solo dispositivo:
+  if (record.deviceHash && record.deviceHash.trim() !== '') {
+    const match = incomingHashes.some(h => h.trim() === record!.deviceHash?.trim()) ||
+                  (record.ipAddress && record.ipAddress === clientIp);
+    if (!match && incomingHashes.length > 0) {
+      console.warn(`[VIP Lock] Código ${cleanCode} ya fue usado en otro dispositivo.`);
+      return res.status(403).json({ 
+        valid: false, 
+        message: 'Este enlace ya fue utilizado en otro dispositivo. El acceso es exclusivo para una sola persona.' 
+      });
+    }
+  } else {
+    // Primera vez que se abre: vincular permanentemente a este dispositivo e IP
+    const primaryHash = incomingHashes[0] || deviceHash || `bound_${Date.now()}`;
+    record.deviceHash = primaryHash;
+    record.ipAddress = clientIp;
+    record.approvedAt = new Date().toISOString();
+    saveColombiaAccess(colombiaAccessRequests);
+
+    try {
+      await supabase.from('colombia_page_access').update({
+        device_hash: primaryHash,
+        ip_address: clientIp,
+        approved_at: record.approvedAt
+      }).eq('id', record.id);
+    } catch (e) {}
+  }
+
+  res.json({ valid: true, message: 'Acceso aprobado exitosamente', record });
+});
+
+// Comprobar si el dispositivo o IP ya está aprobado
+app.post("/api/colombia-page-access/check-approved", (req, res) => {
+  const { deviceHash, deviceHashes, ipAddress } = req.body;
+  const clientIp = ipAddress || getClientIp(req);
+  const hashes: string[] = Array.isArray(deviceHashes) && deviceHashes.length > 0 
+    ? deviceHashes 
+    : (deviceHash ? [deviceHash] : []);
+
+  const isApproved = colombiaAccessRequests.some(r => {
+    if (r.status !== 'approved') return false;
+    if (hashes.length > 0 && r.deviceHash && hashes.includes(r.deviceHash)) {
+      return true;
+    }
+    if (clientIp && r.ipAddress && r.ipAddress === clientIp) {
+      return true;
+    }
+    return false;
+  });
+
+  res.json({ approved: isApproved });
+});
+
+// Aprobar manualmente solicitud
+app.post("/api/colombia-page-access/:id/approve", (req, res) => {
+  const { id } = req.params;
+  const item = colombiaAccessRequests.find(r => r.id === id || r.customCode === id);
+  if (item) {
+    item.status = 'approved';
+    item.approvedAt = new Date().toISOString();
+    saveColombiaAccess(colombiaAccessRequests);
+  }
+  try {
+    supabase.from('colombia_page_access').update({
+      status: 'approved',
+      approved_at: new Date().toISOString()
+    }).or(`id.eq.${id},custom_code.eq.${id}`);
+  } catch (e) {}
+
+  res.json({ success: true, item });
+});
+
+// Eliminar solicitud
+app.delete("/api/colombia-page-access/:id", (req, res) => {
+  const { id } = req.params;
+  colombiaAccessRequests = colombiaAccessRequests.filter(r => r.id !== id && r.customCode !== id);
+  saveColombiaAccess(colombiaAccessRequests);
+  try {
+    supabase.from('colombia_page_access').delete().or(`id.eq.${id},custom_code.eq.${id}`);
+  } catch (e) {}
+  res.json({ success: true });
+});
+
+// Limpiar solicitudes pendientes
+app.delete("/api/colombia-page-access/pending", (req, res) => {
+  colombiaAccessRequests = colombiaAccessRequests.filter(r => r.status !== 'pending');
+  saveColombiaAccess(colombiaAccessRequests);
+  try {
+    supabase.from('colombia_page_access').delete().eq('status', 'pending');
+  } catch (e) {}
+  res.json({ success: true });
+});
 
 app.post("/api/purchases/link-custom-code", async (req, res) => {
   const { id, deviceHash, ipAddress } = req.body;

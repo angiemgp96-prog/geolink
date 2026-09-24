@@ -651,10 +651,10 @@ export const api = {
       const res = await fetch('/api/settings/lead-capture');
       if (res.ok) {
         const data = await res.json();
-        return typeof data.requireLeadCapture === 'boolean' ? data.requireLeadCapture : true;
+        return typeof data.requireLeadCapture === 'boolean' ? data.requireLeadCapture : false;
       }
     } catch {}
-    return true;
+    return false;
   },
 
   async updateLeadCaptureSetting(requireLeadCapture: boolean): Promise<boolean> {
@@ -941,6 +941,14 @@ export const api = {
     const reqId = `co_acc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
     const lastIp = typeof window !== 'undefined' ? localStorage.getItem('geolink_last_ip') || null : null;
 
+    try {
+      await fetch('/api/colombia-page-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: reqId, contactInfo, method, deviceHash, ipAddress: lastIp })
+      });
+    } catch {}
+
     if (isSupabaseConfigured()) {
       try {
         await supabase.from('colombia_page_access').insert({
@@ -952,23 +960,32 @@ export const api = {
           status: 'pending',
           created_at: new Date().toISOString()
         });
-      } catch (err) {
-        console.warn('Supabase colombia_page_access save warning:', err);
-      }
+      } catch (err) {}
     }
-
-    try {
-      await fetch('/api/colombia-page-access', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: reqId, contactInfo, method, deviceHash })
-      });
-    } catch {}
 
     return true;
   },
 
   async getColombiaAccessRequests(): Promise<any[]> {
+    try {
+      const res = await fetch('/api/colombia-page-access');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          return data.map((row: any) => ({
+            id: row.id,
+            contactInfo: row.contactInfo || row.contact_info || '',
+            customCode: row.customCode || row.custom_code || '',
+            ipAddress: row.ipAddress || row.ip_address || '',
+            deviceHash: row.deviceHash || row.device_hash || '',
+            paymentMethod: row.paymentMethod || row.payment_method || 'nequi',
+            status: row.status || 'pending',
+            createdAt: row.createdAt || row.created_at || new Date().toISOString()
+          }));
+        }
+      }
+    } catch {}
+
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase
@@ -989,20 +1006,17 @@ export const api = {
             createdAt: row.created_at || new Date().toISOString()
           }));
         }
-      } catch (err) {
-        console.warn('Supabase colombia_page_access fetch error:', err);
-      }
+      } catch (err) {}
     }
-
-    try {
-      const res = await fetch('/api/colombia-page-access');
-      if (res.ok) return await res.json();
-    } catch {}
 
     return [];
   },
 
   async approveColombiaAccessRequest(id: string): Promise<boolean> {
+    try {
+      await fetch(`/api/colombia-page-access/${id}/approve`, { method: 'POST' });
+    } catch {}
+
     if (isSupabaseConfigured()) {
       try {
         const { error } = await supabase
@@ -1016,44 +1030,35 @@ export const api = {
             .update({ status: 'approved', approved_at: new Date().toISOString() })
             .eq('custom_code', id);
         }
-      } catch (err) {
-        console.warn('Supabase approve colombia_page_access warning:', err);
-      }
+      } catch (err) {}
     }
-
-    try {
-      const res = await fetch(`/api/colombia-page-access/${id}/approve`, { method: 'POST' });
-      return res.ok || isSupabaseConfigured();
-    } catch {}
 
     return true;
   },
 
   async deleteColombiaAccessRequest(id: string): Promise<boolean> {
-    if (isSupabaseConfigured()) {
-      try {
-        await supabase.from('colombia_page_access').delete().eq('id', id);
-      } catch (err) {
-        console.warn('Supabase delete colombia_page_access warning:', err);
-      }
-    }
     try {
       await fetch(`/api/colombia-page-access/${id}`, { method: 'DELETE' });
     } catch {}
+
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('colombia_page_access').delete().eq('id', id);
+      } catch (err) {}
+    }
     return true;
   },
 
   async clearPendingColombiaAccessRequests(): Promise<boolean> {
-    if (isSupabaseConfigured()) {
-      try {
-        await supabase.from('colombia_page_access').delete().eq('status', 'pending');
-      } catch (err) {
-        console.warn('Supabase clear pending colombia_page_access warning:', err);
-      }
-    }
     try {
       await fetch('/api/colombia-page-access/pending', { method: 'DELETE' });
     } catch {}
+
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('colombia_page_access').delete().eq('status', 'pending');
+      } catch (err) {}
+    }
     return true;
   },
 
@@ -1111,7 +1116,37 @@ export const api = {
     const hashes = deviceHash ? [deviceHash] : getDeviceFingerprints();
     const lastIp = typeof window !== 'undefined' ? localStorage.getItem('geolink_last_ip') || null : null;
 
-    // 1. Verificación en Supabase por dispositivo y vigencia de 30 días
+    // 1. Verificación rápida local si ya fue desbloqueado
+    try {
+      if (localStorage.getItem('geolink_colombia_page_unlocked') === 'true') {
+        return true;
+      }
+    } catch {}
+
+    // 2. Verificación en Render backend
+    try {
+      const res = await fetch('/api/colombia-page-access/check-approved', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deviceHash: hashes[0],
+          deviceHashes: hashes,
+          ipAddress: lastIp
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.approved) {
+          try {
+            localStorage.setItem('geolink_colombia_page_unlocked', 'true');
+            localStorage.setItem('geolink_colombia_unlocked_at', new Date().toISOString());
+          } catch {}
+          return true;
+        }
+      }
+    } catch {}
+
+    // 3. Fallback Supabase por dispositivo y vigencia de 30 días
     if (isSupabaseConfigured()) {
       try {
         if (hashes.length > 0) {
@@ -1125,14 +1160,6 @@ export const api = {
 
           if (data && data.length > 0) {
             const row = data[0];
-
-            // Si no tenía la IP guardada o cambió, la actualizamos para mayor seguridad de recuperación
-            if (lastIp && row.ip_address !== lastIp) {
-              try {
-                await supabase.from('colombia_page_access').update({ ip_address: lastIp }).eq('id', row.id);
-              } catch (e) {}
-            }
-
             const approvalDate = row.approved_at || row.created_at;
             if (approvalDate) {
               const approvalTime = new Date(approvalDate).getTime();
@@ -1143,22 +1170,17 @@ export const api = {
                   localStorage.setItem('geolink_colombia_unlocked_at', new Date(approvalTime).toISOString());
                 } catch {}
                 return true;
-              } else {
-                console.log('El acceso de Colombia para este dispositivo ha expirado (>30 días).');
               }
             } else {
-              // Sin fecha guardada en registro antiguo, permitir pero actualizar fecha
               try { localStorage.setItem('geolink_colombia_page_unlocked', 'true'); } catch {}
               return true;
             }
           }
         }
-      } catch (err) {
-        console.warn('Supabase check Colombia access warning:', err);
-      }
+      } catch (err) {}
     }
 
-    // 2. Verificación si retornó con token verificado de Mercado Pago o PayPal
+    // 4. Verificación si retornó con token verificado de Mercado Pago o PayPal
     try {
       const savedTokensRaw = localStorage.getItem('geolink_unlocked_tokens');
       const savedTokens: string[] = savedTokensRaw ? JSON.parse(savedTokensRaw) : [];
@@ -1171,20 +1193,50 @@ export const api = {
       }
     } catch {}
 
-    // Si no está verificado en Supabase ni por compra aprobada o si expiró (>30 días), eliminar marcas locales obsoletas
-    try {
-      localStorage.removeItem('geolink_colombia_page_unlocked');
-      localStorage.removeItem('geolink_colombia_unlocked_at');
-    } catch {}
-
     return false;
   },
 
   async checkColombiaCustomCode(code: string): Promise<boolean> {
     if (!code || !code.trim()) return false;
     const cleanCode = code.trim();
+    const hashes = getDeviceFingerprints();
     const deviceHash = getDeviceFingerprint();
+    const lastIp = typeof window !== 'undefined' ? localStorage.getItem('geolink_last_ip') || null : null;
 
+    // 1. Consultar Render Backend (con candado de 1 solo dispositivo)
+    try {
+      const res = await fetch('/api/colombia-page-access/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: cleanCode,
+          deviceHash,
+          deviceHashes: hashes,
+          ipAddress: lastIp
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.valid) {
+          try {
+            localStorage.setItem('geolink_colombia_page_unlocked', 'true');
+            localStorage.setItem('geolink_colombia_unlocked_at', new Date().toISOString());
+          } catch {}
+          return true;
+        }
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        if (errData.message && errData.message.includes('otro dispositivo')) {
+          alert(errData.message);
+          return false;
+        }
+      }
+    } catch (err) {
+      console.warn('Render verify-code warning:', err);
+    }
+
+    // 2. Fallback Supabase si está disponible
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase
@@ -1195,32 +1247,12 @@ export const api = {
 
         if (!error && data && data.length > 0) {
           const row = data[0];
-
-          // CANDADO ESTRICTO DE 1 SOLO DISPOSITIVO:
-          // Si el código ya fue vinculado a otro dispositivo anterior y no coincide con el actual, DENEGAR ACCESO.
           if (row.device_hash && row.device_hash.trim() !== '') {
             if (deviceHash && row.device_hash.trim() !== deviceHash.trim()) {
-              console.warn('Acceso VIP denegado: Este enlace ya fue utilizado en otro dispositivo.', {
-                boundDevice: row.device_hash,
-                currentDevice: deviceHash
-              });
+              alert('Este enlace ya fue utilizado en otro dispositivo.');
               return false;
-            } else {
-              // Es el mismo dispositivo. Refrescar la IP por si acaso.
-              const lastIp = typeof window !== 'undefined' ? localStorage.getItem('geolink_last_ip') || null : null;
-              if (lastIp) {
-                try {
-                  await fetch('/api/purchases/link-custom-code', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: row.id, deviceHash, ipAddress: lastIp })
-                  });
-                } catch {}
-              }
             }
           } else {
-            // Vincular el código a este dispositivo por primera vez
-            const lastIp = typeof window !== 'undefined' ? localStorage.getItem('geolink_last_ip') || null : null;
             try {
               await fetch('/api/purchases/link-custom-code', {
                 method: 'POST',
@@ -1229,17 +1261,12 @@ export const api = {
               });
             } catch {}
           }
-
-          // La vinculacin y actualizacin del estado se maneja completamente en el backend mediante el endpoint /api/purchases/link-custom-code
-
           try {
             localStorage.setItem('geolink_colombia_page_unlocked', 'true');
           } catch {}
           return true;
         }
-      } catch (err) {
-        console.warn('Supabase checkColombiaCustomCode warning:', err);
-      }
+      } catch (err) {}
     }
 
     return false;
@@ -1247,8 +1274,24 @@ export const api = {
 
   async createColombiaCustomAccessLink(contactInfo: string, customCode?: string): Promise<{ code: string; link: string }> {
     const code = customCode && customCode.trim() ? customCode.trim() : Math.random().toString(36).substring(2, 8);
-    const reqId = `co_link_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
+    // 1. Guardar en Render Backend
+    try {
+      const res = await fetch('/api/colombia-page-access/custom-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contactInfo, customCode: code })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return { code: data.code, link: data.link };
+      }
+    } catch (err) {
+      console.warn('Render create custom link warning:', err);
+    }
+
+    // 2. Fallback Supabase si está disponible
+    const reqId = `co_link_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
     if (isSupabaseConfigured()) {
       try {
         await supabase.from('colombia_page_access').insert({
@@ -1260,9 +1303,7 @@ export const api = {
           created_at: new Date().toISOString(),
           approved_at: new Date().toISOString()
         });
-      } catch (err) {
-        console.warn('Supabase createColombiaCustomAccessLink warning:', err);
-      }
+      } catch (err) {}
     }
 
     const host = typeof window !== 'undefined' ? window.location.origin : 'https://geolink-1.onrender.com';

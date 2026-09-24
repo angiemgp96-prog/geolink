@@ -186,7 +186,7 @@ export default function App() {
 
   // Reactively trigger lead modal if enabled
   useEffect(() => {
-    if (accessAllowed && !isAdminLoggedIn) {
+    if (accessAllowed && !isAdminLoggedIn && !isColombiaPageUnlocked) {
       if (!requireLeadCapture) {
         setIsVisitorLeadModalOpen(false);
         return;
@@ -202,8 +202,10 @@ export default function App() {
           return () => clearTimeout(timer);
         }
       } catch {}
+    } else {
+      setIsVisitorLeadModalOpen(false);
     }
-  }, [accessAllowed, isAdminLoggedIn, requireLeadCapture]);
+  }, [accessAllowed, isAdminLoggedIn, requireLeadCapture, isColombiaPageUnlocked]);
 
   const [unlockedMediaIds, setUnlockedMediaIds] = useState<string[]>([]);
   const [unlockedTokensMap, setUnlockedTokensMap] = useState<Record<string, string>>({});
@@ -312,7 +314,9 @@ export default function App() {
           const isValidCode = await api.checkColombiaCustomCode(accessCode);
           if (isValidCode) {
             setIsColombiaPageUnlocked(true);
+            setIsVisitorLeadModalOpen(false);
             try {
+              localStorage.setItem('geolink_colombia_page_unlocked', 'true');
               window.history.replaceState({}, document.title, window.location.pathname);
             } catch {}
           }

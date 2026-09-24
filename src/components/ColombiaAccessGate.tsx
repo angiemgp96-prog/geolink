@@ -23,6 +23,29 @@ export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator,
   const [contactError, setContactError] = useState('');
   const [isLoadingMp, setIsLoadingMp] = useState(false);
   const [submittedNequi, setSubmittedNequi] = useState(false);
+  const [vipCode, setVipCode] = useState('');
+  const [vipError, setVipError] = useState('');
+  const [isValidatingCode, setIsValidatingCode] = useState(false);
+  const [showCodeInput, setShowCodeInput] = useState(false);
+
+  const handleValidateCode = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!vipCode.trim()) return;
+    setIsValidatingCode(true);
+    setVipError('');
+    try {
+      const ok = await api.checkColombiaCustomCode(vipCode.trim());
+      if (ok) {
+        onUnlocked();
+      } else {
+        setVipError('Código no válido o ya usado en otro dispositivo.');
+      }
+    } catch {
+      setVipError('Error al validar código.');
+    } finally {
+      setIsValidatingCode(false);
+    }
+  };
 
   // Poll in real-time for manual Nequi or MercadoPago approval so screen unlocks automatically
   useEffect(() => {
@@ -210,6 +233,41 @@ export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator,
                 </div>
               )}
             </div>
+          )}
+        </div>
+
+        {/* Acceso VIP por Código */}
+        <div className="px-4 pb-3 text-center">
+          {!showCodeInput ? (
+            <button
+              type="button"
+              onClick={() => setShowCodeInput(true)}
+              className="text-[11px] text-purple-400 hover:text-purple-300 underline font-semibold transition-all cursor-pointer"
+            >
+              ¿Tienes un enlace o código de acceso VIP?
+            </button>
+          ) : (
+            <form onSubmit={handleValidateCode} className="space-y-1.5 pt-1 text-left bg-black/50 p-2.5 rounded-xl border border-purple-500/30">
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="text"
+                  value={vipCode}
+                  onChange={e => { setVipCode(e.target.value); setVipError(''); }}
+                  placeholder="Pega tu código de acceso aquí"
+                  className="flex-1 bg-black/70 border border-purple-500/40 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-zinc-500 outline-none uppercase font-mono"
+                />
+                <button
+                  type="submit"
+                  disabled={isValidatingCode || !vipCode.trim()}
+                  className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-bold rounded-lg transition-all cursor-pointer"
+                >
+                  {isValidatingCode ? '...' : 'Entrar'}
+                </button>
+              </div>
+              {vipError && (
+                <p className="text-[10px] text-red-400 font-medium">{vipError}</p>
+              )}
+            </form>
           )}
         </div>
 

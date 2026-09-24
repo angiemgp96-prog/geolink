@@ -419,6 +419,29 @@ var paymentMethodsVisibility = {
   paypal_telegram: true,
   nequi_usa: true
 };
+var requireLeadCapture = false;
+var COLOMBIA_ACCESS_FILE = import_path.default.resolve(__dirname, "colombia_access_store.json");
+function loadColombiaAccess() {
+  try {
+    const fs = require("fs");
+    if (fs.existsSync(COLOMBIA_ACCESS_FILE)) {
+      const raw = fs.readFileSync(COLOMBIA_ACCESS_FILE, "utf8");
+      return JSON.parse(raw);
+    }
+  } catch (err) {
+    console.warn("[Storage] Failed to read colombia_access_store.json:", err);
+  }
+  return [];
+}
+function saveColombiaAccess(records) {
+  try {
+    const fs = require("fs");
+    fs.writeFileSync(COLOMBIA_ACCESS_FILE, JSON.stringify(records, null, 2), "utf8");
+  } catch (err) {
+    console.warn("[Storage] Failed to write colombia_access_store.json:", err);
+  }
+}
+var colombiaAccessRequests = loadColombiaAccess();
 var EXTERNAL_PREVIEW_MAP = {
   "media_1786139686398": "https://i.postimg.cc/vxrJbf0r/Captura-de-pantalla-2026-08-07-165400.png",
   "media_1786193399803": "https://i.postimg.cc/PqdDQ20h/Captura-de-pantalla-2026-08-08-074919.png",
@@ -747,13 +770,17 @@ app.get("/api/geoip", async (req, res) => {
     (p) => p.mediaId === "acceso_pagina_colombia" && p.status === "completed" && p.ipAddress === clientIp
   );
   if (!hasApprovedPurchaseByIp && clientIp) {
-    try {
-      const { data } = await supabase.from("colombia_page_access").select("id").eq("ip_address", clientIp).eq("status", "approved").limit(1);
-      if (data && data.length > 0) {
-        hasApprovedPurchaseByIp = true;
+    if (colombiaAccessRequests.some((r) => r.status === "approved" && r.ipAddress === clientIp)) {
+      hasApprovedPurchaseByIp = true;
+    } else {
+      try {
+        const { data } = await supabase.from("colombia_page_access").select("id").eq("ip_address", clientIp).eq("status", "approved").limit(1);
+        if (data && data.length > 0) {
+          hasApprovedPurchaseByIp = true;
+        }
+      } catch (e) {
+        console.warn("Supabase IP Check error:", e);
       }
-    } catch (e) {
-      console.warn("Supabase IP Check error:", e);
     }
   }
   res.json({
@@ -1648,6 +1675,186 @@ app.get("/api/purchases/verify/:token", async (req, res) => {
     status: purchase.status,
     error: "El pago no ha sido acreditado ni confirmado por la API oficial."
   });
+});
+app.get("/api/colombia-page-access", (req, res) => {
+  res.json(colombiaAccessRequests);
+});
+app.post("/api/colombia-page-access", async (req, res) => {
+  const { id, contactInfo, method, deviceHash, ipAddress } = req.body;
+  const clientIp = ipAddress || getClientIp(req);
+  const reqId = id || `co_acc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  const record = {
+    id: reqId,
+    contactInfo: contactInfo || "",
+    customCode: "",
+    ipAddress: clientIp,
+    deviceHash: deviceHash || null,
+    paymentMethod: method || "nequi",
+    status: "pending",
+    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  colombiaAccessRequests.unshift(record);
+  saveColombiaAccess(colombiaAccessRequests);
+  try {
+    await supabase.from("colombia_page_access").insert({
+      id: record.id,
+      contact_info: record.contactInfo,
+      device_hash: record.deviceHash,
+      ip_address: record.ipAddress,
+      payment_method: record.paymentMethod,
+      status: "pending",
+      created_at: record.createdAt
+    });
+  } catch (e) {
+  }
+  res.json({ success: true, record });
+});
+app.post("/api/colombia-page-access/custom-link", async (req, res) => {
+  const { contactInfo, customCode } = req.body;
+  const code = customCode && customCode.trim() ? customCode.trim() : Math.random().toString(36).substring(2, 8);
+  const reqId = `co_link_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  const record = {
+    id: reqId,
+    contactInfo: contactInfo && contactInfo.trim() ? contactInfo.trim() : "Acceso Directo Telegram",
+    customCode: code,
+    ipAddress: null,
+    deviceHash: null,
+    paymentMethod: "manual",
+    status: "approved",
+    createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+    approvedAt: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  colombiaAccessRequests.unshift(record);
+  saveColombiaAccess(colombiaAccessRequests);
+  try {
+    await supabase.from("colombia_page_access").insert({
+      id: record.id,
+      contact_info: record.contactInfo,
+      custom_code: record.customCode,
+      payment_method: record.paymentMethod,
+      status: "approved",
+      created_at: record.createdAt,
+      approved_at: record.approvedAt
+    });
+  } catch (e) {
+  }
+  const host = `${req.protocol}://${req.get("host")}`;
+  res.json({ success: true, code, link: `${host}/?access=${code}` });
+});
+app.post("/api/colombia-page-access/verify-code", async (req, res) => {
+  const { code, deviceHash, deviceHashes, ipAddress } = req.body;
+  if (!code || !code.trim()) {
+    return res.status(400).json({ valid: false, message: "C\xF3digo requerido" });
+  }
+  const cleanCode = code.trim();
+  const clientIp = ipAddress || getClientIp(req);
+  const incomingHashes = Array.isArray(deviceHashes) && deviceHashes.length > 0 ? deviceHashes : deviceHash ? [deviceHash] : [];
+  let record = colombiaAccessRequests.find((r) => r.customCode && r.customCode.toLowerCase() === cleanCode.toLowerCase());
+  if (!record) {
+    try {
+      const { data } = await supabase.from("colombia_page_access").select("*").eq("custom_code", cleanCode).limit(1);
+      if (data && data.length > 0) {
+        const row = data[0];
+        record = {
+          id: row.id,
+          contactInfo: row.contact_info || "",
+          customCode: row.custom_code || cleanCode,
+          ipAddress: row.ip_address || clientIp,
+          deviceHash: row.device_hash || null,
+          paymentMethod: row.payment_method || "manual",
+          status: row.status || "approved",
+          createdAt: row.created_at || (/* @__PURE__ */ new Date()).toISOString(),
+          approvedAt: row.approved_at || (/* @__PURE__ */ new Date()).toISOString()
+        };
+        colombiaAccessRequests.unshift(record);
+        saveColombiaAccess(colombiaAccessRequests);
+      }
+    } catch (e) {
+    }
+  }
+  if (!record) {
+    return res.status(404).json({ valid: false, message: "C\xF3digo de acceso no v\xE1lido o no encontrado" });
+  }
+  if (record.status !== "approved") {
+    return res.status(403).json({ valid: false, message: "Este c\xF3digo a\xFAn no ha sido aprobado" });
+  }
+  if (record.deviceHash && record.deviceHash.trim() !== "") {
+    const match = incomingHashes.some((h) => h.trim() === record.deviceHash?.trim()) || record.ipAddress && record.ipAddress === clientIp;
+    if (!match && incomingHashes.length > 0) {
+      console.warn(`[VIP Lock] C\xF3digo ${cleanCode} ya fue usado en otro dispositivo.`);
+      return res.status(403).json({
+        valid: false,
+        message: "Este enlace ya fue utilizado en otro dispositivo. El acceso es exclusivo para una sola persona."
+      });
+    }
+  } else {
+    const primaryHash = incomingHashes[0] || deviceHash || `bound_${Date.now()}`;
+    record.deviceHash = primaryHash;
+    record.ipAddress = clientIp;
+    record.approvedAt = (/* @__PURE__ */ new Date()).toISOString();
+    saveColombiaAccess(colombiaAccessRequests);
+    try {
+      await supabase.from("colombia_page_access").update({
+        device_hash: primaryHash,
+        ip_address: clientIp,
+        approved_at: record.approvedAt
+      }).eq("id", record.id);
+    } catch (e) {
+    }
+  }
+  res.json({ valid: true, message: "Acceso aprobado exitosamente", record });
+});
+app.post("/api/colombia-page-access/check-approved", (req, res) => {
+  const { deviceHash, deviceHashes, ipAddress } = req.body;
+  const clientIp = ipAddress || getClientIp(req);
+  const hashes = Array.isArray(deviceHashes) && deviceHashes.length > 0 ? deviceHashes : deviceHash ? [deviceHash] : [];
+  const isApproved = colombiaAccessRequests.some((r) => {
+    if (r.status !== "approved") return false;
+    if (hashes.length > 0 && r.deviceHash && hashes.includes(r.deviceHash)) {
+      return true;
+    }
+    if (clientIp && r.ipAddress && r.ipAddress === clientIp) {
+      return true;
+    }
+    return false;
+  });
+  res.json({ approved: isApproved });
+});
+app.post("/api/colombia-page-access/:id/approve", (req, res) => {
+  const { id } = req.params;
+  const item = colombiaAccessRequests.find((r) => r.id === id || r.customCode === id);
+  if (item) {
+    item.status = "approved";
+    item.approvedAt = (/* @__PURE__ */ new Date()).toISOString();
+    saveColombiaAccess(colombiaAccessRequests);
+  }
+  try {
+    supabase.from("colombia_page_access").update({
+      status: "approved",
+      approved_at: (/* @__PURE__ */ new Date()).toISOString()
+    }).or(`id.eq.${id},custom_code.eq.${id}`);
+  } catch (e) {
+  }
+  res.json({ success: true, item });
+});
+app.delete("/api/colombia-page-access/:id", (req, res) => {
+  const { id } = req.params;
+  colombiaAccessRequests = colombiaAccessRequests.filter((r) => r.id !== id && r.customCode !== id);
+  saveColombiaAccess(colombiaAccessRequests);
+  try {
+    supabase.from("colombia_page_access").delete().or(`id.eq.${id},custom_code.eq.${id}`);
+  } catch (e) {
+  }
+  res.json({ success: true });
+});
+app.delete("/api/colombia-page-access/pending", (req, res) => {
+  colombiaAccessRequests = colombiaAccessRequests.filter((r) => r.status !== "pending");
+  saveColombiaAccess(colombiaAccessRequests);
+  try {
+    supabase.from("colombia_page_access").delete().eq("status", "pending");
+  } catch (e) {
+  }
+  res.json({ success: true });
 });
 app.post("/api/purchases/link-custom-code", async (req, res) => {
   const { id, deviceHash, ipAddress } = req.body;
