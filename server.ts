@@ -40,6 +40,32 @@ let paymentMethodsVisibility = {
   nequi_usa: true,
 };
 
+// =========================================================================
+// ENLACES EXTERNOS FIJOS PARA IMÁGENES (Sin depender de Supabase Storage)
+// Cuando desees reactivar la base de datos en el futuro, solo debes comentar este bloque.
+// =========================================================================
+const EXTERNAL_PREVIEW_MAP: Record<string, string> = {
+  'media_1786139686398': 'https://i.postimg.cc/cL8vzNTf/Captura-de-pantalla-2026-08-07-165034.png',
+  'media_1786193399803': 'https://i.postimg.cc/PqdDQ20h/Captura-de-pantalla-2026-08-08-074919.png',
+  'media_1786193279456': 'https://i.postimg.cc/cH4Q0XcX/Captura-de-pantalla-2026-08-08-074735.png',
+  'media_1786139499820': 'https://i.postimg.cc/cL8vzNTf/Captura-de-pantalla-2026-08-07-165034.png',
+  'media_1787968790580': 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+  'media_1787798435018': 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=80',
+  'media_1788360145934': 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80',
+  'media_1788007984824': 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80',
+  'media_1788638697559': 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
+  'media_1789321394895': 'https://i.postimg.cc/1fyFDyLN/0912-(4)-Cover.jpg',
+  'media_1786470365967': 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80',
+  'media_1789319543796': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+  'media_1788094364764': 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=800&q=80',
+  'media_1786470016517': 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80',
+  'media_1788438475594': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
+  'media_1789948815305': 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80',
+  'acceso_full_cat_actual': 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg'
+};
+const FALLBACK_AVATAR = 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg';
+const FALLBACK_BANNER = 'https://i.postimg.cc/1z7CWwzT/live3d-d9e9ae69297f4334205b1f36d3a19dfc-(1).jpg';
+
 // Data Mappers: Supabase <-> TypeScript
 function fromSupabaseCreator(row: any): CreatorProfile {
   const initial = INITIAL_CREATORS.find((c) => c.handle.toLowerCase() === row.handle?.toLowerCase());
@@ -51,8 +77,8 @@ function fromSupabaseCreator(row: any): CreatorProfile {
     name: row.name || initial?.name || 'Angelina VIP',
     title: row.title || initial?.title || 'Contenido Exclusivo ??',
     bio: row.bio || initial?.bio || '',
-    avatar: row.avatar || initial?.avatar || '',
-    banner: row.banner || initial?.banner || '',
+    avatar: (row.avatar && !row.avatar.includes('supabase.co')) ? row.avatar : (initial?.avatar || FALLBACK_AVATAR),
+    banner: (row.banner && !row.banner.includes('supabase.co')) ? row.banner : (initial?.banner || FALLBACK_BANNER),
     themeColor: row.theme_color || initial?.themeColor || 'from-purple-600 via-pink-600 to-amber-500',
     badge: row.badge || initial?.badge || 'CREADOR OFICIAL',
     blockedCountries: row.blocked_countries || initial?.blockedCountries || ['CO'],
@@ -105,7 +131,7 @@ function fromSupabaseMedia(row: any): MediaItem {
     type: row.type || 'video',
     price: Number(row.price),
     currency: row.currency || 'USD',
-    previewUrl: row.preview_url || row.data?.previewUrl || '',
+    previewUrl: (EXTERNAL_PREVIEW_MAP[row.id] && (!row.preview_url || row.preview_url.includes('supabase.co'))) ? EXTERNAL_PREVIEW_MAP[row.id] : (row.preview_url || row.data?.previewUrl || EXTERNAL_PREVIEW_MAP[row.id] || ''),
     downloadUrl: row.content_url || row.download_url || row.data?.downloadUrl || '',
     fileSize: row.file_size || '',
     duration: row.duration || '',
@@ -566,7 +592,15 @@ app.get("/api/creators/:handle", async (req, res) => {
     return res.status(404).json({ error: "Creador no encontrado" });
   }
 
-  const items = mediaItems.filter((m) => m.creatorHandle.toLowerCase() === handle.toLowerCase());
+  const items = mediaItems
+    .filter((m) => m.creatorHandle.toLowerCase() === handle.toLowerCase())
+    .map((m) => {
+      const ext = EXTERNAL_PREVIEW_MAP[m.id];
+      if (ext && (!m.previewUrl || m.previewUrl.includes('supabase.co'))) {
+        return { ...m, previewUrl: ext };
+      }
+      return m;
+    });
 
   res.json({
     creator,

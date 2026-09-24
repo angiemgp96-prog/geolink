@@ -406,7 +406,15 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
 
             {/* Preview blur */}
             <div className="relative rounded-2xl overflow-hidden mb-4 border border-slate-700/60 bg-slate-900 h-28 sm:h-32">
-              <img src={item.previewUrl} alt={item.title} className="w-full h-full object-cover blur-sm opacity-50 scale-105" />
+              <img
+                src={item.previewUrl}
+                alt={item.title}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg';
+                }}
+                className="w-full h-full object-cover blur-sm opacity-50 scale-105"
+              />
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
                 <div className="w-10 h-10 rounded-full bg-indigo-600/30 border border-indigo-400/60 flex items-center justify-center backdrop-blur-md">
                   <Lock className="w-5 h-5 text-indigo-300" />

@@ -463,6 +463,10 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       alt={item.title}
                       loading="lazy"
                       decoding="async"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg';
+                      }}
                       className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
                         !isUnlocked ? 'blur-[3px] scale-105 opacity-80' : 'opacity-100 blur-none'
                       }`}
