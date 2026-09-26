@@ -404,18 +404,24 @@ export const api = {
   },
 
   async savePendingStripePayment(data: any) {
+    const deviceHash = data.deviceHash || getDeviceFingerprint();
+    const payload = {
+      ...data,
+      deviceHash
+    };
+
     if (isSupabaseConfigured()) {
       try {
         await supabase.from('stripe_payments').insert({
-          id: data.id,
-          media_id: data.mediaId,
-          media_title: data.mediaTitle,
-          amount: data.amount,
-          currency: data.currency || 'USD',
-          stripe_url: data.stripeUrl,
-          contact_info: data.contactInfo || '',
+          id: payload.id,
+          media_id: payload.mediaId,
+          media_title: payload.mediaTitle,
+          amount: payload.amount,
+          currency: payload.currency || 'USD',
+          stripe_url: payload.stripeUrl,
+          contact_info: payload.contactInfo || '',
           status: 'pending',
-          created_at: data.createdAt || new Date().toISOString()
+          created_at: payload.createdAt || new Date().toISOString()
         });
       } catch (e) {}
     }
@@ -423,7 +429,7 @@ export const api = {
       const res = await fetch('/api/payments/stripe/save-pending', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(payload)
       });
       return await res.json();
     } catch {
@@ -431,7 +437,8 @@ export const api = {
     }
   },
 
-  async getPendingStripePayment(contactInfo?: string) {
+  async getPendingStripePayment(contactInfo?: string, deviceHash?: string) {
+    const dh = deviceHash || getDeviceFingerprint();
     if (isSupabaseConfigured() && contactInfo) {
       try {
         const { data } = await supabase.from('stripe_payments')
@@ -447,7 +454,10 @@ export const api = {
       } catch (e) {}
     }
     try {
-      const res = await fetch(`/api/payments/stripe/pending${contactInfo ? '?contactInfo=' + encodeURIComponent(contactInfo) : ''}`);
+      const params = new URLSearchParams();
+      if (contactInfo) params.set('contactInfo', contactInfo);
+      if (dh) params.set('deviceHash', dh);
+      const res = await fetch(`/api/payments/stripe/pending?${params.toString()}`);
       return await res.json();
     } catch {
       return { pendingPayment: null };
@@ -927,6 +937,22 @@ export const api = {
         console.warn('Supabase autoApproveMercadoPagoColombiaAccess warning:', err);
       }
     }
+
+    // Persistir aprobación automática en disco Render
+    try {
+      await fetch('/api/colombia-page-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: reqId,
+          contactInfo: contactInfo ? contactInfo.trim() : 'Pago MercadoPago Automático',
+          method: 'mercadopago',
+          status: 'approved',
+          deviceHash,
+          ipAddress: lastIp
+        })
+      });
+    } catch {}
 
     try {
       localStorage.setItem('geolink_colombia_page_unlocked', 'true');

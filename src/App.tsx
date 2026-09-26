@@ -83,20 +83,61 @@ export default function App() {
 
   const checkAndRedirectPendingTelegramPayment = async () => {
     try {
+      let data: any = null;
       const raw = localStorage.getItem('geolink_pending_telegram_payment');
-      if (!raw) return;
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.mediaTitle) {
+            const elapsed = Date.now() - (parsed.timestamp || 0);
+            if (elapsed >= 2500 && elapsed <= 24 * 60 * 60 * 1000) {
+              data = parsed;
+            }
+          }
+        } catch {}
+      }
 
-      const data = JSON.parse(raw);
+      // Si no estaba en localStorage (ej: se abrió en nueva pestaña), consultar al backend en Render
+      if (!data) {
+        try {
+          const contactStr = localStorage.getItem('geolink_visitor_contact') || '';
+          const res = await api.getPendingStripePayment(contactStr);
+          if (res && res.pendingPayment && res.pendingPayment.status === 'pending') {
+            const sp = res.pendingPayment;
+            const createdTime = new Date(sp.created_at || sp.createdAt || 0).getTime();
+            const elapsed = Date.now() - createdTime;
+            // Ventana válida: entre 3 segundos y 30 minutos desde que se abrió Stripe
+            if (elapsed >= 3000 && elapsed < 30 * 60 * 1000) {
+              data = {
+                id: sp.id,
+                mediaId: sp.media_id || sp.mediaId,
+                mediaTitle: sp.media_title || sp.mediaTitle,
+                amount: sp.amount,
+                currency: sp.currency || 'USD',
+                downloadUrl: sp.download_url || sp.downloadUrl || '',
+              };
+            }
+          }
+        } catch {}
+      }
+
       if (!data || !data.mediaTitle) return;
 
-      const elapsed = Date.now() - (data.timestamp || 0);
-      // Wait at least 2.5 seconds to avoid accidental immediate focus shifts, and expire after 24h
-      if (elapsed < 2500 || elapsed > 24 * 60 * 60 * 1000) return;
+      const dedupeKey = `geolink_tg_sent_${data.id || data.mediaId}`;
+      if (sessionStorage.getItem(dedupeKey) === 'true') return;
+      sessionStorage.setItem(dedupeKey, 'true');
 
-      // Clean up storage immediately so it never repeats or causes a loop
-      localStorage.removeItem('geolink_pending_telegram_payment');
+      // Limpiar inmediatamente localStorage para evitar repeticiones
+      try {
+        localStorage.removeItem('geolink_pending_telegram_payment');
+      } catch {}
 
-      // Registrar la intención de compra / redirección en el historial de ventas del admin
+      // Marcar como atendido en backend Render si tiene ID
+      if (data.id) {
+        api.markStripePaymentSent(data.id).catch(() => {});
+      }
+
+      // Registrar la intención de compra en el historial de ventas del panel de administración
       const contactStr = localStorage.getItem('geolink_visitor_contact') || 'Cliente Stripe ➔ Telegram';
       try {
         await api.createPendingDirectPurchase({

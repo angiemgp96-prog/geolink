@@ -456,17 +456,23 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                 } else if (paymentVisibility?.direct_telegram_mode) {
                   const finalPrice = globalDiscount > 0 ? (item.price * (1 - globalDiscount / 100)) : item.price;
                   const stripeUrl = getStripePaymentUrl(Number(finalPrice));
+                  const pendingData = {
+                    mediaId: item.id,
+                    mediaTitle: item.title,
+                    amount: Number(finalPrice),
+                    currency: item.currency || 'USD',
+                    stripeUrl,
+                    downloadUrl: item.downloadUrl || '',
+                    timestamp: Date.now(),
+                  };
                   try {
-                    localStorage.setItem('geolink_pending_telegram_payment', JSON.stringify({
-                      mediaId: item.id,
-                      mediaTitle: item.title,
-                      amount: Number(finalPrice),
-                      currency: item.currency || 'USD',
-                      stripeUrl,
-                      downloadUrl: item.downloadUrl || '',
-                      timestamp: Date.now(),
-                    }));
+                    localStorage.setItem('geolink_pending_telegram_payment', JSON.stringify(pendingData));
                   } catch {}
+                  // Guardar persistentemente en Render para recordar que está pendiente
+                  api.savePendingStripePayment({
+                    ...pendingData,
+                    contactInfo: localStorage.getItem('geolink_visitor_contact') || ''
+                  }).catch(() => {});
                   window.open(stripeUrl, '_blank');
                 } else {
                   onOpenPurchaseModal(item);

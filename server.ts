@@ -28,10 +28,10 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // In-Memory Data Store (Synchronized with Supabase DB)
 let creators: CreatorProfile[] = [...INITIAL_CREATORS];
 let mediaItems: MediaItem[] = [...INITIAL_MEDIA_ITEMS];
-let purchases: PurchaseRecord[] = [];
+let purchases: PurchaseRecord[] = loadPurchasesStore();
 let globalDiscountPercentage = 0;
 let colombiaMultiplier = 2;
-let stripePayments: any[] = [];
+let stripePayments: any[] = loadStripePaymentsStore();
 
 let paymentMethodsVisibility = {
   mercadopago: true,
@@ -61,7 +61,8 @@ function loadColombiaAccess(): ColombiaAccessRecord[] {
     const fs = require('fs');
     if (fs.existsSync(COLOMBIA_ACCESS_FILE)) {
       const raw = fs.readFileSync(COLOMBIA_ACCESS_FILE, 'utf8');
-      return JSON.parse(raw);
+      const data = JSON.parse(raw);
+      if (Array.isArray(data)) return data;
     }
   } catch (err) {
     console.warn('[Storage] Failed to read colombia_access_store.json:', err);
@@ -79,6 +80,58 @@ function saveColombiaAccess(records: ColombiaAccessRecord[]) {
 }
 
 let colombiaAccessRequests: ColombiaAccessRecord[] = loadColombiaAccess();
+
+// Persistencia en disco Render para compras (Mercado Pago, Stripe, etc.)
+const PURCHASES_FILE = path.resolve(__dirname, 'purchases_store.json');
+
+function loadPurchasesStore(): PurchaseRecord[] {
+  try {
+    const fs = require('fs');
+    if (fs.existsSync(PURCHASES_FILE)) {
+      const raw = fs.readFileSync(PURCHASES_FILE, 'utf8');
+      const data = JSON.parse(raw);
+      if (Array.isArray(data)) return data;
+    }
+  } catch (err) {
+    console.warn('[Storage] Failed to read purchases_store.json:', err);
+  }
+  return [];
+}
+
+function savePurchasesStore(records: PurchaseRecord[]) {
+  try {
+    const fs = require('fs');
+    fs.writeFileSync(PURCHASES_FILE, JSON.stringify(records, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('[Storage] Failed to write purchases_store.json:', err);
+  }
+}
+
+// Persistencia en disco Render para pagos pendientes de Stripe
+const STRIPE_PAYMENTS_FILE = path.resolve(__dirname, 'stripe_pending_store.json');
+
+function loadStripePaymentsStore(): any[] {
+  try {
+    const fs = require('fs');
+    if (fs.existsSync(STRIPE_PAYMENTS_FILE)) {
+      const raw = fs.readFileSync(STRIPE_PAYMENTS_FILE, 'utf8');
+      const data = JSON.parse(raw);
+      if (Array.isArray(data)) return data;
+    }
+  } catch (err) {
+    console.warn('[Storage] Failed to read stripe_pending_store.json:', err);
+  }
+  return [];
+}
+
+function saveStripePaymentsStore(records: any[]) {
+  try {
+    const fs = require('fs');
+    fs.writeFileSync(STRIPE_PAYMENTS_FILE, JSON.stringify(records, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('[Storage] Failed to write stripe_pending_store.json:', err);
+  }
+}
 
 // =========================================================================
 // ENLACES EXTERNOS FIJOS PARA IMÁGENES (Sin depender de Supabase Storage)
@@ -255,6 +308,36 @@ async function savePurchase(record: PurchaseRecord) {
   } else {
     purchases.push(record);
   }
+  savePurchasesStore(purchases);
+
+  // Auto-desbloquear acceso a la página web de Colombia si el pago se completó
+  if (record.status === 'completed' && (record.mediaId === 'acceso_pagina_colombia' || record.mediaId?.includes('pagina') || record.mediaId?.includes('colombia'))) {
+    try {
+      const nowIso = new Date().toISOString();
+      const ip = record.ipAddress || '';
+      const existing = colombiaAccessRequests.find(a => (ip && a.ipAddress === ip) || (record.buyerPhone && a.contactInfo === record.buyerPhone) || (record.buyerEmail && a.contactInfo === record.buyerEmail));
+      if (existing) {
+        existing.status = 'approved';
+        existing.approvedAt = nowIso;
+        existing.paymentMethod = record.paymentMethod || 'mercadopago';
+      } else {
+        colombiaAccessRequests.unshift({
+          id: `mp_auto_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          contactInfo: record.buyerEmail || record.buyerPhone || 'Pago MercadoPago Automático',
+          customCode: record.token || `mp_${Date.now()}`,
+          ipAddress: ip,
+          paymentMethod: record.paymentMethod || 'mercadopago',
+          status: 'approved',
+          createdAt: nowIso,
+          approvedAt: nowIso
+        });
+      }
+      saveColombiaAccess(colombiaAccessRequests);
+      console.log(`[Storage] Automatically unlocked Colombia access for IP: ${ip}, purchase: ${record.id}`);
+    } catch (e) {
+      console.warn('[Storage] Failed auto-unlocking Colombia access:', e);
+    }
+  }
 
   try {
     const payload = toSupabasePurchase(record);
@@ -370,9 +453,18 @@ async function syncFromSupabase() {
     }
 
     const { data: dbPurchases, error: pErr } = await supabase.from("purchases").select("*");
-    if (!pErr && dbPurchases) {
-      purchases = dbPurchases.map(fromSupabasePurchase);
-      console.log(`[Supabase DB] Loaded ${purchases.length} purchase records.`);
+    if (!pErr && dbPurchases && dbPurchases.length > 0) {
+      const fromDb = dbPurchases.map(fromSupabasePurchase);
+      for (const p of fromDb) {
+        const idx = purchases.findIndex(x => x.id === p.id || x.token === p.token);
+        if (idx >= 0) {
+          purchases[idx] = { ...purchases[idx], ...p };
+        } else {
+          purchases.push(p);
+        }
+      }
+      savePurchasesStore(purchases);
+      console.log(`[Supabase DB] Merged ${dbPurchases.length} purchase records.`);
     }
   } catch (err) {
     console.warn("[Supabase Sync Warning]", err);
@@ -797,7 +889,8 @@ app.delete("/api/media/:id", async (req, res) => {
 // ----------------------------------------------------
 app.post("/api/payments/stripe/save-pending", async (req, res) => {
   try {
-    const { mediaId, mediaTitle, amount, stripeUrl, contactInfo } = req.body;
+    const { mediaId, mediaTitle, amount, stripeUrl, contactInfo, deviceHash, downloadUrl } = req.body;
+    const clientIp = getClientIp(req);
 
     const cleanPhone = (contactInfo || '').replace(/[\s\-\(\)\.]/g, '');
     const isColombianPhone = cleanPhone.startsWith('+57') || cleanPhone.startsWith('57') || /^3\d{9}$/.test(cleanPhone);
@@ -805,23 +898,28 @@ app.post("/api/payments/stripe/save-pending", async (req, res) => {
 
     if (detectedCountry === 'CO' || isColombianPhone || req.body?.is_colombia === '1') {
       return res.status(400).json({
-        error: "Para compras desde Colombia, por favor utiliza los m�todos de pago en pesos colombianos (Mercado Pago o Nequi)."
+        error: "Para compras desde Colombia, por favor utiliza los métodos de pago en pesos colombianos (Mercado Pago o Nequi)."
       });
     }
 
     const pendingObj = {
-      id: `stripe_pend_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      id: req.body.id || `stripe_pend_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       media_id: mediaId,
       media_title: mediaTitle,
       amount: Number(amount) || 10,
-      currency: 'USD',
+      currency: req.body.currency || 'USD',
       stripe_url: stripeUrl || '',
       contact_info: contactInfo || '',
+      download_url: downloadUrl || '',
+      device_hash: deviceHash || req.body.device_hash || '',
+      ip_address: clientIp,
       status: 'pending',
       created_at: new Date().toISOString()
     };
 
+    stripePayments = stripePayments.filter(p => p.id !== pendingObj.id);
     stripePayments.push(pendingObj);
+    saveStripePaymentsStore(stripePayments);
 
     try {
       const { error } = await supabase.from("stripe_payments").upsert(pendingObj);
@@ -836,7 +934,27 @@ app.post("/api/payments/stripe/save-pending", async (req, res) => {
 
 app.get("/api/payments/stripe/pending", async (req, res) => {
   try {
-    const { contactInfo } = req.query;
+    const { contactInfo, deviceHash } = req.query;
+    const clientIp = getClientIp(req);
+
+    let found = null;
+    if (contactInfo && typeof contactInfo === 'string' && contactInfo.trim()) {
+      found = stripePayments.filter(p => p.status === 'pending' && p.contact_info === contactInfo.trim()).slice(-1)[0];
+    }
+    if (!found && deviceHash && typeof deviceHash === 'string') {
+      found = stripePayments.filter(p => p.status === 'pending' && (p.device_hash === deviceHash || p.deviceHash === deviceHash)).slice(-1)[0];
+    }
+    if (!found && clientIp) {
+      found = stripePayments.filter(p => p.status === 'pending' && (p.ip_address === clientIp || p.ipAddress === clientIp)).slice(-1)[0];
+    }
+    if (!found) {
+      found = stripePayments.filter(p => p.status === 'pending').slice(-1)[0] || null;
+    }
+
+    if (found) {
+      return res.json({ pendingPayment: found });
+    }
+
     if (contactInfo && typeof contactInfo === 'string') {
       try {
         const { data, error } = await supabase.from("stripe_payments")
@@ -851,8 +969,8 @@ app.get("/api/payments/stripe/pending", async (req, res) => {
         }
       } catch {}
     }
-    const memPending = stripePayments.filter(p => p.status === 'pending').slice(-1)[0] || null;
-    res.json({ pendingPayment: memPending });
+
+    res.json({ pendingPayment: null });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -863,7 +981,10 @@ app.post("/api/payments/stripe/mark-sent", async (req, res) => {
     const { id } = req.body;
     if (id) {
       const found = stripePayments.find(p => p.id === id);
-      if (found) found.status = 'sent';
+      if (found) {
+        found.status = 'sent';
+        saveStripePaymentsStore(stripePayments);
+      }
       try {
         await supabase.from("stripe_payments").update({ status: 'sent' }).eq("id", id);
       } catch {}
@@ -1621,35 +1742,60 @@ app.get("/api/colombia-page-access", (req, res) => {
   res.json(colombiaAccessRequests);
 });
 
-// Registrar nueva solicitud (ej: Nequi manual)
+// Registrar nueva solicitud o auto-aprobación (Mercado Pago, Nequi, etc.)
 app.post("/api/colombia-page-access", async (req, res) => {
-  const { id, contactInfo, method, deviceHash, ipAddress } = req.body;
+  const { id, contactInfo, method, deviceHash, ipAddress, status } = req.body;
   const clientIp = ipAddress || getClientIp(req);
   const reqId = id || `co_acc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-  
-  const record: ColombiaAccessRecord = {
-    id: reqId,
-    contactInfo: contactInfo || '',
-    customCode: '',
-    ipAddress: clientIp,
-    deviceHash: deviceHash || null,
-    paymentMethod: method || 'nequi',
-    status: 'pending',
-    createdAt: new Date().toISOString()
-  };
+  const isApproved = status === 'approved';
+  const nowIso = new Date().toISOString();
 
-  colombiaAccessRequests.unshift(record);
+  // Si ya existía registro con mismo deviceHash o IP, actualizarlo
+  const existingIdx = colombiaAccessRequests.findIndex(r => 
+    (deviceHash && r.deviceHash === deviceHash) || 
+    (clientIp && r.ipAddress === clientIp) || 
+    r.id === reqId
+  );
+
+  let record: ColombiaAccessRecord;
+  if (existingIdx >= 0) {
+    record = {
+      ...colombiaAccessRequests[existingIdx],
+      contactInfo: contactInfo || colombiaAccessRequests[existingIdx].contactInfo,
+      deviceHash: deviceHash || colombiaAccessRequests[existingIdx].deviceHash,
+      ipAddress: clientIp || colombiaAccessRequests[existingIdx].ipAddress,
+      paymentMethod: method || colombiaAccessRequests[existingIdx].paymentMethod,
+      status: isApproved ? 'approved' : colombiaAccessRequests[existingIdx].status,
+      approvedAt: isApproved ? nowIso : colombiaAccessRequests[existingIdx].approvedAt
+    };
+    colombiaAccessRequests[existingIdx] = record;
+  } else {
+    record = {
+      id: reqId,
+      contactInfo: contactInfo || '',
+      customCode: '',
+      ipAddress: clientIp,
+      deviceHash: deviceHash || null,
+      paymentMethod: method || 'nequi',
+      status: isApproved ? 'approved' : 'pending',
+      createdAt: nowIso,
+      approvedAt: isApproved ? nowIso : null
+    };
+    colombiaAccessRequests.unshift(record);
+  }
+
   saveColombiaAccess(colombiaAccessRequests);
 
   try {
-    await supabase.from('colombia_page_access').insert({
+    await supabase.from('colombia_page_access').upsert({
       id: record.id,
       contact_info: record.contactInfo,
       device_hash: record.deviceHash,
       ip_address: record.ipAddress,
       payment_method: record.paymentMethod,
-      status: 'pending',
-      created_at: record.createdAt
+      status: record.status,
+      created_at: record.createdAt,
+      approved_at: record.approvedAt
     });
   } catch (e) {}
 
@@ -1908,6 +2054,7 @@ app.post("/api/purchases/pending-direct", async (req, res) => {
     };
 
     purchases.unshift(record);
+    savePurchasesStore(purchases);
 
     try {
       await syncPurchaseToSupabase(record);
@@ -2339,6 +2486,19 @@ app.get("/api/purchases", (req, res) => {
     result = purchases.filter((p) => p.creatorHandle.toLowerCase() === creatorHandle.toLowerCase());
   }
   res.json(result);
+});
+
+app.delete("/api/purchases/pending", (req, res) => {
+  purchases = purchases.filter((p) => p.status !== "pending");
+  savePurchasesStore(purchases);
+  res.json({ success: true });
+});
+
+app.delete("/api/purchases/:id", (req, res) => {
+  const { id } = req.params;
+  purchases = purchases.filter((p) => p.id !== id && p.token !== id);
+  savePurchasesStore(purchases);
+  res.json({ success: true });
 });
 
 // ----------------------------------------------------
