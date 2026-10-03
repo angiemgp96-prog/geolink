@@ -13,6 +13,24 @@ const NEQUI_USA_LINK = 'https://giros.nequi.com.co/l/Cc1Sv9Bz';
 const TELEGRAM_USER  = 'Angelinaguzman69'; // sin @
 // ─────────────────────────────────────────────────────────────────────
 
+const EXTERNAL_PREVIEW_MAP: Record<string, string> = {
+  'media_1786139686398': 'https://i.postimg.cc/vxrJbf0r/Captura-de-pantalla-2026-08-07-165400.png',
+  'media_1786193399803': 'https://i.postimg.cc/PqdDQ20h/Captura-de-pantalla-2026-08-08-074919.png',
+  'media_1786193279456': 'https://i.postimg.cc/cH4Q0XcX/Captura-de-pantalla-2026-08-08-074735.png',
+  'media_1786139499820': 'https://i.postimg.cc/cL8vzNTf/Captura-de-pantalla-2026-08-07-165034.png',
+  'media_1787968790580': 'https://i.postimg.cc/hPcHw643/Captura-de-pantalla-2026-08-28-205656.png',
+  'media_1787798435018': 'https://i.postimg.cc/cHfbkMVb/Captura-de-pantalla-2026-08-27-122552.png',
+  'media_1788360145934': 'https://i.postimg.cc/hfMYsS6p/Captura-de-pantalla-2026-09-02-094437.png',
+  'media_1788638697559': 'https://i.postimg.cc/QVDsndYZ/Captura-de-pantalla-2026-09-05-150206.png',
+  'media_1789321394895': 'https://i.postimg.cc/1fyFDyLN/0912-(4)-Cover.jpg',
+  'media_1789319543796': 'https://i.postimg.cc/xJrp8qJw/0912-(4)(1)-Cover.jpg',
+  'media_1788094364764': 'https://i.postimg.cc/hJxWpkV5/Captura-de-pantalla-2026-08-30-075041.png',
+  'media_1786470016517': 'https://i.postimg.cc/FzBsW-vt6/Captura-de-pantalla-2026-08-11-123726.png',
+  'media_1788438475594': 'https://i.postimg.cc/JzPmPmbk/Captura-de-pantalla-2026-09-13-201710.png',
+  'media_1789948815305': 'https://i.postimg.cc/d7hgDzWd/Captura-de-pantalla-2026-09-23-231444.png',
+  'acceso_full_cat_actual': 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg'
+};
+
 type Screen = 'select' | 'contact_paypal' | 'contact_nequi' | 'bank_mexico' | 'bank_usa' | 'bank_europe' | 'bank_colombia' | 'mp_pending' | 'mp_success' | 'paypal_pending' | 'paypal_success';
 
 interface PurchaseModalProps {
@@ -406,7 +424,17 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
 
             {/* Preview blur */}
             <div className="relative rounded-2xl overflow-hidden mb-4 border border-slate-700/60 bg-slate-900 h-28 sm:h-32">
-              <img src={item.previewUrl} alt={item.title} className="w-full h-full object-cover blur-sm opacity-50 scale-105" />
+              <img
+                src={EXTERNAL_PREVIEW_MAP[item.id] || item.previewUrl}
+                alt={item.title}
+                onError={(e) => {
+                  if (EXTERNAL_PREVIEW_MAP[item.id]) {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = EXTERNAL_PREVIEW_MAP[item.id];
+                  }
+                }}
+                className="w-full h-full object-cover blur-sm opacity-50 scale-105"
+              />
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
                 <div className="w-10 h-10 rounded-full bg-indigo-600/30 border border-indigo-400/60 flex items-center justify-center backdrop-blur-md">
                   <Lock className="w-5 h-5 text-indigo-300" />

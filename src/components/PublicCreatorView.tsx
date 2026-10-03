@@ -14,6 +14,24 @@ interface PublicCreatorViewProps {
   onOpenPurchaseModal: (item: MediaItem) => void;
 }
 
+const EXTERNAL_PREVIEW_MAP: Record<string, string> = {
+  'media_1786139686398': 'https://i.postimg.cc/vxrJbf0r/Captura-de-pantalla-2026-08-07-165400.png',
+  'media_1786193399803': 'https://i.postimg.cc/PqdDQ20h/Captura-de-pantalla-2026-08-08-074919.png',
+  'media_1786193279456': 'https://i.postimg.cc/cH4Q0XcX/Captura-de-pantalla-2026-08-08-074735.png',
+  'media_1786139499820': 'https://i.postimg.cc/cL8vzNTf/Captura-de-pantalla-2026-08-07-165034.png',
+  'media_1787968790580': 'https://i.postimg.cc/hPcHw643/Captura-de-pantalla-2026-08-28-205656.png',
+  'media_1787798435018': 'https://i.postimg.cc/cHfbkMVb/Captura-de-pantalla-2026-08-27-122552.png',
+  'media_1788360145934': 'https://i.postimg.cc/hfMYsS6p/Captura-de-pantalla-2026-09-02-094437.png',
+  'media_1788638697559': 'https://i.postimg.cc/QVDsndYZ/Captura-de-pantalla-2026-09-05-150206.png',
+  'media_1789321394895': 'https://i.postimg.cc/1fyFDyLN/0912-(4)-Cover.jpg',
+  'media_1789319543796': 'https://i.postimg.cc/xJrp8qJw/0912-(4)(1)-Cover.jpg',
+  'media_1788094364764': 'https://i.postimg.cc/hJxWpkV5/Captura-de-pantalla-2026-08-30-075041.png',
+  'media_1786470016517': 'https://i.postimg.cc/FzBsW-vt6/Captura-de-pantalla-2026-08-11-123726.png',
+  'media_1788438475594': 'https://i.postimg.cc/JzPmPmbk/Captura-de-pantalla-2026-09-13-201710.png',
+  'media_1789948815305': 'https://i.postimg.cc/d7hgDzWd/Captura-de-pantalla-2026-09-23-231444.png',
+  'acceso_full_cat_actual': 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg'
+};
+
 export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   creator,
   mediaItems,
@@ -459,10 +477,16 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                   {/* Image Preview */}
                   <div className="relative aspect-[9/16] w-full overflow-hidden bg-zinc-950">
                     <img
-                      src={item.previewUrl}
+                      src={EXTERNAL_PREVIEW_MAP[item.id] || item.previewUrl}
                       alt={item.title}
                       loading="lazy"
                       decoding="async"
+                      onError={(e) => {
+                        if (EXTERNAL_PREVIEW_MAP[item.id]) {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = EXTERNAL_PREVIEW_MAP[item.id];
+                        }
+                      }}
                       className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
                         !isUnlocked ? 'blur-[3px] scale-105 opacity-80' : 'opacity-100 blur-none'
                       }`}
