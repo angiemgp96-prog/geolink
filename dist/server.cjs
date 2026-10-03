@@ -214,8 +214,8 @@ var app = (0, import_express.default)();
 var upload = (0, import_multer.default)({ storage: import_multer.default.memoryStorage() });
 var PORT = 3e3;
 app.use(import_express.default.json());
-var SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://eqpabbrmdssgoaaqtkgu.supabase.co";
-var SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcGFiYnJtZHNzZ29hYXF0a2d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxMDk2NTMsImV4cCI6MjEwMTY4NTY1M30.K09vvdfxkuBxd64RuQey9KV13Yz20fBBPkbWQOGGodQ";
+var SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://accbpgyejmhbhsscvkza.supabase.co";
+var SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjY2JwZ3llam1oYmhzc2N2a3phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5ODc3NjcsImV4cCI6MjEwNjU2Mzc2N30.Ix2ytNJIz3Pw-GWwjMgDTu7wP4R7gXi-ydjL-hhQEkg";
 var supabase = (0, import_supabase_js.createClient)(SUPABASE_URL, SUPABASE_KEY);
 var creators = [...INITIAL_CREATORS];
 var mediaItems = [...INITIAL_MEDIA_ITEMS];
@@ -374,9 +374,9 @@ async function savePurchase(record) {
   }
   try {
     const payload = toSupabasePurchase(record);
-    const { error } = await supabase.from("purchases").upsert(payload);
-    if (error) {
-      console.warn("[Supabase Purchase Sync Error]", error);
+    const { error: error2 } = await supabase.from("purchases").upsert(payload);
+    if (error2) {
+      console.warn("[Supabase Purchase Sync Error]", error2);
     } else {
       console.log(`[Supabase DB] Purchase ${record.id} (${record.status}) saved for IP ${record.ipAddress}`);
     }
@@ -717,13 +717,13 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
     const fileExt = file.originalname.split(".").pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
     const filePath = `public/${fileName}`;
-    const { data, error } = await supabase.storage.from("media-store").upload(filePath, file.buffer, {
+    const { data, error: error2 } = await supabase.storage.from("media-store").upload(filePath, file.buffer, {
       contentType: file.mimetype,
       upsert: false
     });
-    if (error) {
-      console.error("[Supabase Upload Error]", error);
-      return res.status(500).json({ error: error.message });
+    if (error2) {
+      console.error("[Supabase Upload Error]", error2);
+      return res.status(500).json({ error: error2.message });
     }
     const { data: { publicUrl } } = supabase.storage.from("media-store").getPublicUrl(filePath);
     res.json({ success: true, url: publicUrl });
@@ -788,8 +788,8 @@ app.post("/api/payments/stripe/save-pending", async (req, res) => {
     };
     stripePayments.push(pendingObj);
     try {
-      const { error } = await supabase.from("stripe_payments").upsert(pendingObj);
-      if (error) console.warn("[Supabase stripe_payments Sync Warning]", error);
+      const { error: error2 } = await supabase.from("stripe_payments").upsert(pendingObj);
+      if (error2) console.warn("[Supabase stripe_payments Sync Warning]", error2);
     } catch (e) {
     }
     res.json({ success: true, pendingPayment: pendingObj });
@@ -802,8 +802,8 @@ app.get("/api/payments/stripe/pending", async (req, res) => {
     const { contactInfo } = req.query;
     if (contactInfo && typeof contactInfo === "string") {
       try {
-        const { data, error } = await supabase.from("stripe_payments").select("*").eq("contact_info", contactInfo).eq("status", "pending").order("created_at", { ascending: false }).limit(1);
-        if (!error && data && data.length > 0) {
+        const { data, error: error2 } = await supabase.from("stripe_payments").select("*").eq("contact_info", contactInfo).eq("status", "pending").order("created_at", { ascending: false }).limit(1);
+        if (!error2 && data && data.length > 0) {
           return res.json({ pendingPayment: data[0] });
         }
       } catch {
@@ -1438,15 +1438,15 @@ app.post("/api/purchases/link-custom-code", async (req, res) => {
     return res.status(400).json({ error: "Missing parameters" });
   }
   try {
-    const { data, error } = await supabase.from("colombia_page_access").update({
+    const { data, error: error2 } = await supabase.from("colombia_page_access").update({
       device_hash: deviceHash,
       ip_address: ipAddress || null,
       status: "approved",
       approved_at: (/* @__PURE__ */ new Date()).toISOString()
     }).eq("id", id).select();
-    if (error) {
-      console.error("[Link Custom Code Error]", error);
-      return res.status(500).json({ error: error.message });
+    if (error2) {
+      console.error("[Link Custom Code Error]", error2);
+      return res.status(500).json({ error: error2.message });
     }
     res.json({ success: true, data });
   } catch (err) {
@@ -1538,8 +1538,8 @@ app.get("/api/purchases/unlocked-items", async (req, res) => {
     const tokensParam = (req.query.tokens || "").split(",").filter(Boolean);
     let dbMatches = [];
     try {
-      const { data: dbData, error } = await supabase.from("purchases").select("*").eq("status", "completed");
-      if (!error && dbData && dbData.length > 0) {
+      const { data: dbData, error: error2 } = await supabase.from("purchases").select("*").eq("status", "completed");
+      if (!error2 && dbData && dbData.length > 0) {
         const mapped = dbData.map(fromSupabasePurchase);
         dbMatches = mapped.filter(
           (p) => p.status === "completed" && (clientIp && p.ipAddress === clientIp || clientIp && p.ipAddress && clientIp.includes(p.ipAddress) || tokensParam.includes(p.token) || tokensParam.includes(p.id))
@@ -1639,7 +1639,6 @@ app.post("/api/visitor-leads", async (req, res) => {
     };
     visitorLeads.push(leadObj);
     try {
-      const { error } = await supabase.from("visitor_leads").upsert(leadObj);
       if (error) console.warn("[Supabase Lead Sync Error]", error);
     } catch {
     }
@@ -1650,8 +1649,8 @@ app.post("/api/visitor-leads", async (req, res) => {
 });
 app.get("/api/visitor-leads", async (req, res) => {
   try {
-    const { data, error } = await supabase.from("visitor_leads").select("*").order("created_at", { ascending: false });
-    if (!error && data && data.length > 0) {
+    const { data, error: error2 } = await supabase.from("visitor_leads").select("*").order("created_at", { ascending: false });
+    if (!error2 && data && data.length > 0) {
       const mapped = data.map((row) => ({
         id: row.id,
         contactInfo: row.contact_info || row.contactInfo || "",

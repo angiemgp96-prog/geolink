@@ -21,8 +21,8 @@ const PORT = 3000;
 app.use(express.json());
 
 // Supabase Client Setup
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://eqpabbrmdssgoaaqtkgu.supabase.co";
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcGFiYnJtZHNzZ29hYXF0a2d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxMDk2NTMsImV4cCI6MjEwMTY4NTY1M30.K09vvdfxkuBxd64RuQey9KV13Yz20fBBPkbWQOGGodQ";
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://accbpgyejmhbhsscvkza.supabase.co";
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjY2JwZ3llam1oYmhzc2N2a3phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5ODc3NjcsImV4cCI6MjEwNjU2Mzc2N30.Ix2ytNJIz3Pw-GWwjMgDTu7wP4R7gXi-ydjL-hhQEkg";
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // In-Memory Data Store (Synchronized with Supabase DB)
@@ -1814,7 +1814,7 @@ app.post("/api/visitor-leads", async (req, res) => {
     visitorLeads.push(leadObj);
 
     try {
-      const { error } = await supabase.from("visitor_leads").upsert(leadObj);
+      // const { error } = await supabase.from("visitor_leads").upsert(leadObj);
       if (error) console.warn("[Supabase Lead Sync Error]", error);
     } catch {}
 

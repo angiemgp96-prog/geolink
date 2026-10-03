@@ -3,8 +3,8 @@ import { CreatorProfile, MediaItem, PurchaseRecord, VisitorLocation, VisitorLead
 import { getStripePaymentUrl } from '../utils/stripeLinks';
 import { sanitizeStripeTitle, sanitizeStripeDescription, sanitizeStripeMetadata, getStripeSafeImage } from '../utils/stripeSanitizer';
 
-const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL || 'https://eqpabbrmdssgoaaqtkgu.supabase.co';
-const SUPABASE_ANON_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcGFiYnJtZHNzZ29hYXF0a2d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxMDk2NTMsImV4cCI6MjEwMTY4NTY1M30.K09vvdfxkuBxd64RuQey9KV13Yz20fBBPkbWQOGGodQ';
+const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL || 'https://accbpgyejmhbhsscvkza.supabase.co';
+const SUPABASE_ANON_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjY2JwZ3llam1oYmhzc2N2a3phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5ODc3NjcsImV4cCI6MjEwNjU2Mzc2N30.Ix2ytNJIz3Pw-GWwjMgDTu7wP4R7gXi-ydjL-hhQEkg';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 export const isSupabaseConfigured = () => Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
@@ -598,46 +598,9 @@ export const api = {
       deviceHash = localStorage.getItem('geolink_device_fingerprint') || '';
     } catch {}
 
-    if (isSupabaseConfigured()) {
-      try {
-        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        await supabase.from('visitor_leads').delete().lt('created_at', oneDayAgo);
+    // Almacenamiento en tabla visitor_leads suprimido para proteger la cuota de almacenamiento de Supabase
+    // y evitar que la base de datos se sature.
 
-        // Deduplicate ONLY double-clicks/double-calls within the last 10 seconds for the SAME contact and device
-        const tenSecondsAgo = new Date(Date.now() - 10 * 1000).toISOString();
-        const { data: recentSameClick } = await supabase
-          .from('visitor_leads')
-          .select('id, ip_address')
-          .eq('contact_info', trimmedContact)
-          .gte('created_at', tenSecondsAgo)
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        if (recentSameClick && recentSameClick.length > 0) {
-          // Double-call within 10s: Update IP/country of existing row instead of inserting duplicate
-          await supabase
-            .from('visitor_leads')
-            .update({
-              country_code: effectiveCountry || undefined,
-              device_hash: deviceHash || undefined
-            })
-            .eq('id', recentSameClick[0].id);
-          return { success: true, updated: true };
-        }
-
-        // Insert new clean lead entry for every new visit/entry
-        const leadObj = {
-          id: `lead_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-          contact_info: trimmedContact,
-          country_code: effectiveCountry || '',
-          device_hash: deviceHash,
-          created_at: new Date().toISOString()
-        };
-        await supabase.from('visitor_leads').upsert(leadObj);
-      } catch (err) {
-        console.warn('Supabase lead save warning:', err);
-      }
-    }
 
     try {
       const res = await fetch('/api/visitor-leads', {
