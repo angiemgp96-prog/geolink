@@ -26,6 +26,7 @@ var import_stripe = __toESM(require("stripe"), 1);
 var import_dotenv = __toESM(require("dotenv"), 1);
 var import_express = __toESM(require("express"), 1);
 var import_multer = __toESM(require("multer"), 1);
+var import_fs = __toESM(require("fs"), 1);
 var import_path = __toESM(require("path"), 1);
 var import_vite = require("vite");
 var import_supabase_js = require("@supabase/supabase-js");
@@ -1881,9 +1882,9 @@ async function startServer() {
     const distPath = import_path.default.join(process.cwd(), "dist");
     const previewsDist = import_path.default.join(distPath, "previews");
     const previewsPub = import_path.default.join(process.cwd(), "public", "previews");
-    if (fs.existsSync(previewsDist)) {
+    if (import_fs.default.existsSync(previewsDist)) {
       app.use("/previews", import_express.default.static(previewsDist, { maxAge: "30d", immutable: true }));
-    } else if (fs.existsSync(previewsPub)) {
+    } else if (import_fs.default.existsSync(previewsPub)) {
       app.use("/previews", import_express.default.static(previewsPub, { maxAge: "30d", immutable: true }));
     }
     app.use(import_express.default.static(distPath, {

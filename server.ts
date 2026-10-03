@@ -7,6 +7,7 @@ dotenv.config();
 
 import express from "express";
 import multer from "multer";
+import fs from "fs";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { createClient } from "@supabase/supabase-js";
