@@ -13,7 +13,25 @@ const NEQUI_USA_LINK = 'https://giros.nequi.com.co/l/Cc1Sv9Bz';
 const TELEGRAM_USER  = 'Angelinaguzman69'; // sin @
 // ─────────────────────────────────────────────────────────────────────
 
-const EXTERNAL_PREVIEW_MAP: Record<string, string> = {
+const LOCAL_PREVIEW_MAP: Record<string, string> = {
+  'media_1786139686398': '/previews/media_1786139686398.webp',
+  'media_1786193399803': '/previews/media_1786193399803.webp',
+  'media_1786193279456': '/previews/media_1786193279456.webp',
+  'media_1786139499820': '/previews/media_1786139499820.webp',
+  'media_1787968790580': '/previews/media_1787968790580.webp',
+  'media_1787798435018': '/previews/media_1787798435018.webp',
+  'media_1788360145934': '/previews/media_1788360145934.webp',
+  'media_1788638697559': '/previews/media_1788638697559.webp',
+  'media_1789321394895': '/previews/media_1789321394895.webp',
+  'media_1789319543796': '/previews/media_1789319543796.webp',
+  'media_1788094364764': '/previews/media_1788094364764.webp',
+  'media_1786470016517': '/previews/media_1786470016517.webp',
+  'media_1788438475594': '/previews/media_1788438475594.webp',
+  'media_1789948815305': '/previews/media_1789948815305.webp',
+  'acceso_full_cat_actual': '/previews/acceso_full_cat_actual.webp'
+};
+
+const FALLBACK_POSTIMG_MAP: Record<string, string> = {
   'media_1786139686398': 'https://i.postimg.cc/vxrJbf0r/Captura-de-pantalla-2026-08-07-165400.png',
   'media_1786193399803': 'https://i.postimg.cc/PqdDQ20h/Captura-de-pantalla-2026-08-08-074919.png',
   'media_1786193279456': 'https://i.postimg.cc/cH4Q0XcX/Captura-de-pantalla-2026-08-08-074735.png',
@@ -425,12 +443,12 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
             {/* Preview blur */}
             <div className="relative rounded-2xl overflow-hidden mb-4 border border-slate-700/60 bg-slate-900 h-28 sm:h-32">
               <img
-                src={EXTERNAL_PREVIEW_MAP[item.id] || item.previewUrl}
+                src={LOCAL_PREVIEW_MAP[item.id] || item.previewUrl || FALLBACK_POSTIMG_MAP[item.id]}
                 alt={item.title}
                 onError={(e) => {
-                  if (EXTERNAL_PREVIEW_MAP[item.id]) {
+                  if (FALLBACK_POSTIMG_MAP[item.id] && e.currentTarget.src !== FALLBACK_POSTIMG_MAP[item.id]) {
                     e.currentTarget.onerror = null;
-                    e.currentTarget.src = EXTERNAL_PREVIEW_MAP[item.id];
+                    e.currentTarget.src = FALLBACK_POSTIMG_MAP[item.id];
                   }
                 }}
                 className="w-full h-full object-cover blur-sm opacity-50 scale-105"

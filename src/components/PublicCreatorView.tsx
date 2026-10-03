@@ -14,7 +14,25 @@ interface PublicCreatorViewProps {
   onOpenPurchaseModal: (item: MediaItem) => void;
 }
 
-const EXTERNAL_PREVIEW_MAP: Record<string, string> = {
+const LOCAL_PREVIEW_MAP: Record<string, string> = {
+  'media_1786139686398': '/previews/media_1786139686398.webp',
+  'media_1786193399803': '/previews/media_1786193399803.webp',
+  'media_1786193279456': '/previews/media_1786193279456.webp',
+  'media_1786139499820': '/previews/media_1786139499820.webp',
+  'media_1787968790580': '/previews/media_1787968790580.webp',
+  'media_1787798435018': '/previews/media_1787798435018.webp',
+  'media_1788360145934': '/previews/media_1788360145934.webp',
+  'media_1788638697559': '/previews/media_1788638697559.webp',
+  'media_1789321394895': '/previews/media_1789321394895.webp',
+  'media_1789319543796': '/previews/media_1789319543796.webp',
+  'media_1788094364764': '/previews/media_1788094364764.webp',
+  'media_1786470016517': '/previews/media_1786470016517.webp',
+  'media_1788438475594': '/previews/media_1788438475594.webp',
+  'media_1789948815305': '/previews/media_1789948815305.webp',
+  'acceso_full_cat_actual': '/previews/acceso_full_cat_actual.webp'
+};
+
+const FALLBACK_POSTIMG_MAP: Record<string, string> = {
   'media_1786139686398': 'https://i.postimg.cc/vxrJbf0r/Captura-de-pantalla-2026-08-07-165400.png',
   'media_1786193399803': 'https://i.postimg.cc/PqdDQ20h/Captura-de-pantalla-2026-08-08-074919.png',
   'media_1786193279456': 'https://i.postimg.cc/cH4Q0XcX/Captura-de-pantalla-2026-08-08-074735.png',
@@ -255,11 +273,17 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
       {/* HEADER BANNER TOP */}
       <div className="relative h-44 sm:h-72 w-full overflow-hidden bg-slate-900">
         <img
-          src={creator.banner}
+          src={creator.banner || '/previews/banner.webp'}
           alt={creator.name}
           fetchPriority="high"
           loading="eager"
           decoding="async"
+          onError={(e) => {
+            if (e.currentTarget.src !== 'https://i.postimg.cc/xC9NFRvT/Captura-de-pantalla-2026-09-06-050057-(1).jpg') {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://i.postimg.cc/xC9NFRvT/Captura-de-pantalla-2026-09-06-050057-(1).jpg';
+            }
+          }}
           className="w-full h-full object-cover opacity-60 scale-105 transition-transform duration-1000 hover:scale-100"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-[#030712]" />
@@ -342,12 +366,18 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             onContextMenu={(e) => e.preventDefault()}
           >
             <img
-              src={creator.avatar}
+              src={creator.avatar || '/previews/avatar.webp'}
               alt={creator.name}
               draggable="false"
               fetchPriority="high"
               loading="eager"
               decoding="async"
+              onError={(e) => {
+                if (e.currentTarget.src !== 'https://i.postimg.cc/ZYGVK9h0/magnific-quita-el-tatuaje-dela-esp-Pi72JNz42C.png') {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = 'https://i.postimg.cc/ZYGVK9h0/magnific-quita-el-tatuaje-dela-esp-Pi72JNz42C.png';
+                }
+              }}
               onContextMenu={(e) => e.preventDefault()}
               className="w-full h-full object-cover rounded-full border-2 border-[#030712] pointer-events-none select-none"
             />
@@ -477,14 +507,14 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                   {/* Image Preview */}
                   <div className="relative aspect-[9/16] w-full overflow-hidden bg-zinc-950">
                     <img
-                      src={EXTERNAL_PREVIEW_MAP[item.id] || item.previewUrl}
+                      src={LOCAL_PREVIEW_MAP[item.id] || item.previewUrl || FALLBACK_POSTIMG_MAP[item.id]}
                       alt={item.title}
                       loading="lazy"
                       decoding="async"
                       onError={(e) => {
-                        if (EXTERNAL_PREVIEW_MAP[item.id]) {
+                        if (FALLBACK_POSTIMG_MAP[item.id] && e.currentTarget.src !== FALLBACK_POSTIMG_MAP[item.id]) {
                           e.currentTarget.onerror = null;
-                          e.currentTarget.src = EXTERNAL_PREVIEW_MAP[item.id];
+                          e.currentTarget.src = FALLBACK_POSTIMG_MAP[item.id];
                         }
                       }}
                       className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
