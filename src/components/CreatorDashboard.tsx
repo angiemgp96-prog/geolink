@@ -2002,16 +2002,29 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                   <tbody className="divide-y divide-slate-800">
                     {colombiaRequests.map((req) => {
                       const hostUrl = typeof window !== 'undefined' ? window.location.origin : 'https://geolink-1.onrender.com';
-                      const linkUrl = req.custom_code ? `${hostUrl}/?access=${req.custom_code}` : null;
+                      const accessCode = req.customCode || req.custom_code;
+                      const linkUrl = accessCode
+                        ? `${hostUrl}/?access=${accessCode}`
+                        : (req.token ? `${hostUrl}/?unlock=${req.token}` : null);
+                      const isMp = (req.paymentMethod || '').toUpperCase().includes('MERCADOPAGO');
+                      const isNequi = (req.paymentMethod || '').toUpperCase().includes('NEQUI');
+
                       return (
                         <tr key={req.id}>
                           <td className="p-2.5 text-slate-400">{new Date(req.createdAt).toLocaleDateString()} {new Date(req.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                          <td className="p-2.5 font-bold text-white">{req.contactInfo}</td>
+                          <td className="p-2.5 font-bold text-white">
+                            <div>{req.contactInfo}</div>
+                            {req.ipAddress && (
+                              <span className="text-[9px] font-mono text-cyan-300 bg-cyan-950/60 border border-cyan-800/40 px-1 py-0.2 rounded inline-block mt-0.5">
+                                🌐 {req.ipAddress}
+                              </span>
+                            )}
+                          </td>
                           <td className="p-2.5">
                             {linkUrl ? (
                               <div className="flex items-center gap-1.5">
                                 <span className="font-mono text-amber-300 text-[11px] font-bold bg-amber-950/60 border border-amber-500/30 px-1.5 py-0.5 rounded">
-                                  {req.custom_code}
+                                  {accessCode || (req.token ? req.token.slice(-6).toUpperCase() : 'VIP')}
                                 </span>
                                 <button
                                   onClick={() => handleCopyCustomLink(linkUrl, req.id)}
@@ -2024,7 +2037,17 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                               <span className="text-slate-500 text-[10px]">Sin código</span>
                             )}
                           </td>
-                          <td className="p-2.5 uppercase font-mono text-amber-300">{req.paymentMethod}</td>
+                          <td className="p-2.5">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                              isMp
+                                ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
+                                : isNequi
+                                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                                : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                            }`}>
+                              {req.paymentMethod}
+                            </span>
+                          </td>
                           <td className="p-2.5">
                             <span className={`px-2 py-0.5 rounded font-bold text-[10px] uppercase ${req.status === 'approved' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'}`}>
                               {req.status === 'approved' ? '🟢 APROBADO' : '⏳ PENDIENTE'}

@@ -991,26 +991,62 @@ export const api = {
   },
 
   async getColombiaAccessRequests(): Promise<any[]> {
+    const list: any[] = [];
+    const seenIds = new Set<string>();
+
     if (isSupabaseConfigured()) {
       try {
-        const { data, error } = await supabase
-          .from('colombia_page_access')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(100);
+        const [colRes, purchRes] = await Promise.all([
+          supabase
+            .from('colombia_page_access')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(100),
+          supabase
+            .from('purchases')
+            .select('*')
+            .or('media_id.eq.acceso_pagina_colombia,media_title.ilike.%Pase%,media_title.ilike.%Página Web%')
+            .order('created_at', { ascending: false })
+            .limit(100)
+        ]);
 
-        if (!error && data) {
-          return data.map((row: any) => ({
-            id: row.id,
-            contactInfo: row.contact_info || '',
-            customCode: row.custom_code || '',
-            ipAddress: row.ip_address || '',
-            deviceHash: row.device_hash || '',
-            paymentMethod: row.payment_method || 'nequi',
-            status: row.status || 'pending',
-            createdAt: row.created_at || new Date().toISOString()
-          }));
+        if (colRes.data) {
+          for (const row of colRes.data) {
+            seenIds.add(row.id);
+            list.push({
+              id: row.id,
+              contactInfo: row.contact_info || '',
+              customCode: row.custom_code || '',
+              ipAddress: row.ip_address || '',
+              deviceHash: row.device_hash || '',
+              paymentMethod: (row.payment_method || 'nequi').toUpperCase(),
+              status: row.status || 'pending',
+              createdAt: row.created_at || new Date().toISOString()
+            });
+          }
         }
+
+        if (purchRes.data) {
+          for (const p of purchRes.data) {
+            if (seenIds.has(p.id)) continue;
+            seenIds.add(p.id);
+            const isApproved = p.status === 'completed' || p.status === 'approved';
+            list.push({
+              id: p.id,
+              contactInfo: p.buyer_phone || p.buyer_email || 'Cliente MercadoPago',
+              customCode: p.token ? p.token.slice(-6).toUpperCase() : '',
+              ipAddress: p.ip_address || '',
+              deviceHash: '',
+              paymentMethod: (p.payment_method || 'mercadopago').toUpperCase(),
+              status: isApproved ? 'approved' : 'pending',
+              createdAt: p.created_at || new Date().toISOString(),
+              token: p.token
+            });
+          }
+        }
+
+        list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        return list;
       } catch (err) {
         console.warn('Supabase colombia_page_access fetch error:', err);
       }
@@ -1027,16 +1063,20 @@ export const api = {
   async approveColombiaAccessRequest(id: string): Promise<boolean> {
     if (isSupabaseConfigured()) {
       try {
-        const { error } = await supabase
-          .from('colombia_page_access')
-          .update({ status: 'approved', approved_at: new Date().toISOString() })
-          .eq('id', id);
-
-        if (error) {
-          await supabase
+        if (id.startsWith('mp_purch_') || id.startsWith('dir_purch_')) {
+          await supabase.from('purchases').update({ status: 'completed' }).eq('id', id);
+        } else {
+          const { error } = await supabase
             .from('colombia_page_access')
             .update({ status: 'approved', approved_at: new Date().toISOString() })
-            .eq('custom_code', id);
+            .eq('id', id);
+
+          if (error) {
+            await supabase
+              .from('colombia_page_access')
+              .update({ status: 'approved', approved_at: new Date().toISOString() })
+              .eq('custom_code', id);
+          }
         }
       } catch (err) {
         console.warn('Supabase approve colombia_page_access warning:', err);
@@ -1054,7 +1094,11 @@ export const api = {
   async deleteColombiaAccessRequest(id: string): Promise<boolean> {
     if (isSupabaseConfigured()) {
       try {
-        await supabase.from('colombia_page_access').delete().eq('id', id);
+        if (id.startsWith('mp_purch_') || id.startsWith('dir_purch_')) {
+          await supabase.from('purchases').delete().eq('id', id);
+        } else {
+          await supabase.from('colombia_page_access').delete().eq('id', id);
+        }
       } catch (err) {
         console.warn('Supabase delete colombia_page_access warning:', err);
       }
