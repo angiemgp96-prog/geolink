@@ -355,17 +355,6 @@ export default function App() {
           setIsColombiaPageUnlocked(true);
           window.location.href = window.location.pathname;
         } catch {}
-      } else if (token && isPpReturn) {
-        try {
-          const captureRes = await api.capturePayPalOrder('', token);
-          if (captureRes.valid && captureRes.purchase) {
-            addUnlockedToken(token);
-            const foundMedia = mediaItems.find(m => m.id === captureRes.purchase.mediaId);
-            if (foundMedia) {
-              setSelectedMediaForPurchase(foundMedia);
-            }
-          }
-        } catch {}
       }
     } catch (e) {
       console.warn('Init error, using defaults:', e);

@@ -463,33 +463,29 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
           {/* GRID DE PRODUCTOS DE LA TIENDA (2 POR LÍNEA EN CELULARES Y PC) */}
           <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
             {filteredItems.map((item) => {
-              const isUnlocked = unlockedMediaIds.includes(item.id);
+              // Estricto: Solo y exclusivamente en Colombia y con pago verificado por Mercado Pago API se desbloquea el grupo
+              const isUnlocked = isColombia && unlockedMediaIds.includes(item.id);
               const prices = getCalculatedPrices(item.price, item.id);
               const isLatest = latest2VideoIds.includes(item.id);
 
               const handleCardClick = () => {
-                if (isUnlocked) {
+                if (isColombia && isUnlocked) {
+                  // SÍ Y SOLO SÍ en Colombia y verificado por Mercado Pago API se redirige al grupo
                   const targetUrl = item.downloadUrl || 'https://t.me/+vREXeP2U7Kw3ZTJh';
                   window.open(targetUrl, '_blank');
                 } else if (isColombia) {
-                  // Para visitantes en Colombia: nunca enviar a Stripe, abrir modal con Mercado Pago y Nequi
+                  // Para visitantes en Colombia: modal exclusivo con Mercado Pago y Nequi Llave Bre-B
                   onOpenPurchaseModal(item);
                 } else if (paymentVisibility?.direct_telegram_mode) {
+                  // Fuera de Colombia con modo directo Telegram: redirige al chat normal con los detalles del video
                   const finalPrice = globalDiscount > 0 ? (item.price * (1 - globalDiscount / 100)) : item.price;
-                  const stripeUrl = getStripePaymentUrl(Number(finalPrice));
-                  try {
-                    localStorage.setItem('geolink_pending_telegram_payment', JSON.stringify({
-                      mediaId: item.id,
-                      mediaTitle: item.title,
-                      amount: Number(finalPrice),
-                      currency: item.currency || 'USD',
-                      stripeUrl,
-                      downloadUrl: item.downloadUrl || '',
-                      timestamp: Date.now(),
-                    }));
-                  } catch {}
-                  window.open(stripeUrl, '_blank');
+                  const formattedAmount = `$${Number(finalPrice).toFixed(2)} USD`;
+                  const msg = encodeURIComponent(
+                    `¡Hola! Quiero comprar el contenido: "${item.title}" (${formattedAmount}).\n\n¿Cuáles son los métodos de pago disponibles? 📎`
+                  );
+                  window.open(`https://t.me/Angelinaguzman69?text=${msg}`, '_blank');
                 } else {
+                  // Fuera de Colombia: abrir modal para Stripe, PayPal o Transferencias
                   onOpenPurchaseModal(item);
                 }
               };
