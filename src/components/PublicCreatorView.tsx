@@ -471,6 +471,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                 if (isUnlocked) {
                   const targetUrl = item.downloadUrl || 'https://t.me/+vREXeP2U7Kw3ZTJh';
                   window.open(targetUrl, '_blank');
+                } else if (isColombia) {
+                  // Para visitantes en Colombia: nunca enviar a Stripe, abrir modal con Mercado Pago y Nequi
+                  onOpenPurchaseModal(item);
                 } else if (paymentVisibility?.direct_telegram_mode) {
                   const finalPrice = globalDiscount > 0 ? (item.price * (1 - globalDiscount / 100)) : item.price;
                   const stripeUrl = getStripePaymentUrl(Number(finalPrice));

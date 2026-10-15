@@ -410,9 +410,9 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   };
 
   const isColombiaVisitor = detectedRegion === 'CO';
-  const hasActivePaymentMethods = isColombiaVisitor ? (
-    paymentVisibility.mercadopago !== false || paymentVisibility.paypal_telegram !== false
-  ) : true;
+  const hasActivePaymentMethods = isColombiaVisitor ? true : (
+    paymentVisibility.mercadopago !== false || paymentVisibility.paypal_telegram !== false || paymentVisibility.stripe !== false || paymentVisibility.paypal !== false || paymentVisibility.nequi_usa !== false
+  );
 
   // ─────────────────────────────────────────────────────────────────
   return (
@@ -482,30 +482,28 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
               </div>
             ) : (
               <div className="space-y-3">
-                {/* 1. COLOMBIA: MERCADO PAGO Y NEQUI VISIBLES SEGÚN CONFIGURACIÓN */}
+                {/* 1. COLOMBIA: MERCADO PAGO Y NEQUI VISIBLES SIEMPRE POR DEFECTO */}
                 {detectedRegion === 'CO' && (
                   <div className="space-y-3">
                     <p className="text-[11px] font-bold text-sky-400 uppercase tracking-wider mb-1">MÉTODOS DE PAGO COLOMBIA:</p>
-                    {paymentVisibility.mercadopago === true && (
-                      <button
-                        id="pay-mercadopago-button"
-                        disabled={isLoading}
-                        onClick={handleMercadoPagoDirect}
-                        className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-sky-600/20 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group border-2 border-sky-400/50"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇨🇴</div>
-                          <div className="text-left">
-                            <div className="flex items-center gap-1.5">
-                              <span>Mercado Pago Colombia</span>
-                              <span className="bg-sky-400/20 text-sky-200 border border-sky-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">RECOMENDADO</span>
-                            </div>
-                            <div className="text-[11px] font-normal text-sky-100">Tarjetas · Nequi · PSE · Débito</div>
+                    <button
+                      id="pay-mercadopago-button"
+                      disabled={isLoading}
+                      onClick={handleMercadoPagoDirect}
+                      className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-sky-600/20 flex items-center justify-between transition-all cursor-pointer disabled:opacity-50 group border-2 border-sky-400/50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-lg">🇨🇴</div>
+                        <div className="text-left">
+                          <div className="flex items-center gap-1.5">
+                            <span>Mercado Pago Colombia</span>
+                            <span className="bg-sky-400/20 text-sky-200 border border-sky-400/40 text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded">RECOMENDADO</span>
                           </div>
+                          <div className="text-[11px] font-normal text-sky-100">Tarjetas · Nequi · PSE · Débito</div>
                         </div>
-                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
-                      </button>
-                    )}
+                      </div>
+                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />}
+                    </button>
 
                     <button
                       id="pay-bank-colombia-button"

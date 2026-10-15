@@ -334,12 +334,17 @@ export default function App() {
               if (verifyRes.purchase.mediaId === 'acceso_pagina_colombia') {
                 await api.autoApproveMercadoPagoColombiaAccess();
                 setIsColombiaPageUnlocked(true);
+                window.location.href = window.location.pathname;
+                return;
               } else {
                 addUnlockedToken(token);
+                // Redirigir directamente al grupo de Telegram asociado a la compra
+                const targetTelegram = verifyRes.purchase.downloadUrl
+                  || mediaItems.find(m => m.id === verifyRes.purchase?.mediaId)?.downloadUrl
+                  || 'https://t.me/+vREXeP2U7Kw3ZTJh';
+                window.location.href = targetTelegram;
+                return;
               }
-              // Force clean reload so the user sees the store fully unlocked
-              window.location.href = window.location.pathname;
-              return;
             }
           } catch {}
         }
