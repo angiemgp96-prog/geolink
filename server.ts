@@ -294,7 +294,12 @@ async function syncFromSupabase() {
 
     const { data: dbMedia, error: mErr } = await supabase.from("media_items").select("*");
     if (!mErr && dbMedia) {
-      mediaItems = dbMedia.map(fromSupabaseMedia);
+      const uniqueMap = new Map();
+      for (const row of dbMedia) {
+        const item = fromSupabaseMedia(row);
+        if (item && item.id) uniqueMap.set(item.id, item);
+      }
+      mediaItems = Array.from(uniqueMap.values());
       console.log(`[Supabase DB] Loaded ${mediaItems.length} media items from Supabase.`);
       // Auto-heal is_extra_premium column in Supabase
       for (const item of mediaItems) {
@@ -567,7 +572,13 @@ app.get("/api/creators/:handle", async (req, res) => {
     return res.status(404).json({ error: "Creador no encontrado" });
   }
 
-  const items = mediaItems.filter((m) => m.creatorHandle.toLowerCase() === handle.toLowerCase());
+  const uniqueItemsMap = new Map();
+  for (const m of mediaItems) {
+    if (m && m.creatorHandle && m.creatorHandle.toLowerCase() === handle.toLowerCase() && m.id) {
+      uniqueItemsMap.set(m.id, m);
+    }
+  }
+  const items = Array.from(uniqueItemsMap.values());
 
   res.json({
     creator,

@@ -218,7 +218,11 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     return isColombia ? Math.round(rawDiscountedBase * activeMult) : rawDiscountedBase;
   };
 
-  const sortedAllItems = [...mediaItems]
+  const uniqueMediaList = Array.from(
+    new Map((mediaItems || []).map(item => [item.id, item])).values()
+  );
+
+  const sortedAllItems = uniqueMediaList
     .filter((item) => item.id !== 'acceso_full_cat_actual')
     .sort((a, b) => {
       const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -428,7 +432,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                 onClick={() => setFilterType('all')}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${filterType === 'all' ? 'bg-indigo-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'}`}
               >
-                {t.filterAll} ({mediaItems.length - 1})
+                {t.filterAll} ({sortedAllItems.length})
               </button>
               <button
                 onClick={() => setFilterType('video')}

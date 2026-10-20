@@ -266,30 +266,6 @@ export const api = {
       ...item,
       createdAt: item.createdAt || new Date().toISOString()
     };
-    if (isSupabaseConfigured()) {
-      try {
-        await supabase.from('media_items').upsert({
-          id: itemToSave.id,
-          creator_id: itemToSave.creatorId || 'creator_1',
-          creator_handle: itemToSave.creatorHandle,
-          title: itemToSave.title,
-          description: itemToSave.description,
-          type: itemToSave.type,
-          price: itemToSave.price,
-          currency: itemToSave.currency,
-          preview_url: itemToSave.previewUrl,
-          content_url: itemToSave.downloadUrl,
-          file_size: itemToSave.fileSize,
-          duration: itemToSave.duration,
-          sales_count: itemToSave.purchasesCount || 0,
-          created_at: itemToSave.createdAt,
-          is_extra_premium: Boolean(itemToSave.isExtraPremium),
-          data: { ...itemToSave, isExtraPremium: Boolean(itemToSave.isExtraPremium) }
-        });
-      } catch (err) {
-        console.warn('Supabase sync warning:', err);
-      }
-    }
 
     const res = await fetch('/api/media', {
       method: 'POST',

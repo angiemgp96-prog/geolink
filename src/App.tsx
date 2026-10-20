@@ -368,7 +368,11 @@ export default function App() {
     try {
       const data = await api.getCreator(handle);
       setCurrentCreator(data.creator);
-      setMediaItems(data.mediaItems);
+      // Desduplicar estrictamente por id único
+      const uniqueMedia = Array.from(
+        new Map((data.mediaItems || []).map(item => [item.id, item])).values()
+      );
+      setMediaItems(uniqueMedia);
       checkGeoAccess(handle, simulatedCountry);
     } catch (e) {
       console.warn('Creator fetch fallback:', e);

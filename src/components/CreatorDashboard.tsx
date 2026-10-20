@@ -520,7 +520,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
           }`}
         >
           <ShoppingBag className="w-4 h-4 text-purple-400" />
-          <span>Tienda Fotos/Videos ({(mediaItems || []).length})</span>
+          <span>Tienda Fotos/Videos ({Array.from(new Map((mediaItems || []).map(item => [item.id, item])).values()).length})</span>
         </button>
 
         <button
@@ -1082,7 +1082,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
 
           {/* List of Store Items */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[...(mediaItems || [])]
+            {Array.from(new Map((mediaItems || []).map(item => [item.id, item])).values())
               .sort((a, b) => {
                 const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
                 const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
