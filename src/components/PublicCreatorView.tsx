@@ -287,21 +287,6 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
           className="w-full h-full object-cover opacity-60 scale-105 transition-transform duration-1000 hover:scale-100"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-[#030712]" />
-
-        {/* Top Banner OnlyFans Link */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20">
-          <a
-            id="onlyfans-top-banner-link"
-            href="https://onlyfans.com/angelinax69"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-sky-500/30 transition-all hover:scale-105 border border-sky-300/40"
-          >
-            <Flame className="w-4.5 h-4.5 text-amber-300 fill-amber-300 animate-pulse" />
-            <span>OnlyFans Oficial 🔥 (@angelinax69)</span>
-            <ExternalLink className="w-4 h-4 text-white ml-0.5" />
-          </a>
-        </div>
       </div>
 
       {/* CONTAINER PRINCIPAL (PRIORIDAD TIENDA AL INICIAR) */}
