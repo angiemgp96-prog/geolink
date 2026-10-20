@@ -192,14 +192,53 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   const [globalDiscountInput, setGlobalDiscountInput] = useState<string>('');
   const [colombiaMultiplierInput, setColombiaMultiplierInput] = useState<string>('7');
   const [savedDiscountActive, setSavedDiscountActive] = useState<number>(0);
+  const [promoInternationalActive, setPromoInternationalActive] = useState<boolean>(false);
+  const [promoColombiaActive, setPromoColombiaActive] = useState<boolean>(false);
+  const [isSavingPromo, setIsSavingPromo] = useState<boolean>(false);
 
   useEffect(() => {
     api.getGlobalDiscount().then((res) => {
       setSavedDiscountActive(res.discountPercentage);
       setGlobalDiscountInput(res.discountPercentage > 0 ? String(res.discountPercentage) : '');
       setColombiaMultiplierInput(res.colombiaMultiplier !== undefined && res.colombiaMultiplier !== null ? String(res.colombiaMultiplier) : '7');
+      if (typeof res.promoInternationalActive === 'boolean') {
+        setPromoInternationalActive(res.promoInternationalActive);
+      }
+      if (typeof res.promoColombiaActive === 'boolean') {
+        setPromoColombiaActive(res.promoColombiaActive);
+      }
     });
   }, []);
+
+  const handleTogglePromoInternational = async (active: boolean) => {
+    setPromoInternationalActive(active);
+    setIsSavingPromo(true);
+    try {
+      await api.saveGlobalDiscount(
+        Number(globalDiscountInput) || 0,
+        Number(colombiaMultiplierInput) || 7,
+        active,
+        promoColombiaActive
+      );
+    } finally {
+      setIsSavingPromo(false);
+    }
+  };
+
+  const handleTogglePromoColombia = async (active: boolean) => {
+    setPromoColombiaActive(active);
+    setIsSavingPromo(true);
+    try {
+      await api.saveGlobalDiscount(
+        Number(globalDiscountInput) || 0,
+        Number(colombiaMultiplierInput) || 7,
+        promoInternationalActive,
+        active
+      );
+    } finally {
+      setIsSavingPromo(false);
+    }
+  };
 
   const handleSaveDiscount = async () => {
     const dVal = Number(globalDiscountInput);
@@ -208,10 +247,16 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
     const mVal = Number(colombiaMultiplierInput);
     const cleanMultiplier = colombiaMultiplierInput.trim() !== '' && mVal > 0 ? mVal : null;
 
-    await api.saveGlobalDiscount(cleanDiscount, cleanMultiplier);
-    setSavedDiscountActive(cleanDiscount);
-    if (cleanDiscount <= 0) setGlobalDiscountInput('');
+    setIsSavingPromo(true);
+    try {
+      await api.saveGlobalDiscount(cleanDiscount, cleanMultiplier, promoInternationalActive, promoColombiaActive);
+      setSavedDiscountActive(cleanDiscount);
+      if (cleanDiscount <= 0) setGlobalDiscountInput('');
+    } finally {
+      setIsSavingPromo(false);
+    }
   };
+
 
   const [paymentVisibility, setPaymentVisibility] = useState<PaymentMethodsVisibility>({
     stripe: true,
@@ -1144,82 +1189,170 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
               <span>Configuración de Pasarelas de Pago API</span>
             </h3>
 
-            {/* TARJETA DE DESCUENTO GLOBAL (% OFF) */}
-            <div className="bg-gradient-to-r from-amber-950/70 via-slate-900 to-amber-950/70 border-2 border-amber-500/50 rounded-2xl p-5 space-y-4 shadow-xl">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            {/* SECCIÓN DE PROMOCIONES Y DESCUENTOS ACTIVABLES */}
+            <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/40 border border-amber-500/30 rounded-3xl p-5 sm:p-6 space-y-6 shadow-2xl">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
                 <div>
-                  <h4 className="font-bold text-sm text-amber-300 flex items-center gap-2">
-                    <span>🏷️ Descuento Global Promocional (% OFF)</span>
-                    {savedDiscountActive > 0 && (
-                      <span className="bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">
-                        {savedDiscountActive}% OFF ACTIVO
-                      </span>
-                    )}
+                  <h4 className="font-extrabold text-base text-amber-300 flex items-center gap-2">
+                    <span className="text-xl">🏷️</span>
+                    <span>Gestión de Promociones y Descuentos Oficiales</span>
                   </h4>
                   <p className="text-xs text-slate-300 mt-1 leading-snug">
-                    Aplica un porcentaje de descuento a todas las fotos, videos, Acceso Full y Pase Colombia. Déjalo en blanco para eliminar el descuento.
+                    Activa o desactiva de forma independiente las promociones para clientes internacionales (Stripe) y para Colombia (Mercado Pago / Nequi).
                   </p>
                 </div>
               </div>
 
-              <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
-                {/* Descuento % OFF */}
-                <div className="relative flex-1">
-                  <label className="block text-[10px] uppercase font-bold text-amber-300 mb-1">Descuento Global (% OFF):</label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      min="0"
-                      max="99"
-                      placeholder="Ej: 20 (para 20% OFF)"
-                      value={globalDiscountInput}
-                      onChange={(e) => setGlobalDiscountInput(e.target.value)}
-                      className="w-full bg-slate-900 border border-amber-500/40 rounded-xl px-4 py-2.5 text-sm font-bold text-white outline-none focus:border-amber-400 font-mono"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 font-black text-xs">% OFF</span>
+              {/* DUAL PROMO GRID */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* 1. PROMOCIÓN FUERA DE COLOMBIA (STRIPE TIERS) */}
+                <div className={`p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
+                  promoInternationalActive
+                    ? 'bg-gradient-to-br from-amber-950/60 via-slate-900 to-slate-900 border-amber-500/70 shadow-lg shadow-amber-500/10'
+                    : 'bg-slate-950/60 border-slate-800'
+                }`}>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">🌍</span>
+                        <div>
+                          <span className="text-sm font-bold text-white block">Promoción Fuera de Colombia</span>
+                          <span className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Escala Stripe Tiers</span>
+                        </div>
+                      </div>
+
+                      {/* Toggle Button */}
+                      <button
+                        type="button"
+                        disabled={isSavingPromo}
+                        onClick={() => handleTogglePromoInternational(!promoInternationalActive)}
+                        className={`w-14 h-7 rounded-full p-1 transition-colors duration-300 ease-in-out cursor-pointer relative shrink-0 ${
+                          promoInternationalActive ? 'bg-amber-500' : 'bg-slate-700'
+                        }`}
+                      >
+                        <div className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
+                          promoInternationalActive ? 'translate-x-7' : 'translate-x-0'
+                        }`} />
+                      </button>
+                    </div>
+
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Al activarse, los precios se corren al tier inmediato inferior de Stripe garantizando el 100% de coincidencia con los links predefinidos:
+                    </p>
+
+                    {/* Visual Pills for Stripe Shift */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-1">
+                      <div className="bg-slate-900/90 border border-amber-500/30 rounded-lg px-2 py-1 text-center">
+                        <span className="text-[10px] text-rose-400 line-through font-bold block">$50</span>
+                        <span className="text-xs text-amber-300 font-black block">➔ $30 USD</span>
+                      </div>
+                      <div className="bg-slate-900/90 border border-amber-500/30 rounded-lg px-2 py-1 text-center">
+                        <span className="text-[10px] text-rose-400 line-through font-bold block">$30</span>
+                        <span className="text-xs text-amber-300 font-black block">➔ $20 USD</span>
+                      </div>
+                      <div className="bg-slate-900/90 border border-amber-500/30 rounded-lg px-2 py-1 text-center">
+                        <span className="text-[10px] text-rose-400 line-through font-bold block">$20</span>
+                        <span className="text-xs text-amber-300 font-black block">➔ $10 USD</span>
+                      </div>
+                      <div className="bg-slate-900/90 border border-amber-500/30 rounded-lg px-2 py-1 text-center">
+                        <span className="text-[10px] text-rose-400 line-through font-bold block">$10</span>
+                        <span className="text-xs text-amber-300 font-black block">➔ $5 USD</span>
+                      </div>
+                      <div className="bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1 text-center col-span-2 sm:col-span-1">
+                        <span className="text-[10px] text-slate-400 block">Mínimo</span>
+                        <span className="text-xs text-slate-200 font-black block">$5 (se queda en $5)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-white/5 mt-4 flex items-center justify-between text-xs">
+                    <span className="text-slate-400">Estado:</span>
+                    <span className={`font-bold px-2 py-0.5 rounded-full text-[10px] ${
+                      promoInternationalActive
+                        ? 'bg-amber-500 text-slate-950 font-black animate-pulse'
+                        : 'bg-slate-800 text-slate-400'
+                    }`}>
+                      {promoInternationalActive ? '🔥 PROMO STRIPE ACTIVA' : 'DESACTIVADA'}
+                    </span>
                   </div>
                 </div>
 
-                {/* Multiplicador Colombia (x) */}
-                <div className="relative flex-1">
-                  <label className="block text-[10px] uppercase font-bold text-sky-300 mb-1">🇨🇴 Multiplicador Colombia (x):</label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      min="1"
-                      max="50"
-                      placeholder="Ej: 7, 5, 2 o en blanco"
-                      value={colombiaMultiplierInput}
-                      onChange={(e) => setColombiaMultiplierInput(e.target.value)}
-                      className="w-full bg-slate-900 border border-sky-500/40 rounded-xl px-4 py-2.5 text-sm font-bold text-white outline-none focus:border-sky-400 font-mono"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sky-400 font-black text-xs">x MULT</span>
+                {/* 2. PROMOCIÓN COLOMBIA (20% OFF COP) */}
+                <div className={`p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
+                  promoColombiaActive
+                    ? 'bg-gradient-to-br from-emerald-950/60 via-slate-900 to-slate-900 border-emerald-500/70 shadow-lg shadow-emerald-500/10'
+                    : 'bg-slate-950/60 border-slate-800'
+                }`}>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">🇨🇴</span>
+                        <div>
+                          <span className="text-sm font-bold text-white block">Promoción Colombia</span>
+                          <span className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">20% Descuento COP</span>
+                        </div>
+                      </div>
+
+                      {/* Toggle Button */}
+                      <button
+                        type="button"
+                        disabled={isSavingPromo}
+                        onClick={() => handleTogglePromoColombia(!promoColombiaActive)}
+                        className={`w-14 h-7 rounded-full p-1 transition-colors duration-300 ease-in-out cursor-pointer relative shrink-0 ${
+                          promoColombiaActive ? 'bg-emerald-500' : 'bg-slate-700'
+                        }`}
+                      >
+                        <div className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
+                          promoColombiaActive ? 'translate-x-7' : 'translate-x-0'
+                        }`} />
+                      </button>
+                    </div>
+
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Aplica automáticamente un <strong className="text-emerald-400">20% de descuento</strong> sobre todos los precios en pesos colombianos para <strong>Mercado Pago</strong>, <strong>Nequi</strong> y <strong>Transferencias</strong>.
+                    </p>
+
+                    {/* Multiplicador Colombia */}
+                    <div className="pt-2">
+                      <label className="block text-[10px] uppercase font-bold text-sky-300 mb-1">
+                        Multiplicador Base Colombia (x):
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          placeholder="7"
+                          value={colombiaMultiplierInput}
+                          onChange={(e) => setColombiaMultiplierInput(e.target.value)}
+                          className="w-full bg-slate-900 border border-sky-500/40 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-sky-400 font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSaveDiscount}
+                          disabled={isSavingPromo}
+                          className="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl shadow cursor-pointer shrink-0 transition-all"
+                        >
+                          Guardar Tasa
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                {/* Acciones */}
-                <div className="flex items-center gap-2 pt-4 md:pt-0">
-                  <button
-                    onClick={handleSaveDiscount}
-                    className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
-                  >
-                    <Save className="w-4 h-4" /> Guardar Ajustes
-                  </button>
-
-                  {savedDiscountActive > 0 && (
-                    <button
-                      onClick={() => {
-                        setGlobalDiscountInput('');
-                        api.saveGlobalDiscount(0, Number(colombiaMultiplierInput) || 7).then(() => setSavedDiscountActive(0));
-                      }}
-                      className="px-3.5 py-2.5 bg-rose-900/60 hover:bg-rose-800 border border-rose-500/40 text-rose-200 font-bold text-xs rounded-xl transition-all cursor-pointer shrink-0"
-                    >
-                      Quitar Descuento 🗑️
-                    </button>
-                  )}
+                  <div className="pt-4 border-t border-white/5 mt-4 flex items-center justify-between text-xs">
+                    <span className="text-slate-400">Estado:</span>
+                    <span className={`font-bold px-2 py-0.5 rounded-full text-[10px] ${
+                      promoColombiaActive
+                        ? 'bg-emerald-500 text-slate-950 font-black animate-pulse'
+                        : 'bg-slate-800 text-slate-400'
+                    }`}>
+                      {promoColombiaActive ? '✅ 20% OFF COLOMBIA ACTIVO' : 'DESACTIVADA'}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
+
 
             {/* VISIBILIDAD DE MÉTODOS DE PAGO */}
             <div className="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-5 space-y-4">

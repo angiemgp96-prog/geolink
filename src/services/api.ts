@@ -1312,9 +1312,49 @@ export const api = {
     return { code, link };
   },
 
-  async getGlobalDiscount(handle: string = 'angelina69'): Promise<{ discountPercentage: number; colombiaMultiplier: number }> {
+  async getGlobalDiscount(handle: string = 'angelina69'): Promise<{
+    discountPercentage: number;
+    colombiaMultiplier: number;
+    promoInternationalActive: boolean;
+    promoColombiaActive: boolean;
+  }> {
+    let localSettings = {
+      discountPercentage: 0,
+      colombiaMultiplier: 7,
+      promoInternationalActive: false,
+      promoColombiaActive: false,
+    };
+
+    try {
+      const raw = localStorage.getItem('geolink_promo_settings');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed.promoInternationalActive === 'boolean') localSettings.promoInternationalActive = parsed.promoInternationalActive;
+        if (typeof parsed.promoColombiaActive === 'boolean') localSettings.promoColombiaActive = parsed.promoColombiaActive;
+        if (typeof parsed.discountPercentage === 'number') localSettings.discountPercentage = parsed.discountPercentage;
+        if (typeof parsed.colombiaMultiplier === 'number') localSettings.colombiaMultiplier = parsed.colombiaMultiplier;
+      }
+    } catch {}
+
     if (isSupabaseConfigured()) {
       try {
+        // 1. Try reading from creators.data.promoSettings first
+        const { data: cData } = await supabase.from('creators').select('data').eq('handle', handle).limit(1);
+        if (cData && cData.length > 0 && cData[0].data && cData[0].data.promoSettings) {
+          const ps = cData[0].data.promoSettings;
+          const result = {
+            discountPercentage: ps.promoColombiaActive ? 20 : (Number(ps.discountPercentage) || 0),
+            colombiaMultiplier: ps.colombiaMultiplier !== undefined && ps.colombiaMultiplier !== null ? Number(ps.colombiaMultiplier) : (localSettings.colombiaMultiplier || 7),
+            promoInternationalActive: Boolean(ps.promoInternationalActive),
+            promoColombiaActive: Boolean(ps.promoColombiaActive)
+          };
+          try {
+            localStorage.setItem('geolink_promo_settings', JSON.stringify(result));
+          } catch {}
+          return result;
+        }
+
+        // 2. Fallback to global_discounts table
         const { data, error } = await supabase
           .from('global_discounts')
           .select('discount_percentage, colombia_multiplier, is_active')
@@ -1323,9 +1363,12 @@ export const api = {
 
         if (!error && data && data.length > 0) {
           const row = data[0];
+          const legacyDiscount = row.is_active ? (Number(row.discount_percentage) || 0) : 0;
           return {
-            discountPercentage: row.is_active ? (Number(row.discount_percentage) || 0) : 0,
-            colombiaMultiplier: row.colombia_multiplier !== null && row.colombia_multiplier !== undefined ? Number(row.colombia_multiplier) : 7
+            discountPercentage: localSettings.promoColombiaActive ? 20 : legacyDiscount,
+            colombiaMultiplier: row.colombia_multiplier !== null && row.colombia_multiplier !== undefined ? Number(row.colombia_multiplier) : (localSettings.colombiaMultiplier || 7),
+            promoInternationalActive: localSettings.promoInternationalActive,
+            promoColombiaActive: localSettings.promoColombiaActive
           };
         }
       } catch (err) {
@@ -1338,26 +1381,56 @@ export const api = {
       if (res.ok) {
         const result = await res.json();
         return {
-          discountPercentage: Number(result.discountPercentage) || 0,
-          colombiaMultiplier: result.colombiaMultiplier !== undefined ? Number(result.colombiaMultiplier) : 7
+          discountPercentage: result.promoColombiaActive ? 20 : (Number(result.discountPercentage) || 0),
+          colombiaMultiplier: result.colombiaMultiplier !== undefined ? Number(result.colombiaMultiplier) : (localSettings.colombiaMultiplier || 7),
+          promoInternationalActive: typeof result.promoInternationalActive === 'boolean' ? result.promoInternationalActive : localSettings.promoInternationalActive,
+          promoColombiaActive: typeof result.promoColombiaActive === 'boolean' ? result.promoColombiaActive : localSettings.promoColombiaActive
         };
       }
     } catch {}
 
-    return { discountPercentage: 0, colombiaMultiplier: 7 };
+    return localSettings;
   },
 
-  async saveGlobalDiscount(percentage: number | null, multiplier: number | null = 7, handle: string = 'angelina69'): Promise<boolean> {
+  async saveGlobalDiscount(
+    percentage: number | null,
+    multiplier: number | null = 7,
+    promoInternational?: boolean,
+    promoColombia?: boolean,
+    handle: string = 'angelina69'
+  ): Promise<boolean> {
     const cleanPercentage = percentage && Number(percentage) > 0 ? Number(percentage) : 0;
-    const cleanMultiplier = multiplier !== null && multiplier !== undefined && Number(multiplier) > 0 ? Number(multiplier) : null;
+    const cleanMultiplier = multiplier !== null && multiplier !== undefined && Number(multiplier) > 0 ? Number(multiplier) : 7;
+    const isPromoInt = promoInternational !== undefined ? Boolean(promoInternational) : false;
+    const isPromoCol = promoColombia !== undefined ? Boolean(promoColombia) : false;
+
+    const payload = {
+      discountPercentage: isPromoCol ? 20 : cleanPercentage,
+      colombiaMultiplier: cleanMultiplier,
+      promoInternationalActive: isPromoInt,
+      promoColombiaActive: isPromoCol
+    };
+
+    try {
+      localStorage.setItem('geolink_promo_settings', JSON.stringify(payload));
+    } catch {}
 
     if (isSupabaseConfigured()) {
       try {
+        // Save in creators.data.promoSettings JSONB
+        const { data: creatorRows } = await supabase.from('creators').select('data').eq('handle', handle).limit(1);
+        if (creatorRows && creatorRows.length > 0) {
+          const currentData = typeof creatorRows[0].data === 'object' && creatorRows[0].data !== null ? creatorRows[0].data : {};
+          const updatedData = { ...currentData, promoSettings: payload };
+          await supabase.from('creators').update({ data: updatedData }).eq('handle', handle);
+        }
+
+        // Also upsert global_discounts for legacy compatibility
         await supabase.from('global_discounts').upsert({
           creator_handle: handle,
-          discount_percentage: cleanPercentage,
+          discount_percentage: payload.discountPercentage,
           colombia_multiplier: cleanMultiplier,
-          is_active: cleanPercentage > 0,
+          is_active: payload.discountPercentage > 0 || isPromoInt || isPromoCol,
           updated_at: new Date().toISOString()
         });
       } catch (err) {
@@ -1369,12 +1442,13 @@ export const api = {
       await fetch(`/api/creators/${encodeURIComponent(handle)}/discount`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ discountPercentage: cleanPercentage, colombiaMultiplier: cleanMultiplier })
+        body: JSON.stringify(payload)
       });
     } catch {}
 
     return true;
   },
+
 
   async getBigoLiveSettings(): Promise<{ isLive: boolean; streamUrl: string }> {
     const defaultSettings = {

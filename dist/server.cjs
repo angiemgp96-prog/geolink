@@ -21,8 +21,21 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// server.ts
+// ../server.ts
 var import_stripe = __toESM(require("stripe"), 1);
+
+// utils/stripeLinks.ts
+function getShiftedPromoPrice(originalPrice) {
+  if (typeof originalPrice !== "number" || isNaN(originalPrice)) return 5;
+  const p = Math.round(originalPrice);
+  if (p >= 50) return 30;
+  if (p >= 30) return 20;
+  if (p >= 20) return 10;
+  if (p >= 10) return 5;
+  return 5;
+}
+
+// ../server.ts
 var import_dotenv = __toESM(require("dotenv"), 1);
 var import_express = __toESM(require("express"), 1);
 var import_multer = __toESM(require("multer"), 1);
@@ -31,7 +44,7 @@ var import_path = __toESM(require("path"), 1);
 var import_vite = require("vite");
 var import_supabase_js = require("@supabase/supabase-js");
 
-// src/data/mockData.ts
+// data/mockData.ts
 var INITIAL_CREATORS = [
   {
     id: "creator_1",
@@ -182,7 +195,7 @@ var INITIAL_MEDIA_ITEMS = [
   }
 ];
 
-// src/data/countries.ts
+// data/countries.ts
 var COUNTRIES_LIST = [
   { code: "AR", name: "Argentina", flag: "\u{1F1E6}\u{1F1F7}" },
   { code: "ES", name: "Espa\xF1a", flag: "\u{1F1EA}\u{1F1F8}" },
@@ -207,7 +220,7 @@ var COUNTRIES_LIST = [
   { code: "CA", name: "Canad\xE1", flag: "\u{1F1E8}\u{1F1E6}" }
 ];
 
-// server.ts
+// ../server.ts
 var DEFAULT_STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY?.trim() || Buffer.from("c2tfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV3J3ODZlWlJpTGFFcEpTdHJ1OXliUktOa0czWUtHcGh5Q3VFdldYTkJJVjJZNE9ybXJGdDdUVUozTlBTeWNjT0tsWVVGekxqVDAwYUNBSkl4aUU=", "base64").toString("utf8");
 var DEFAULT_STRIPE_PUB_KEY = process.env.STRIPE_PUBLISHABLE_KEY?.trim() || Buffer.from("cGtfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV0EwM2V1dHY5aWJiNlVFNkthYVJSNVk0cTIyVGhGN2phYU83MEpIODA2NFluN2dKb3hPQlZEc3RlUE5vSFk3S2U1NFJnNjJtMzAwUVFIakFlTzg=", "base64").toString("utf8");
 import_dotenv.default.config();
@@ -223,6 +236,8 @@ var mediaItems = [...INITIAL_MEDIA_ITEMS];
 var purchases = [];
 var globalDiscountPercentage = 0;
 var colombiaMultiplier = 7;
+var promoInternationalActive = false;
+var promoColombiaActive = false;
 var stripePayments = [];
 var paymentMethodsVisibility = {
   mercadopago: true,
@@ -467,7 +482,12 @@ async function syncFromSupabase() {
     }
     const { data: dbMedia, error: mErr } = await supabase.from("media_items").select("*");
     if (!mErr && dbMedia) {
-      mediaItems = dbMedia.map(fromSupabaseMedia);
+      const uniqueMap = /* @__PURE__ */ new Map();
+      for (const row of dbMedia) {
+        const item = fromSupabaseMedia(row);
+        if (item && item.id) uniqueMap.set(item.id, item);
+      }
+      mediaItems = Array.from(uniqueMap.values());
       console.log(`[Supabase DB] Loaded ${mediaItems.length} media items from Supabase.`);
       for (const item of mediaItems) {
         if (item.isExtraPremium) {
@@ -639,25 +659,52 @@ app.get("/api/creators", async (req, res) => {
   res.json(creators);
 });
 app.get("/api/creators/:handle/discount", (req, res) => {
-  res.json({ discountPercentage: globalDiscountPercentage, colombiaMultiplier });
+  res.json({
+    discountPercentage: promoColombiaActive ? 20 : globalDiscountPercentage,
+    colombiaMultiplier,
+    promoInternationalActive,
+    promoColombiaActive
+  });
 });
 app.post("/api/creators/:handle/discount", async (req, res) => {
-  const { discountPercentage, colombiaMultiplier: reqMult } = req.body;
+  const { discountPercentage, colombiaMultiplier: reqMult, promoInternationalActive: reqInt, promoColombiaActive: reqCol } = req.body;
+  if (reqInt !== void 0) promoInternationalActive = Boolean(reqInt);
+  if (reqCol !== void 0) promoColombiaActive = Boolean(reqCol);
   const percentage = Number(discountPercentage) || 0;
-  globalDiscountPercentage = percentage > 0 ? percentage : 0;
+  globalDiscountPercentage = percentage > 0 ? percentage : promoColombiaActive ? 20 : 0;
   colombiaMultiplier = reqMult !== null && reqMult !== void 0 && Number(reqMult) > 0 ? Number(reqMult) : 7;
   try {
     await supabase.from("global_discounts").upsert({
       creator_handle: "angelina69",
       discount_percentage: globalDiscountPercentage,
       colombia_multiplier: reqMult !== null && reqMult !== void 0 && Number(reqMult) > 0 ? Number(reqMult) : null,
-      is_active: globalDiscountPercentage > 0,
+      is_active: globalDiscountPercentage > 0 || promoInternationalActive || promoColombiaActive,
       updated_at: (/* @__PURE__ */ new Date()).toISOString()
     });
+    const { data: creatorRows } = await supabase.from("creators").select("data").eq("handle", "angelina69").limit(1);
+    if (creatorRows && creatorRows.length > 0) {
+      const currentData = typeof creatorRows[0].data === "object" && creatorRows[0].data !== null ? creatorRows[0].data : {};
+      const updatedData = {
+        ...currentData,
+        promoSettings: {
+          promoInternationalActive,
+          promoColombiaActive,
+          discountPercentage: globalDiscountPercentage,
+          colombiaMultiplier
+        }
+      };
+      await supabase.from("creators").update({ data: updatedData }).eq("handle", "angelina69");
+    }
   } catch (err) {
     console.warn("[Supabase discount save warning]", err);
   }
-  res.json({ success: true, discountPercentage: globalDiscountPercentage, colombiaMultiplier });
+  res.json({
+    success: true,
+    discountPercentage: globalDiscountPercentage,
+    colombiaMultiplier,
+    promoInternationalActive,
+    promoColombiaActive
+  });
 });
 app.get("/api/creators/:handle", async (req, res) => {
   await initialSyncPromise;
@@ -666,7 +713,13 @@ app.get("/api/creators/:handle", async (req, res) => {
   if (!creator) {
     return res.status(404).json({ error: "Creador no encontrado" });
   }
-  const items = mediaItems.filter((m) => m.creatorHandle.toLowerCase() === handle.toLowerCase());
+  const uniqueItemsMap = /* @__PURE__ */ new Map();
+  for (const m of mediaItems) {
+    if (m && m.creatorHandle && m.creatorHandle.toLowerCase() === handle.toLowerCase() && m.id) {
+      uniqueItemsMap.set(m.id, m);
+    }
+  }
+  const items = Array.from(uniqueItemsMap.values());
   res.json({
     creator,
     mediaItems: items
@@ -853,6 +906,8 @@ app.post("/api/payments/stripe/create-checkout-session", async (req, res) => {
     let finalPriceUsd = media.price;
     if (customPrice && Number(customPrice) > 0) {
       finalPriceUsd = Number(customPrice);
+    } else if (promoInternationalActive) {
+      finalPriceUsd = getShiftedPromoPrice(media.price);
     } else if (globalDiscountPercentage > 0) {
       finalPriceUsd = Math.round(media.price * (1 - globalDiscountPercentage / 100));
     }
@@ -1019,7 +1074,11 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
       copUnitPrice = Math.round(Number(customPrice));
     } else {
       let rawBasePrice = Number(media.price);
-      if (globalDiscountPercentage > 0) {
+      if (userCountry === "CO" && promoColombiaActive) {
+        rawBasePrice = Math.round(rawBasePrice * 0.8 * 100) / 100;
+      } else if (userCountry !== "CO" && promoInternationalActive) {
+        rawBasePrice = getShiftedPromoPrice(rawBasePrice);
+      } else if (globalDiscountPercentage > 0) {
         rawBasePrice = Math.round(rawBasePrice * (1 - globalDiscountPercentage / 100) * 100) / 100;
       }
       const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;

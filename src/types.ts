@@ -118,3 +118,10 @@ export interface CountryOption {
   name: string;
   flag: string;
 }
+
+export interface PromotionSettings {
+  promoInternationalActive: boolean;
+  promoColombiaActive: boolean;
+  discountPercentage?: number;
+  colombiaMultiplier?: number;
+}

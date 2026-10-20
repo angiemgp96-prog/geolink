@@ -1,6 +1,7 @@
 const DEFAULT_STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY?.trim() || Buffer.from("c2tfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV3J3ODZlWlJpTGFFcEpTdHJ1OXliUktOa0czWUtHcGh5Q3VFdldYTkJJVjJZNE9ybXJGdDdUVUozTlBTeWNjT0tsWVVGekxqVDAwYUNBSkl4aUU=", "base64").toString("utf8");
 const DEFAULT_STRIPE_PUB_KEY = process.env.STRIPE_PUBLISHABLE_KEY?.trim() || Buffer.from("cGtfbGl2ZV81MVRXZTFlUmhOTDRnWjlyV0EwM2V1dHY5aWJiNlVFNkthYVJSNVk0cTIyVGhGN2phYU83MEpIODA2NFluN2dKb3hPQlZEc3RlUE5vSFk3S2U1NFJnNjJtMzAwUVFIakFlTzg=", "base64").toString("utf8");
 import Stripe from 'stripe';
+import { getShiftedPromoPrice } from './src/utils/stripeLinks';
 import { sanitizeStripeTitle, sanitizeStripeDescription, sanitizeStripeMetadata, getStripeSafeImage } from './src/utils/stripeSanitizer';
 import dotenv from "dotenv";
 dotenv.config();
@@ -32,6 +33,8 @@ let mediaItems: MediaItem[] = [...INITIAL_MEDIA_ITEMS];
 let purchases: PurchaseRecord[] = [];
 let globalDiscountPercentage = 0;
 let colombiaMultiplier = 7;
+let promoInternationalActive = false;
+let promoColombiaActive = false;
 let stripePayments: any[] = [];
 
 let paymentMethodsVisibility = {
@@ -539,13 +542,21 @@ app.get("/api/creators", async (req, res) => {
 
 // Get creator profile by handle with active media items
 app.get("/api/creators/:handle/discount", (req, res) => {
-  res.json({ discountPercentage: globalDiscountPercentage, colombiaMultiplier });
+  res.json({
+    discountPercentage: promoColombiaActive ? 20 : globalDiscountPercentage,
+    colombiaMultiplier,
+    promoInternationalActive,
+    promoColombiaActive
+  });
 });
 
 app.post("/api/creators/:handle/discount", async (req, res) => {
-  const { discountPercentage, colombiaMultiplier: reqMult } = req.body;
+  const { discountPercentage, colombiaMultiplier: reqMult, promoInternationalActive: reqInt, promoColombiaActive: reqCol } = req.body;
+  if (reqInt !== undefined) promoInternationalActive = Boolean(reqInt);
+  if (reqCol !== undefined) promoColombiaActive = Boolean(reqCol);
+
   const percentage = Number(discountPercentage) || 0;
-  globalDiscountPercentage = percentage > 0 ? percentage : 0;
+  globalDiscountPercentage = percentage > 0 ? percentage : (promoColombiaActive ? 20 : 0);
   colombiaMultiplier = reqMult !== null && reqMult !== undefined && Number(reqMult) > 0 ? Number(reqMult) : 7;
 
   try {
@@ -553,14 +564,35 @@ app.post("/api/creators/:handle/discount", async (req, res) => {
       creator_handle: "angelina69",
       discount_percentage: globalDiscountPercentage,
       colombia_multiplier: reqMult !== null && reqMult !== undefined && Number(reqMult) > 0 ? Number(reqMult) : null,
-      is_active: globalDiscountPercentage > 0,
+      is_active: globalDiscountPercentage > 0 || promoInternationalActive || promoColombiaActive,
       updated_at: new Date().toISOString()
     });
+
+    const { data: creatorRows } = await supabase.from('creators').select('data').eq('handle', 'angelina69').limit(1);
+    if (creatorRows && creatorRows.length > 0) {
+      const currentData = typeof creatorRows[0].data === 'object' && creatorRows[0].data !== null ? creatorRows[0].data : {};
+      const updatedData = {
+        ...currentData,
+        promoSettings: {
+          promoInternationalActive,
+          promoColombiaActive,
+          discountPercentage: globalDiscountPercentage,
+          colombiaMultiplier
+        }
+      };
+      await supabase.from('creators').update({ data: updatedData }).eq('handle', 'angelina69');
+    }
   } catch (err) {
     console.warn("[Supabase discount save warning]", err);
   }
 
-  res.json({ success: true, discountPercentage: globalDiscountPercentage, colombiaMultiplier });
+  res.json({
+    success: true,
+    discountPercentage: globalDiscountPercentage,
+    colombiaMultiplier,
+    promoInternationalActive,
+    promoColombiaActive
+  });
 });
 
 app.get("/api/creators/:handle", async (req, res) => {
@@ -842,6 +874,8 @@ app.post("/api/payments/stripe/create-checkout-session", async (req, res) => {
     let finalPriceUsd = media.price;
     if (customPrice && Number(customPrice) > 0) {
       finalPriceUsd = Number(customPrice);
+    } else if (promoInternationalActive) {
+      finalPriceUsd = getShiftedPromoPrice(media.price);
     } else if (globalDiscountPercentage > 0) {
       finalPriceUsd = Math.round(media.price * (1 - globalDiscountPercentage / 100));
     }
@@ -1033,7 +1067,11 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
       copUnitPrice = Math.round(Number(customPrice));
     } else {
       let rawBasePrice = Number(media.price);
-      if (globalDiscountPercentage > 0) {
+      if (userCountry === 'CO' && promoColombiaActive) {
+        rawBasePrice = Math.round(rawBasePrice * 0.8 * 100) / 100;
+      } else if (userCountry !== 'CO' && promoInternationalActive) {
+        rawBasePrice = getShiftedPromoPrice(rawBasePrice);
+      } else if (globalDiscountPercentage > 0) {
         rawBasePrice = Math.round(rawBasePrice * (1 - globalDiscountPercentage / 100) * 100) / 100;
       }
       const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;

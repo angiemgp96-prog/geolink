@@ -4,7 +4,7 @@ import { CreatorProfile, MediaItem, CustomLink } from '../types';
 import { detectLanguage, TRANSLATIONS, SupportedLanguage } from '../data/translations';
 import { api } from '../services/api';
 import { BigoHlsPlayer } from './BigoHlsPlayer';
-import { getStripePaymentUrl } from '../utils/stripeLinks';
+import { getStripePaymentUrl, getShiftedPromoPrice } from '../utils/stripeLinks';
 
 interface PublicCreatorViewProps {
   creator: CreatorProfile;
@@ -92,6 +92,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
   const [globalDiscount, setGlobalDiscount] = useState<number>(0);
   const [colombiaMultiplier, setColombiaMultiplier] = useState<number>(7);
+  const [promoInternationalActive, setPromoInternationalActive] = useState<boolean>(false);
+  const [promoColombiaActive, setPromoColombiaActive] = useState<boolean>(false);
   const [paymentVisibility, setPaymentVisibility] = useState<any>(null);
   const [bigoSettings, setBigoSettings] = useState<{ isLive: boolean; streamUrl: string }>({
     isLive: false,
@@ -104,6 +106,12 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
       setGlobalDiscount(res.discountPercentage);
       if (res.colombiaMultiplier !== undefined && res.colombiaMultiplier !== null) {
         setColombiaMultiplier(res.colombiaMultiplier);
+      }
+      if (typeof res.promoInternationalActive === 'boolean') {
+        setPromoInternationalActive(res.promoInternationalActive);
+      }
+      if (typeof res.promoColombiaActive === 'boolean') {
+        setPromoColombiaActive(res.promoColombiaActive);
       }
     }).catch(() => {});
 
@@ -178,45 +186,81 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
 
     if (isColombia) {
       let origCop = 0;
-      let discCop = 0;
-
       if (isFullAccess) {
         const maxItemBase = mediaItems.reduce((max, item) => item.price > max ? item.price : max, 0) || basePrice;
-        const maxOrigCop = Math.round(maxItemBase * activeMult * 3500);
-        const maxRawDiscounted = globalDiscount > 0 ? Math.round(maxItemBase * (1 - globalDiscount / 100) * 100) / 100 : maxItemBase;
-        const maxDiscCop = Math.round(maxRawDiscounted * activeMult * 3500);
-
-        origCop = maxOrigCop * 2;
-        discCop = maxDiscCop * 2;
+        origCop = Math.round(maxItemBase * activeMult * 3500) * 2;
       } else {
         origCop = Math.round(basePrice * activeMult * 3500);
-        const rawDiscountedBase = globalDiscount > 0 ? Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100 : basePrice;
-        discCop = Math.round(rawDiscountedBase * activeMult * 3500);
+      }
+
+      let discCop = origCop;
+      let hasDiscount = false;
+      let discountLabel = '';
+
+      if (promoColombiaActive) {
+        discCop = Math.round(origCop * 0.8);
+        hasDiscount = true;
+        discountLabel = '20% OFF';
+      } else if (globalDiscount > 0) {
+        discCop = Math.round(origCop * (1 - globalDiscount / 100));
+        hasDiscount = true;
+        discountLabel = `${globalDiscount}% OFF`;
       }
 
       return {
         originalFormatted: `${origCop.toLocaleString('es-CO')} COP`,
         discountedFormatted: `${discCop.toLocaleString('es-CO')} COP`,
-        hasDiscount: globalDiscount > 0,
-        discountPercent: globalDiscount
+        hasDiscount,
+        discountPercent: promoColombiaActive ? 20 : globalDiscount,
+        discountLabel
       };
     } else {
       const origUsd = basePrice;
-      const discUsd = globalDiscount > 0 ? Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100 : basePrice;
+      let discUsd = basePrice;
+      let hasDiscount = false;
+      let discountLabel = '';
+
+      if (promoInternationalActive) {
+        discUsd = getShiftedPromoPrice(basePrice);
+        // Descuento visible sólo si bajó de precio (el mínimo de 5 permanece en 5)
+        hasDiscount = discUsd < origUsd;
+        discountLabel = 'PROMO';
+      } else if (globalDiscount > 0) {
+        discUsd = Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100;
+        hasDiscount = true;
+        discountLabel = `${globalDiscount}% OFF`;
+      }
+
       return {
         originalFormatted: `${origUsd.toFixed(2)} USD`,
         discountedFormatted: `${discUsd.toFixed(2)} USD`,
-        hasDiscount: globalDiscount > 0,
-        discountPercent: globalDiscount
+        hasDiscount,
+        discountPercent: promoInternationalActive ? Math.round(((origUsd - discUsd) / origUsd) * 100) : globalDiscount,
+        discountLabel
       };
     }
   };
 
   const getItemPrice = (basePrice: number) => {
-    const rawDiscountedBase = globalDiscount > 0 ? Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100 : basePrice;
-    const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
-    return isColombia ? Math.round(rawDiscountedBase * activeMult) : rawDiscountedBase;
+    if (isColombia) {
+      const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
+      let baseCop = Math.round(basePrice * activeMult);
+      if (promoColombiaActive) {
+        return Math.round(baseCop * 0.8);
+      } else if (globalDiscount > 0) {
+        return Math.round(baseCop * (1 - globalDiscount / 100));
+      }
+      return baseCop;
+    } else {
+      if (promoInternationalActive) {
+        return getShiftedPromoPrice(basePrice);
+      } else if (globalDiscount > 0) {
+        return Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100;
+      }
+      return basePrice;
+    }
   };
+
 
   const uniqueMediaList = Array.from(
     new Map((mediaItems || []).map(item => [item.id, item])).values()
@@ -466,7 +510,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                   // Para visitantes en Colombia: modal exclusivo con Mercado Pago y Nequi Llave Bre-B
                   onOpenPurchaseModal(item);
                 } else if (paymentVisibility?.direct_telegram_mode) {
-                  const finalPrice = globalDiscount > 0 ? (item.price * (1 - globalDiscount / 100)) : item.price;
+                  const finalPrice = promoInternationalActive ? getShiftedPromoPrice(item.price) : (globalDiscount > 0 ? (item.price * (1 - globalDiscount / 100)) : item.price);
                   const stripeUrl = getStripePaymentUrl(Number(finalPrice));
                   try {
                     localStorage.setItem('geolink_pending_telegram_payment', JSON.stringify({
@@ -529,6 +573,13 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                           <span>💎 EXTRA</span>
                         </span>
                       )}
+
+                      {prices.hasDiscount && (
+                        <span className="bg-gradient-to-r from-rose-600 via-rose-500 to-amber-500 text-white text-[8px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-lg border border-amber-300/40 flex items-center gap-1 animate-pulse">
+                          <span>🔥 {prices.discountLabel}</span>
+                        </span>
+                      )}
+
 
                       {isUnlocked ? (
                         <span className="bg-sky-500 text-slate-950 text-[8px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-lg flex items-center gap-1">

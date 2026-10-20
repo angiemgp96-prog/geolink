@@ -9,6 +9,25 @@ export const STRIPE_PAYMENT_LINKS: Record<number, string> = {
 export const STRIPE_LIBRE_LINK = 'https://buy.stripe.com/4gM5kD6037Qg2O2d6KeQM01';
 
 /**
+ * Retorna el nuevo precio corrido de promoción internacional para Stripe.
+ * Escala exacta requerida:
+ *  - 50 USD -> 30 USD
+ *  - 30 USD -> 20 USD
+ *  - 20 USD -> 10 USD
+ *  - 10 USD -> 5 USD
+ *  - 5 USD  -> 5 USD (permanece en 5)
+ */
+export function getShiftedPromoPrice(originalPrice: number): number {
+  if (typeof originalPrice !== 'number' || isNaN(originalPrice)) return 5;
+  const p = Math.round(originalPrice);
+  if (p >= 50) return 30;
+  if (p >= 30) return 20;
+  if (p >= 20) return 10;
+  if (p >= 10) return 5;
+  return 5;
+}
+
+/**
  * Returns the exact Stripe payment URL matching the USD amount.
  * Falls back to STRIPE_LIBRE_LINK if no exact price match is found.
  */

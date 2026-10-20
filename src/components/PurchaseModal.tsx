@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { MediaItem, PurchaseRecord, PaymentMethodsVisibility } from '../types';
 import { api } from '../services/api';
+import { getShiftedPromoPrice } from '../utils/stripeLinks';
 
 // ─── Configuración de enlaces estáticos ──────────────────────────────
 const PAYPAL_LINK    = 'https://www.paypal.com/paypalme/angieG473';
@@ -100,6 +101,8 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   const [visitorCountry, setVisitorCountry] = useState<string>('');
   const [globalDiscount, setGlobalDiscount] = useState<number>(0);
   const [colombiaMultiplier, setColombiaMultiplier] = useState<number>(7);
+  const [promoInternationalActive, setPromoInternationalActive] = useState<boolean>(false);
+  const [promoColombiaActive, setPromoColombiaActive] = useState<boolean>(false);
 
   useEffect(() => {
     if (!item) return;
@@ -113,6 +116,12 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
       if (res.colombiaMultiplier !== undefined && res.colombiaMultiplier !== null) {
         setColombiaMultiplier(res.colombiaMultiplier);
       }
+      if (typeof res.promoInternationalActive === 'boolean') {
+        setPromoInternationalActive(res.promoInternationalActive);
+      }
+      if (typeof res.promoColombiaActive === 'boolean') {
+        setPromoColombiaActive(res.promoColombiaActive);
+      }
     }).catch(() => {});
   }, [item]);
 
@@ -121,38 +130,79 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   const getExactCopPriceNumber = (): number => {
     if (!item) return 0;
     const basePrice = Number(item.price);
-    const rawDiscounted = globalDiscount > 0 ? Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100 : basePrice;
+    const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
+    const isPageAccess = item.id?.includes('pagina');
+    const isFullAccess = item.id === 'acceso_full_cat_actual' || item.id?.includes('acceso_full');
+
+    let baseCop = 0;
+    if (isColombia) {
+      if (isPageAccess) {
+        baseCop = Math.round(basePrice * 3500);
+      } else if (isFullAccess) {
+        baseCop = Math.round(basePrice * activeMult * 3500 * 2);
+      } else {
+        baseCop = Math.round(basePrice * activeMult * 3500);
+      }
+
+      if (promoColombiaActive) {
+        return Math.round(baseCop * 0.8);
+      } else if (globalDiscount > 0) {
+        return Math.round(baseCop * (1 - globalDiscount / 100));
+      }
+      return baseCop;
+    } else {
+      return Math.round(basePrice * 3500);
+    }
+  };
+
+  const getEffectiveUsdPrice = (): number => {
+    if (!item) return 0;
+    const basePrice = Number(item.price);
+    if (promoInternationalActive) {
+      return getShiftedPromoPrice(basePrice);
+    } else if (globalDiscount > 0) {
+      return Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100;
+    }
+    return basePrice;
+  };
+
+  const getFormattedModalPrice = () => {
+    if (!item) return '';
+    if (isColombia) {
+      const copPrice = getExactCopPriceNumber();
+      return `$${copPrice.toLocaleString('es-CO')} COP`;
+    } else {
+      const usdPrice = getEffectiveUsdPrice();
+      return `$${usdPrice.toFixed(2)} USD`;
+    }
+  };
+
+  const getOriginalFormattedModalPrice = () => {
+    if (!item) return '';
+    const basePrice = Number(item.price);
     const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
     const isPageAccess = item.id?.includes('pagina');
     const isFullAccess = item.id === 'acceso_full_cat_actual' || item.id?.includes('acceso_full');
 
     if (isColombia) {
+      let origCop = 0;
       if (isPageAccess) {
-        return Math.round(rawDiscounted * 3500);
+        origCop = Math.round(basePrice * 3500);
+      } else if (isFullAccess) {
+        origCop = Math.round(basePrice * activeMult * 3500 * 2);
+      } else {
+        origCop = Math.round(basePrice * activeMult * 3500);
       }
-      if (isFullAccess) {
-        return Math.round(rawDiscounted * activeMult * 3500 * 2);
-      }
-      return Math.round(rawDiscounted * activeMult * 3500);
+      return `$${origCop.toLocaleString('es-CO')} COP`;
     } else {
-      return Math.round(rawDiscounted * 3500);
+      return `$${basePrice.toFixed(2)} USD`;
     }
   };
 
-  const getFormattedModalPrice = () => {
-    if (!item) return '';
-    const basePrice = Number(item.price);
-    const rawDiscounted = globalDiscount > 0 ? Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100 : basePrice;
-    const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
+  const hasPromotionActive = isColombia
+    ? (promoColombiaActive || globalDiscount > 0)
+    : (promoInternationalActive && Number(item?.price) > 5) || (globalDiscount > 0);
 
-    if (isColombia) {
-      const isPageAccess = item.id?.includes('pagina');
-      const copPrice = isPageAccess ? Math.round(rawDiscounted * 3500) : Math.round(rawDiscounted * activeMult * 3500);
-      return `$${copPrice.toLocaleString('es-CO')} COP`;
-    } else {
-      return `$${rawDiscounted.toFixed(2)} USD`;
-    }
-  };
 
   const getDetectedRegion = (code: string) => {
     const c = (code || '').toUpperCase();
@@ -273,7 +323,8 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     setErrorMessage('');
     setIsLoading(true);
     try {
-      const data = await api.createStripeCheckoutSession(item.id, item.price, contactInfo, item.title, item.type);
+      const effectivePrice = getEffectiveUsdPrice();
+      const data = await api.createStripeCheckoutSession(item.id, effectivePrice, contactInfo, item.title, item.type);
       if (data.error) {
         setErrorMessage(data.error);
         return;
@@ -283,7 +334,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
           id: data.pendingPayment?.id || `stripe_pend_${Date.now()}`,
           mediaId: item.id,
           mediaTitle: item.title,
-          amount: item.price,
+          amount: effectivePrice,
           currency: item.currency || 'USD',
           stripeUrl: data.url,
           contactInfo: contactInfo || '',
@@ -402,10 +453,23 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 <div className="w-10 h-10 rounded-full bg-indigo-600/30 border border-indigo-400/60 flex items-center justify-center backdrop-blur-md">
                   <Lock className="w-5 h-5 text-indigo-300" />
                 </div>
-                <div className="text-2xl font-black text-amber-300 drop-shadow-lg">
-                  {getFormattedModalPrice()}
+                <div className="flex flex-col items-center">
+                  <div className="text-2xl font-black text-amber-300 drop-shadow-lg flex items-center gap-2">
+                    <span>{getFormattedModalPrice()}</span>
+                    {hasPromotionActive && (
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-rose-600 text-white animate-pulse">
+                        {isColombia ? '20% OFF' : 'PROMO'}
+                      </span>
+                    )}
+                  </div>
+                  {hasPromotionActive && (
+                    <div className="text-xs text-rose-400 font-bold line-through opacity-85">
+                      {getOriginalFormattedModalPrice()}
+                    </div>
+                  )}
                 </div>
               </div>
+
             </div>
 
             {errorMessage && (
@@ -774,10 +838,18 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 {screen === 'contact_paypal' ? '💳 PayPal' : '🇨🇴 Nequi Giro USA'}
               </div>
               <h3 className="text-lg font-bold text-white">{item.title}</h3>
-              <p className="text-2xl font-black text-amber-300 mt-1">
-                ${item.price.toFixed(2)} <span className="text-base font-semibold text-amber-400/70">{item.currency}</span>
-              </p>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-2xl font-black text-amber-300">
+                  {getFormattedModalPrice()}
+                </span>
+                {hasPromotionActive && (
+                  <span className="line-through text-xs text-rose-400 font-bold opacity-80">
+                    {getOriginalFormattedModalPrice()}
+                  </span>
+                )}
+              </div>
             </div>
+
 
             <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-zinc-400 space-y-2">
               <p className="font-bold text-white text-sm">📋 ¿Cómo funciona?</p>
