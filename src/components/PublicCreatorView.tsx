@@ -201,17 +201,13 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
         discCop = Math.round(origCop * 0.8);
         hasDiscount = true;
         discountLabel = '20% OFF';
-      } else if (globalDiscount > 0) {
-        discCop = Math.round(origCop * (1 - globalDiscount / 100));
-        hasDiscount = true;
-        discountLabel = `${globalDiscount}% OFF`;
       }
 
       return {
         originalFormatted: `${origCop.toLocaleString('es-CO')} COP`,
         discountedFormatted: `${discCop.toLocaleString('es-CO')} COP`,
         hasDiscount,
-        discountPercent: promoColombiaActive ? 20 : globalDiscount,
+        discountPercent: promoColombiaActive ? 20 : 0,
         discountLabel
       };
     } else {
@@ -225,17 +221,13 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
         // Descuento visible sólo si bajó de precio (el mínimo de 5 permanece en 5)
         hasDiscount = discUsd < origUsd;
         discountLabel = 'PROMO';
-      } else if (globalDiscount > 0) {
-        discUsd = Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100;
-        hasDiscount = true;
-        discountLabel = `${globalDiscount}% OFF`;
       }
 
       return {
         originalFormatted: `${origUsd.toFixed(2)} USD`,
         discountedFormatted: `${discUsd.toFixed(2)} USD`,
         hasDiscount,
-        discountPercent: promoInternationalActive ? Math.round(((origUsd - discUsd) / origUsd) * 100) : globalDiscount,
+        discountPercent: promoInternationalActive && origUsd > 0 ? Math.round(((origUsd - discUsd) / origUsd) * 100) : 0,
         discountLabel
       };
     }
@@ -247,19 +239,16 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
       let baseCop = Math.round(basePrice * activeMult);
       if (promoColombiaActive) {
         return Math.round(baseCop * 0.8);
-      } else if (globalDiscount > 0) {
-        return Math.round(baseCop * (1 - globalDiscount / 100));
       }
       return baseCop;
     } else {
       if (promoInternationalActive) {
         return getShiftedPromoPrice(basePrice);
-      } else if (globalDiscount > 0) {
-        return Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100;
       }
       return basePrice;
     }
   };
+
 
 
   const uniqueMediaList = Array.from(

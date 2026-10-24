@@ -146,8 +146,6 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
 
       if (promoColombiaActive) {
         return Math.round(baseCop * 0.8);
-      } else if (globalDiscount > 0) {
-        return Math.round(baseCop * (1 - globalDiscount / 100));
       }
       return baseCop;
     } else {
@@ -160,8 +158,6 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     const basePrice = Number(item.price);
     if (promoInternationalActive) {
       return getShiftedPromoPrice(basePrice);
-    } else if (globalDiscount > 0) {
-      return Math.round(basePrice * (1 - globalDiscount / 100) * 100) / 100;
     }
     return basePrice;
   };
@@ -200,8 +196,9 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
   };
 
   const hasPromotionActive = isColombia
-    ? (promoColombiaActive || globalDiscount > 0)
-    : (promoInternationalActive && Number(item?.price) > 5) || (globalDiscount > 0);
+    ? promoColombiaActive
+    : (promoInternationalActive && Number(item?.price) > 5);
+
 
 
   const getDetectedRegion = (code: string) => {

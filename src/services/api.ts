@@ -1331,45 +1331,28 @@ export const api = {
         const parsed = JSON.parse(raw);
         if (typeof parsed.promoInternationalActive === 'boolean') localSettings.promoInternationalActive = parsed.promoInternationalActive;
         if (typeof parsed.promoColombiaActive === 'boolean') localSettings.promoColombiaActive = parsed.promoColombiaActive;
-        if (typeof parsed.discountPercentage === 'number') localSettings.discountPercentage = parsed.discountPercentage;
         if (typeof parsed.colombiaMultiplier === 'number') localSettings.colombiaMultiplier = parsed.colombiaMultiplier;
+        localSettings.discountPercentage = localSettings.promoColombiaActive ? 20 : 0;
       }
     } catch {}
 
     if (isSupabaseConfigured()) {
       try {
-        // 1. Try reading from creators.data.promoSettings first
         const { data: cData } = await supabase.from('creators').select('data').eq('handle', handle).limit(1);
         if (cData && cData.length > 0 && cData[0].data && cData[0].data.promoSettings) {
           const ps = cData[0].data.promoSettings;
+          const isCol = Boolean(ps.promoColombiaActive);
+          const isInt = Boolean(ps.promoInternationalActive);
           const result = {
-            discountPercentage: ps.promoColombiaActive ? 20 : (Number(ps.discountPercentage) || 0),
+            discountPercentage: isCol ? 20 : 0,
             colombiaMultiplier: ps.colombiaMultiplier !== undefined && ps.colombiaMultiplier !== null ? Number(ps.colombiaMultiplier) : (localSettings.colombiaMultiplier || 7),
-            promoInternationalActive: Boolean(ps.promoInternationalActive),
-            promoColombiaActive: Boolean(ps.promoColombiaActive)
+            promoInternationalActive: isInt,
+            promoColombiaActive: isCol
           };
           try {
             localStorage.setItem('geolink_promo_settings', JSON.stringify(result));
           } catch {}
           return result;
-        }
-
-        // 2. Fallback to global_discounts table
-        const { data, error } = await supabase
-          .from('global_discounts')
-          .select('discount_percentage, colombia_multiplier, is_active')
-          .eq('creator_handle', handle)
-          .limit(1);
-
-        if (!error && data && data.length > 0) {
-          const row = data[0];
-          const legacyDiscount = row.is_active ? (Number(row.discount_percentage) || 0) : 0;
-          return {
-            discountPercentage: localSettings.promoColombiaActive ? 20 : legacyDiscount,
-            colombiaMultiplier: row.colombia_multiplier !== null && row.colombia_multiplier !== undefined ? Number(row.colombia_multiplier) : (localSettings.colombiaMultiplier || 7),
-            promoInternationalActive: localSettings.promoInternationalActive,
-            promoColombiaActive: localSettings.promoColombiaActive
-          };
         }
       } catch (err) {
         console.warn('Supabase getGlobalDiscount warning:', err);
@@ -1380,11 +1363,13 @@ export const api = {
       const res = await fetch(`/api/creators/${encodeURIComponent(handle)}/discount`);
       if (res.ok) {
         const result = await res.json();
+        const isCol = typeof result.promoColombiaActive === 'boolean' ? result.promoColombiaActive : localSettings.promoColombiaActive;
+        const isInt = typeof result.promoInternationalActive === 'boolean' ? result.promoInternationalActive : localSettings.promoInternationalActive;
         return {
-          discountPercentage: result.promoColombiaActive ? 20 : (Number(result.discountPercentage) || 0),
+          discountPercentage: isCol ? 20 : 0,
           colombiaMultiplier: result.colombiaMultiplier !== undefined ? Number(result.colombiaMultiplier) : (localSettings.colombiaMultiplier || 7),
-          promoInternationalActive: typeof result.promoInternationalActive === 'boolean' ? result.promoInternationalActive : localSettings.promoInternationalActive,
-          promoColombiaActive: typeof result.promoColombiaActive === 'boolean' ? result.promoColombiaActive : localSettings.promoColombiaActive
+          promoInternationalActive: isInt,
+          promoColombiaActive: isCol
         };
       }
     } catch {}
@@ -1399,13 +1384,12 @@ export const api = {
     promoColombia?: boolean,
     handle: string = 'angelina69'
   ): Promise<boolean> {
-    const cleanPercentage = percentage && Number(percentage) > 0 ? Number(percentage) : 0;
     const cleanMultiplier = multiplier !== null && multiplier !== undefined && Number(multiplier) > 0 ? Number(multiplier) : 7;
     const isPromoInt = promoInternational !== undefined ? Boolean(promoInternational) : false;
     const isPromoCol = promoColombia !== undefined ? Boolean(promoColombia) : false;
 
     const payload = {
-      discountPercentage: isPromoCol ? 20 : cleanPercentage,
+      discountPercentage: isPromoCol ? 20 : 0,
       colombiaMultiplier: cleanMultiplier,
       promoInternationalActive: isPromoInt,
       promoColombiaActive: isPromoCol
@@ -1414,6 +1398,7 @@ export const api = {
     try {
       localStorage.setItem('geolink_promo_settings', JSON.stringify(payload));
     } catch {}
+
 
     if (isSupabaseConfigured()) {
       try {

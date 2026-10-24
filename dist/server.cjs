@@ -480,6 +480,17 @@ async function syncFromSupabase() {
       }
     } catch (_err) {
     }
+    try {
+      const { data: cRows } = await supabase.from("creators").select("data").eq("handle", "angelina69").limit(1);
+      if (cRows && cRows.length > 0 && cRows[0].data?.promoSettings) {
+        const ps = cRows[0].data.promoSettings;
+        promoInternationalActive = Boolean(ps.promoInternationalActive);
+        promoColombiaActive = Boolean(ps.promoColombiaActive);
+        if (ps.colombiaMultiplier) colombiaMultiplier = Number(ps.colombiaMultiplier);
+        console.log("[Supabase DB] Loaded promoSettings:", { promoInternationalActive, promoColombiaActive, colombiaMultiplier });
+      }
+    } catch (_err) {
+    }
     const { data: dbMedia, error: mErr } = await supabase.from("media_items").select("*");
     if (!mErr && dbMedia) {
       const uniqueMap = /* @__PURE__ */ new Map();
@@ -908,8 +919,6 @@ app.post("/api/payments/stripe/create-checkout-session", async (req, res) => {
       finalPriceUsd = Number(customPrice);
     } else if (promoInternationalActive) {
       finalPriceUsd = getShiftedPromoPrice(media.price);
-    } else if (globalDiscountPercentage > 0) {
-      finalPriceUsd = Math.round(media.price * (1 - globalDiscountPercentage / 100));
     }
     const protocol = req.headers["x-forwarded-proto"] || "https";
     const host = req.headers.host || "geolink-1.onrender.com";
@@ -1078,8 +1087,6 @@ app.post("/api/payments/mercadopago/create-preference", async (req, res) => {
         rawBasePrice = Math.round(rawBasePrice * 0.8 * 100) / 100;
       } else if (userCountry !== "CO" && promoInternationalActive) {
         rawBasePrice = getShiftedPromoPrice(rawBasePrice);
-      } else if (globalDiscountPercentage > 0) {
-        rawBasePrice = Math.round(rawBasePrice * (1 - globalDiscountPercentage / 100) * 100) / 100;
       }
       const activeMult = colombiaMultiplier > 0 ? colombiaMultiplier : 1;
       const effectivePrice = !mediaId?.includes("pagina") && userCountry === "CO" ? rawBasePrice * activeMult : rawBasePrice;
