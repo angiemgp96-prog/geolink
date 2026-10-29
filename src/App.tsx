@@ -115,7 +115,14 @@ export default function App() {
       const msg = encodeURIComponent(
         `¡Hola Angelina! Acabo de realizar el pago por Stripe (${formattedAmount}) para el contenido: "${data.mediaTitle}".\n\nAquí te adjunto mi comprobante de pago para recibir mi contenido 📎`
       );
-      const telegramUrl = `https://t.me/Angelinaguzman69?text=${msg}`;
+      const savedVipContact = (localStorage.getItem('geolink_visitor_contact') || '').trim();
+      const vipContactLine = savedVipContact ? `\n👤 Mi contacto: ${savedVipContact}` : '';
+      const finalEncodedMsg = data.isVipGroupPass
+        ? encodeURIComponent(
+            `¡Hola Angelina! Acabo de realizar el Pago Único de ${formattedAmount || '$50.00 USD'} por Stripe para ingresar al Grupo VIP Permanente 👑.${vipContactLine}\n\nAquí te adjunto mi comprobante de pago para mi ingreso al Grupo VIP 📎`
+          )
+        : msg;
+      const telegramUrl = `https://t.me/Angelinaguzman69?text=${finalEncodedMsg}`;
       window.location.href = telegramUrl;
     } catch (err) {
       console.warn('Error checking pending telegram redirect:', err);

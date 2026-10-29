@@ -443,6 +443,41 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             </a>
           </div>
 
+          {/* BOTÓN PAGO ÚNICO $50 USD GRUPO VIP PERMANENTE (SOLO FUERA DE COLOMBIA) */}
+          {Boolean(visitorCountry) && visitorCountry.toUpperCase() !== 'CO' && (
+            <div className="pt-1.5 max-w-md mx-auto w-full">
+              <a
+                id="vip-group-50usd-button"
+                href={getStripePaymentUrl(50)}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => {
+                  const stripeUrl = getStripePaymentUrl(50);
+                  try {
+                    localStorage.setItem('geolink_pending_telegram_payment', JSON.stringify({
+                      mediaId: 'acceso_grupo_vip_internacional',
+                      mediaTitle: '👑 Ingreso Grupo VIP Permanente (Pago Único)',
+                      amount: 50,
+                      currency: 'USD',
+                      stripeUrl,
+                      isVipGroupPass: true,
+                      timestamp: Date.now(),
+                    }));
+                  } catch {}
+                }}
+                className="w-full flex flex-col items-center justify-center gap-1 px-4 py-2.5 sm:px-5 sm:py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:via-yellow-300 hover:to-amber-400 text-slate-950 transition-all shadow-xl shadow-amber-500/25 hover:scale-[1.02] cursor-pointer border border-amber-200/80"
+              >
+                <div className="flex items-center justify-center gap-1.5 font-black text-xs sm:text-sm uppercase tracking-wide">
+                  <span>{t.vipGroupPassBtn}</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-slate-950 shrink-0 stroke-[2.5]" />
+                </div>
+                <span className="text-[10px] sm:text-xs font-bold text-slate-900 leading-snug text-center">
+                  {t.vipGroupPassSub}
+                </span>
+              </a>
+            </div>
+          )}
+
           {/* 3. BOTÓN COMPACTO "DESBLOQUEAR TODO" ACCESO FULL (OCULTO) */}
           {/* Hidden as requested */}
 

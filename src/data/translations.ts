@@ -17,6 +17,8 @@ export interface Translations {
   telegramDirectContact: string;
   telegramHotGroup: string;
   telegramVipGroup: string;
+  vipGroupPassBtn: string;
+  vipGroupPassSub: string;
 
   // Store & Profile
   fullAccessTitle: string;
@@ -61,6 +63,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     telegramDirectContact: 'CONTACTO DIRECTO TELEGRAM VIP',
     telegramHotGroup: 'GRUPO HOT TELEGRAM',
     telegramVipGroup: 'GRUPO VIP TELEGRAM',
+    vipGroupPassBtn: '👑 Ingresar al Grupo VIP — $50 USD',
+    vipGroupPassSub: '♾️ Pago único permanente · 🔥 Subo contenido 100% gratis cada vez que alguien nuevo se une',
 
     fullAccessTitle: '👑 DESBLOQUEAR TODO EL CATÁLOGO',
     fullAccessDesc: 'Acceso instantáneo a fotos y videos sin censura (NO INCLUYE CONTENIDOS EXTRA PREMIUM)',
@@ -101,6 +105,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     telegramDirectContact: 'VIP TELEGRAM DIRECT CONTACT',
     telegramHotGroup: 'HOT TELEGRAM GROUP',
     telegramVipGroup: 'TELEGRAM VIP GROUP',
+    vipGroupPassBtn: '👑 Join Exclusive VIP Group — $50 USD',
+    vipGroupPassSub: '♾️ One-time permanent access · 🔥 Free new content uploaded every time someone new joins',
 
     fullAccessTitle: '👑 UNLOCK ENTIRE CATALOG',
     fullAccessDesc: 'Instant access to uncensored photos and videos (DOES NOT INCLUDE EXTRA PREMIUM CONTENT)',
@@ -141,6 +147,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     telegramDirectContact: 'CONTATO DIRETO TELEGRAM VIP',
     telegramHotGroup: 'GRUPO HOT TELEGRAM',
     telegramVipGroup: 'GRUPO VIP TELEGRAM',
+    vipGroupPassBtn: '👑 Entrar no Grupo VIP — $50 USD',
+    vipGroupPassSub: '♾️ Pagamento único permanente · 🔥 Novo conteúdo 100% grátis a cada novo membro',
 
     fullAccessTitle: '👑 DESBLOQUEAR TODO O CATÁLOGO',
     fullAccessDesc: 'Acesso instantâneo a fotos e vídeos sem censura (NÃO INCLUI CONTEÚDOS EXTRA PREMIUM)',
@@ -181,6 +189,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     telegramDirectContact: 'CONTACT DIRECT TELEGRAM VIP',
     telegramHotGroup: 'GROUPE HOT TELEGRAM',
     telegramVipGroup: 'GROUPE TELEGRAM VIP',
+    vipGroupPassBtn: '👑 Rejoindre le Groupe VIP — $50 USD',
+    vipGroupPassSub: '♾️ Paiement unique permanent · 🔥 Nouveau contenu 100% gratuit à chaque nouveau membre',
 
     fullAccessTitle: '👑 DÉBLOQUER TOUT LE CATALOGUE',
     fullAccessDesc: 'Accès instantané aux photos et vidéos non censurées (N\'INCLUT PAS LES CONTENUS EXTRA PREMIUM)',
@@ -221,6 +231,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     telegramDirectContact: 'VIP TELEGRAM DIREKTKONTAKT',
     telegramHotGroup: 'HOT TELEGRAM GRUPPE',
     telegramVipGroup: 'TELEGRAM VIP GRUPPE',
+    vipGroupPassBtn: '👑 VIP-Gruppe Beitreten — $50 USD',
+    vipGroupPassSub: '♾️ Einmalige dauerhafte Zahlung · 🔥 Gratis neue Inhalte bei jedem neuen Mitglied',
 
     fullAccessTitle: '👑 GESAMTEN KATALOG FREISCHALTEN',
     fullAccessDesc: 'Sofortiger Zugriff auf unzensierte Fotos und Videos (ENTHÄLT KEINE EXTRA PREMIUM INHALTE)',
@@ -261,6 +273,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     telegramDirectContact: 'CONTATTO DIRETTO TELEGRAM VIP',
     telegramHotGroup: 'GRUPPO HOT TELEGRAM',
     telegramVipGroup: 'GRUPPO TELEGRAM VIP',
+    vipGroupPassBtn: '👑 Entra nel Gruppo VIP — $50 USD',
+    vipGroupPassSub: '♾️ Pagamento unico permanente · 🔥 Nuovi contenuti 100% gratis a ogni nuovo iscritto',
 
     fullAccessTitle: '👑 SBLOCCA L\'INTERO CATALOGO',
     fullAccessDesc: 'Accesso istantaneo a foto e video senza censura (NON INCLUDE CONTENUTI EXTRA PREMIUM)',
