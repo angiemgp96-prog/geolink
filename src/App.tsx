@@ -517,6 +517,7 @@ export default function App() {
               <ColombiaAccessGate
                 creator={currentCreator}
                 onUnlocked={() => setIsColombiaPageUnlocked(true)}
+                onOpenAdminLogin={() => setIsAdminLoginModalOpen(true)}
               />
             ) : (
               (internationalGateEnabled && !isColombiaPageUnlocked && !isCleanHomeMode && !isAdminLoggedIn && !isBypassedWith0777) ? (

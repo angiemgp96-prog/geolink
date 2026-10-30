@@ -6,11 +6,12 @@ import { Lock, ShieldCheck, CheckCircle, Send, Loader2, AlertCircle, CreditCard,
 interface ColombiaAccessGateProps {
   creator: CreatorProfile;
   onUnlocked: () => void;
+  onOpenAdminLogin?: () => void;
 }
 
 const TELEGRAM_USER = 'Angelinaguzman69';
 
-export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator, onUnlocked }) => {
+export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator, onUnlocked, onOpenAdminLogin }) => {
   const [activePaymentTab, setActivePaymentTab] = useState<'mercadopago' | 'nequi'>('mercadopago');
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [contactInfo, setContactInfo] = useState(() => {
@@ -95,7 +96,18 @@ export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator,
       <div className="w-full max-w-sm bg-gradient-to-b from-slate-900 via-zinc-900 to-slate-950 border border-purple-500/40 rounded-3xl shadow-2xl overflow-hidden my-auto text-center">
         
         {/* Encabezado Compacto */}
-        <div className="p-4 bg-gradient-to-r from-purple-950/80 via-slate-900 to-indigo-950/80 border-b border-purple-500/30 text-center space-y-1">
+        <div className="px-4 pt-2.5 pb-4 bg-gradient-to-r from-purple-950/80 via-slate-900 to-indigo-950/80 border-b border-purple-500/30 text-center space-y-1">
+          {onOpenAdminLogin && (
+            <div className="-mt-1 mb-0.5">
+              <button
+                type="button"
+                onClick={onOpenAdminLogin}
+                className="text-[9px] text-zinc-500/60 hover:text-zinc-400 font-normal bg-transparent border-0 py-0.5 px-2 select-none"
+              >
+                Derechos reservados
+              </button>
+            </div>
+          )}
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-400/30 text-purple-300 text-[10px] font-black uppercase">
             <span>🇨🇴</span> Acceso a la Página Web
           </div>
