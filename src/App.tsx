@@ -11,6 +11,7 @@ import { NewCreatorModal } from './components/NewCreatorModal';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { VisitorLeadModal } from './components/VisitorLeadModal';
 import { ColombiaAccessGate } from './components/ColombiaAccessGate';
+import { InternationalAccessGate } from './components/InternationalAccessGate';
 import { StripePendingReceiptModal, PendingStripePayment } from './components/StripePendingReceiptModal';
 import { INITIAL_CREATORS, INITIAL_MEDIA_ITEMS } from './data/mockData';
 import { Lock } from 'lucide-react';
@@ -97,6 +98,15 @@ export default function App() {
       localStorage.removeItem('geolink_pending_telegram_payment');
 
       // Registrar la intención de compra / redirección en el historial de ventas del admin
+      if (data.isInternationalPageGate) {
+        const savedGateContact = (localStorage.getItem('geolink_visitor_contact') || '').trim();
+        const gateContactLine = savedGateContact ? `\n👤 Mi contacto: ${savedGateContact}` : '';
+        const gateMsg = encodeURIComponent(
+          `¡Hola Angelina! Acabo de realizar el pago de $5.00 USD por Stripe para ingresar a tu Página Web 🌍.${gateContactLine}\n\nAquí te adjunto mi comprobante de pago para activar mi acceso 📎`
+        );
+        window.location.href = `https://t.me/Angelinaguzman69?text=${gateMsg}`;
+        return;
+      }
       const contactStr = localStorage.getItem('geolink_visitor_contact') || 'Cliente Stripe ➔ Telegram';
       try {
         await api.createPendingDirectPurchase({
@@ -163,6 +173,13 @@ export default function App() {
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
 
   const [isColombiaPageUnlocked, setIsColombiaPageUnlocked] = useState<boolean>(false);
+  const [internationalGateEnabled, setInternationalGateEnabled] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (activeTab === 'public') {
+      api.getInternationalGateSetting().then(setInternationalGateEnabled).catch(() => {});
+    }
+  }, [activeTab]);
   const [isCleanHomeMode, setIsCleanHomeMode] = useState<boolean>(() => {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -303,6 +320,13 @@ export default function App() {
 
       const loc = await api.getVisitorLocation(simulatedCountry);
       setVisitorLocation(loc);
+      const intlGateActive = await api.getInternationalGateSetting().catch(() => true);
+      setInternationalGateEnabled(intlGateActive);
+      if (loc.countryCode !== 'CO' && simulatedCountry !== 'CO') {
+        api.checkColombiaAccessApproved().then(approved => {
+          if (approved) setIsColombiaPageUnlocked(true);
+        }).catch(() => {});
+      }
       const isCo = (loc.countryCode === 'CO' || simulatedCountry === 'CO');
       if (isCo) {
         api.checkColombiaAccessApproved().then(approved => {
@@ -495,7 +519,14 @@ export default function App() {
                 onUnlocked={() => setIsColombiaPageUnlocked(true)}
               />
             ) : (
-              isCleanHomeMode ? (
+              (internationalGateEnabled && !isColombiaPageUnlocked && !isCleanHomeMode && !isAdminLoggedIn && !isBypassedWith0777) ? (
+                <InternationalAccessGate
+                  creator={currentCreator}
+                  visitorCountryCode={simulatedCountry || visitorLocation.countryCode}
+                  onUnlocked={() => setIsColombiaPageUnlocked(true)}
+                  onOpenAdminLogin={() => setIsAdminLoginModalOpen(true)}
+                />
+              ) : isCleanHomeMode ? (
                 <CleanStripeProfileView
                   creator={currentCreator}
                   onOpenPurchaseModal={(item) => setSelectedMediaForPurchase(item)}

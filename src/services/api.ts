@@ -682,6 +682,76 @@ export const api = {
     return requireLeadCapture;
   },
 
+  async getInternationalGateSetting(): Promise<boolean> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('lead_capture_settings')
+          .select('require_lead_capture')
+          .eq('id', 'international_gate')
+          .limit(1);
+        if (!error && data && data.length > 0 && typeof data[0].require_lead_capture === 'boolean') {
+          try {
+            localStorage.setItem('geolink_international_gate_enabled', String(data[0].require_lead_capture));
+          } catch {}
+          return data[0].require_lead_capture;
+        }
+      } catch {}
+    }
+
+    try {
+      const res = await fetch('/api/settings/international-gate');
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof data.internationalGateEnabled === 'boolean') {
+          return data.internationalGateEnabled;
+        }
+      }
+    } catch {}
+
+    try {
+      const cached = localStorage.getItem('geolink_international_gate_enabled');
+      if (cached === 'false') return false;
+      if (cached === 'true') return true;
+    } catch {}
+
+    return true;
+  },
+
+  async updateInternationalGateSetting(enabled: boolean): Promise<boolean> {
+    try {
+      localStorage.setItem('geolink_international_gate_enabled', String(enabled));
+    } catch {}
+
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('lead_capture_settings').upsert({
+          id: 'international_gate',
+          require_lead_capture: enabled,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+      } catch (err) {
+        console.warn('Supabase international gate update warning:', err);
+      }
+    }
+
+    try {
+      const res = await fetch('/api/settings/international-gate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ internationalGateEnabled: enabled })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof data.internationalGateEnabled === 'boolean') {
+          return data.internationalGateEnabled;
+        }
+      }
+    } catch {}
+
+    return enabled;
+  },
+
   async getPaymentMethodsVisibility(): Promise<PaymentMethodsVisibility> {
     const defaultVis: PaymentMethodsVisibility = {
       stripe: true,

@@ -1955,6 +1955,35 @@ app.get("/api/bigo-stream-proxy", async (req, res) => {
   }
 });
 
+let internationalGateEnabled = true;
+supabase.from("lead_capture_settings").select("*").eq("id", "international_gate").single()
+  .then(({ data }) => {
+    if (data && typeof data.require_lead_capture === "boolean") {
+      internationalGateEnabled = data.require_lead_capture;
+    }
+  }).catch(() => {});
+
+app.get("/api/settings/international-gate", (req, res) => {
+  res.json({ internationalGateEnabled });
+});
+
+app.post("/api/settings/international-gate", async (req, res) => {
+  try {
+    const { internationalGateEnabled: enabled } = req.body;
+    internationalGateEnabled = Boolean(enabled);
+    try {
+      await supabase.from("lead_capture_settings").upsert({
+        id: "international_gate",
+        require_lead_capture: internationalGateEnabled,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+    } catch {}
+    res.json({ success: true, internationalGateEnabled });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get("/api/settings/lead-capture", (req, res) => {
   res.json({ requireLeadCapture });
 });
