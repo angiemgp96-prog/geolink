@@ -424,7 +424,8 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
         {screen === 'select' && (
           <div className="p-5 sm:p-6 pr-12">
             <div className="flex items-center gap-2 text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1">
-              <Lock className="w-3.5 h-3.5" /><span>Desbloqueo de Contenido Exclusivo</span>
+              <Lock className="w-3.5 h-3.5" />
+              <span>{detectedRegion !== 'CO' ? '🔥 Compra Segura + Mi Chat Privado Incluido' : 'Desbloqueo de Contenido Exclusivo'}</span>
             </div>
             <h3 className="text-lg sm:text-xl font-bold text-white mb-1 line-clamp-2">{item.title}</h3>
             {item.id === 'acceso_full_cat_actual' && (
@@ -444,7 +445,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                     e.currentTarget.src = FALLBACK_POSTIMG_MAP[item.id];
                   }
                 }}
-                className="w-full h-full object-cover blur-sm opacity-50 scale-105"
+                className={`w-full h-full object-cover ${detectedRegion !== 'CO' ? 'blur-lg opacity-40 scale-110' : 'blur-sm opacity-50 scale-105'}`}
               />
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
                 <div className="w-10 h-10 rounded-full bg-indigo-600/30 border border-indigo-400/60 flex items-center justify-center backdrop-blur-md">
@@ -537,7 +538,19 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                 {/* 2. FUERA DE COLOMBIA: STRIPE, PAYPAL, SEPA, CLABE, ACH */}
                 {detectedRegion !== 'CO' && (
                   <div className="space-y-3">
-                    <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider mb-1">MÉTODOS DE PAGO INTERNACIONALES:</p>
+                    <div className="p-3.5 rounded-2xl bg-gradient-to-r from-rose-950/60 via-slate-900 to-indigo-950/60 border border-pink-500/40 text-left space-y-1.5 mb-2 shadow-md">
+                      <div className="text-xs font-black text-amber-300 flex items-center gap-1.5">
+                        <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>🔒 Pago 100% Seguro + Mi Chat Privado 1 a 1 Incluido</span>
+                      </div>
+                      <p className="text-[11px] text-zinc-200 leading-snug font-medium">
+                        1️⃣ Al elegir tu método irás a <strong className="text-white">Pago Seguro y 100% confidencial</strong>.
+                      </p>
+                      <p className="text-[11px] text-pink-200 leading-snug font-bold">
+                        2️⃣ Una vez realizado el pago, <strong className="text-white">hablamos tú y yo por chat privado en Telegram (@{TELEGRAM_USER})</strong>: allí te pasaré personalmente el contenido sin censura y podremos chatear en privado para conocernos 💋🔥
+                      </p>
+                    </div>
+                    <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider mb-1">ELIGE TU PAGO SEGURO:</p>
 
                     {/* STRIPE CHECKOUT #1 DE PRIMERO */}
                     {paymentVisibility.stripe !== false && (

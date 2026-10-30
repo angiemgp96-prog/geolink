@@ -102,7 +102,7 @@ export default function App() {
         const savedGateContact = (localStorage.getItem('geolink_visitor_contact') || '').trim();
         const gateContactLine = savedGateContact ? `\n👤 Mi contacto: ${savedGateContact}` : '';
         const gateMsg = encodeURIComponent(
-          `¡Hola Angelina! Acabo de realizar el pago de $5.00 USD por Stripe para ingresar a tu Página Web 🌍.${gateContactLine}\n\nAquí te adjunto mi comprobante de pago para activar mi acceso 📎`
+          `¡Hola Angelina! 💋 Acabo de realizar el pago de $5.00 USD por Stripe para recibir mi Acceso Gratis a tu nuevo OnlyFans "Angie Ly" + Chat Exclusivo y entrar a tu web 💙🔥.${gateContactLine}\n\nAquí te adjunto mi comprobante de pago 📎`
         );
         window.location.href = `https://t.me/Angelinaguzman69?text=${gateMsg}`;
         return;
@@ -123,11 +123,15 @@ export default function App() {
 
       const formattedAmount = data.amount ? `$${Number(data.amount).toFixed(2)} ${data.currency || 'USD'}` : '';
       const msg = encodeURIComponent(
-        `¡Hola Angelina! Acabo de realizar el pago por Stripe (${formattedAmount}) para el contenido: "${data.mediaTitle}".\n\nAquí te adjunto mi comprobante de pago para recibir mi contenido 📎`
+        `¡Hola Angelina! 🔥💋 Acabo de realizar el pago seguro por Stripe (${formattedAmount}) para comprar: "${data.mediaTitle}".\n\nAquí te adjunto mi comprobante para que me pases el contenido y empecemos nuestro chat privado 📎💬`
       );
       const savedVipContact = (localStorage.getItem('geolink_visitor_contact') || '').trim();
       const vipContactLine = savedVipContact ? `\n👤 Mi contacto: ${savedVipContact}` : '';
-      const finalEncodedMsg = data.isVipGroupPass
+      const finalEncodedMsg = data.isHotChatPass
+        ? encodeURIComponent(
+            `¡Hola Angelina! 🔥💋 Acabo de realizar el pago de ${formattedAmount || '$10.00 USD'} por Stripe para la opción "Chat Caliente · Conóceme" (chatear contigo 1 a 1 en privado y conocernos sin censura).${vipContactLine}\n\nAquí te adjunto mi comprobante para empezar nuestro chat caliente 💬📎`
+          )
+        : data.isVipGroupPass
         ? encodeURIComponent(
             `¡Hola Angelina! Acabo de realizar el Pago Único de ${formattedAmount || '$50.00 USD'} por Stripe para ingresar al Grupo VIP Permanente 👑.${vipContactLine}\n\nAquí te adjunto mi comprobante de pago para mi ingreso al Grupo VIP 📎`
           )

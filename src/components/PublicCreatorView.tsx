@@ -86,6 +86,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
     api.getVisitorLocation().then(loc => {
       if (loc && loc.countryCode) {
         setVisitorCountry(loc.countryCode);
+        if (loc.countryCode.toUpperCase() !== 'CO') {
+          setLang(detectLanguage(loc.countryCode));
+        }
       }
     }).catch(() => {});
   }, []);
@@ -177,6 +180,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   }, [mediaItems, filterType]);
 
   const isColombia = visitorCountry === 'CO';
+  const isOutsideColombia = Boolean(visitorCountry) && visitorCountry.toUpperCase() !== 'CO';
   const mostExpensiveItemPrice = mediaItems.reduce((max, item) => Number(item.price) > max ? Number(item.price) : max, 0);
   const fullAccessBasePrice = mostExpensiveItemPrice > 0 ? mostExpensiveItemPrice + 20 : 50;
 
@@ -429,6 +433,92 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             {creator.bio}
           </p>
 
+          {/* 1A. PROTAGONISTA PRINCIPAL: NUEVO ONLYFANS OFICIAL "ANGIE LY" + CHAT EXCLUSIVO (SOLO FUERA DE COLOMBIA) */}
+          {isOutsideColombia && (
+            <div className="pt-2 max-w-lg mx-auto w-full space-y-3">
+              <a
+                id="onlyfans-angie-ly-hero-button"
+                href="https://onlyfans.com/u601821461"
+                target="_blank"
+                rel="noreferrer"
+                className="w-full block p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#00AFF0]/25 via-[#06182c] to-[#00AFF0]/15 hover:from-[#00AFF0]/35 hover:to-[#00AFF0]/25 border-2 border-[#00AFF0] shadow-[0_0_35px_rgba(0,175,240,0.35)] hover:shadow-[0_0_45px_rgba(0,175,240,0.55)] transition-all hover:scale-[1.02] cursor-pointer text-center space-y-2 relative overflow-hidden group"
+              >
+                <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 text-[10px] sm:text-[11px] font-black uppercase tracking-wide">
+                  <span>{t.onlyfansBadge}</span>
+                </div>
+
+                {/* Logo Oficial OnlyFans + Angie Ly */}
+                <div className="flex items-center justify-center gap-2.5 pt-0.5">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-[#00AFF0] shadow-lg shadow-[#00AFF0]/40 border border-white/30">
+                    <svg viewBox="0 0 36 36" className="w-6 h-6 sm:w-7 sm:h-7 shrink-0" fill="none" aria-hidden="true">
+                      <circle cx="18" cy="18" r="16.5" fill="white" />
+                      <path
+                        d="M18 9.5C13.86 9.5 10.5 12.86 10.5 17C10.5 21.14 13.86 24.5 18 24.5C22.14 24.5 25.5 21.14 25.5 17C25.5 12.86 22.14 9.5 18 9.5ZM18 14.2C19.55 14.2 20.8 15.45 20.8 17C20.8 18.2 20.04 19.22 18.97 19.62L19.7 22.3H16.3L17.03 19.62C15.96 19.22 15.2 18.2 15.2 17C15.2 15.45 16.45 14.2 18 14.2Z"
+                        fill="#00AFF0"
+                      />
+                    </svg>
+                    <span className="text-white font-black text-base sm:text-lg tracking-tight">
+                      OnlyFans
+                    </span>
+                  </div>
+                  <span className="text-white font-black text-sm sm:text-base bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl">
+                    Angie Ly 💙
+                  </span>
+                </div>
+
+                <div className="font-black text-sm sm:text-lg text-white leading-snug">
+                  {t.onlyfansTitle}
+                </div>
+
+                <p className="text-[11px] sm:text-xs text-sky-100/95 font-medium leading-relaxed max-w-md mx-auto">
+                  {t.onlyfansSub}
+                </p>
+
+                <div className="pt-1">
+                  <span className="w-full py-2.5 sm:py-3 px-4 rounded-xl bg-gradient-to-r from-[#00AFF0] via-sky-400 to-[#0088cc] text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-[#00AFF0]/40 inline-flex items-center justify-center gap-2 group-hover:brightness-110 transition-all">
+                    <MessageCircle className="w-4 h-4 text-white fill-white/20 shrink-0" />
+                    <span>{t.onlyfansCta}</span>
+                    <ExternalLink className="w-4 h-4 text-white shrink-0" />
+                  </span>
+                </div>
+              </a>
+
+              {/* 1B. BOTÓN SEXY & SUGESTIVO #1 DE COMPRA: CHATEA CONMIGO / CHAT CALIENTE CONÓCEME ($10 USD) */}
+              <a
+                id="hot-chat-10usd-button"
+                href={getStripePaymentUrl(10)}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => {
+                  const stripeUrl = getStripePaymentUrl(10);
+                  try {
+                    localStorage.setItem('geolink_pending_telegram_payment', JSON.stringify({
+                      mediaId: 'chat_caliente_conoceme_10usd',
+                      mediaTitle: '💋🔥 Chat Caliente Privado 1 a 1 · Conóceme ($10.00 USD)',
+                      amount: 10,
+                      currency: 'USD',
+                      stripeUrl,
+                      isHotChatPass: true,
+                      timestamp: Date.now(),
+                    }));
+                  } catch {}
+                }}
+                className="w-full flex flex-col items-center justify-center gap-1.5 px-4 py-3.5 sm:px-5 sm:py-4 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600 hover:from-rose-500 hover:via-pink-500 hover:to-fuchsia-500 text-white transition-all shadow-[0_0_30px_rgba(225,29,72,0.45)] hover:shadow-[0_0_40px_rgba(236,72,153,0.65)] hover:scale-[1.02] cursor-pointer border-2 border-pink-300/60 relative overflow-hidden"
+              >
+                <span className="px-2.5 py-0.5 rounded-full bg-black/35 border border-pink-200/40 text-amber-200 text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
+                  {t.hotChatBadge}
+                </span>
+                <div className="flex items-center justify-center gap-1.5 font-black text-xs sm:text-base uppercase tracking-wide text-center leading-snug drop-shadow">
+                  <span>{t.hotChatTitle}</span>
+                  <ExternalLink className="w-4 h-4 text-amber-200 shrink-0 stroke-[2.5]" />
+                </div>
+                <span className="text-[10px] sm:text-xs font-semibold text-pink-50 leading-snug text-center max-w-md">
+                  {t.hotChatSub}
+                </span>
+              </a>
+            </div>
+          )}
+
           {/* 2. BOTÓN DE TELEGRAM VIP HOT */}
           <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
             <a
@@ -489,9 +579,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             <div>
               <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-indigo-400" />
-                <span>{t.storeSectionTitle}</span>
+                <span>{isOutsideColombia ? t.storeSectionTitleInt : t.storeSectionTitle}</span>
               </h2>
-              <p className="text-xs text-zinc-400 mt-0.5">{t.storeSectionSub}</p>
+              <p className="text-xs text-zinc-300 mt-0.5">{isOutsideColombia ? t.storeSectionSubInt : t.storeSectionSub}</p>
             </div>
 
             {/* Filtros */}
@@ -516,6 +606,21 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               </button>
             </div>
           </div>
+
+          {/* GUÍA CLARA Y PERSUASIVA DE COMPRA + CHAT PRIVADO (SOLO FUERA DE COLOMBIA) */}
+          {isOutsideColombia && (
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-950/50 via-slate-900/90 to-indigo-950/50 border border-pink-500/40 shadow-lg space-y-1.5 text-left">
+              <div className="text-xs sm:text-sm font-black text-amber-300">
+                {t.howToBuyTitle}
+              </div>
+              <div className="text-[11px] sm:text-xs text-zinc-200 font-semibold leading-snug">
+                {t.howToBuyStep1}
+              </div>
+              <div className="text-[11px] sm:text-xs text-pink-200 font-bold leading-snug">
+                {t.howToBuyStep2}
+              </div>
+            </div>
+          )}
 
           {/* GRID DE PRODUCTOS DE LA TIENDA (2 POR LÍNEA EN CELULARES Y PC) */}
           <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
@@ -580,7 +685,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                         }
                       }}
                       className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-                        !isUnlocked ? 'blur-[3px] scale-105 opacity-80' : 'opacity-100 blur-none'
+                        !isUnlocked ? (isOutsideColombia ? 'blur-[12px] scale-110 opacity-70' : 'blur-[3px] scale-105 opacity-80') : 'opacity-100 blur-none'
                       }`}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
@@ -624,6 +729,11 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                     {!isUnlocked && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center p-2 sm:p-4 text-center pointer-events-none z-10">
                         <div className="flex flex-col items-center group-hover:scale-105 transition-all duration-300">
+                          {isOutsideColombia && (
+                            <span className="mb-1.5 px-2 py-0.5 rounded-full bg-rose-600/90 border border-rose-300/40 text-white text-[8px] sm:text-[10px] font-black uppercase tracking-wider shadow-lg">
+                              {t.uncensoredTag}
+                            </span>
+                          )}
                           <div className={`relative w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-600/40 border border-indigo-400/60 flex items-center justify-center backdrop-blur-md shadow-lg shadow-indigo-600/30 group-hover:bg-gradient-to-br group-hover:from-amber-500/40 group-hover:to-indigo-600/60 group-hover:border-amber-400/80 group-hover:shadow-amber-500/40 transition-all duration-300 ${
                             isMobileFocused ? 'mobile-active-box' : ''
                           }`}>
@@ -642,8 +752,12 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                           <span className={`mt-1 sm:mt-2 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-out bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 text-[9px] sm:text-[11px] font-black uppercase px-2 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-lg shadow-amber-400/40 tracking-wider border border-amber-200/80 flex items-center gap-1 ${
                             isMobileFocused ? 'mobile-active-badge' : ''
                           }`}>
-                            <Unlock className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5]" />
-                            <span>Unlock</span>
+                            {isOutsideColombia ? (
+                              <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5]" />
+                            ) : (
+                              <Unlock className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5]" />
+                            )}
+                            <span>{isOutsideColombia ? t.buyBtn : 'Unlock'}</span>
                           </span>
                         </div>
                       </div>
@@ -664,6 +778,12 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                         </p>
                       )}
                     </div>
+
+                    {isOutsideColombia && !isUnlocked && (
+                      <div className="px-2 py-1.5 rounded-xl bg-gradient-to-r from-rose-500/15 via-pink-500/10 to-indigo-500/15 border border-pink-400/30 text-[9px] sm:text-[11px] font-bold text-pink-200 leading-snug text-left">
+                        {t.cardPrivateChatNote}
+                      </div>
+                    )}
 
                     {/* Meta Info & Price */}
                     <div className="pt-1.5 sm:pt-2 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-0">
@@ -700,7 +820,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                         className={`w-full sm:w-auto justify-center py-1.5 sm:py-2.5 px-2.5 sm:px-4 rounded-lg sm:rounded-xl font-black text-[10px] sm:text-xs flex items-center gap-1 sm:gap-1.5 transition-all shadow-lg cursor-pointer ${
                           isUnlocked
                             ? 'bg-gradient-to-r from-sky-500 via-sky-400 to-emerald-400 text-slate-950 shadow-sky-500/30 hover:scale-105'
-                            : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-600/30 hover:scale-105'
+                            : isOutsideColombia
+                              ? 'bg-gradient-to-r from-rose-600 via-pink-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white shadow-rose-600/35 hover:scale-105 border border-pink-400/30'
+                              : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-600/30 hover:scale-105'
                         }`}
                       >
                         {isUnlocked ? (
@@ -710,9 +832,13 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                           </>
                         ) : (
                           <>
-                            <Lock className="w-3 h-3 sm:w-4 sm:h-4 group-hover:hidden transition-all duration-300" />
-                            <Unlock className="w-3 h-3 sm:w-4 sm:h-4 text-amber-300 hidden group-hover:inline transition-all duration-300" />
-                            <span>{t.unlockBtn}</span>
+                            {isOutsideColombia ? (
+                              <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4 text-amber-200 shrink-0" />
+                            ) : (
+                              <Lock className="w-3 h-3 sm:w-4 sm:h-4 group-hover:hidden transition-all duration-300" />
+                            )}
+                            {!isOutsideColombia && <Unlock className="w-3 h-3 sm:w-4 sm:h-4 text-amber-300 hidden group-hover:inline transition-all duration-300" />}
+                            <span>{isOutsideColombia ? t.buyBtn : t.unlockBtn}</span>
                           </>
                         )}
                       </button>
