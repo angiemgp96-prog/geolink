@@ -19,7 +19,7 @@ export const INITIAL_CREATORS: CreatorProfile[] = [
       { id: 'l0', title: 'Nuevo OnlyFans Oficial 💙 @angeline_le — Chat Exclusivo', url: 'https://onlyfans.com/angeline_le', icon: 'OnlyFans', active: true, clicks: 4920 },
       { id: 'l1', title: 'Instagram Oficial 📸 (@angiemgp69)', url: 'https://instagram.com/angiemgp69', icon: 'Instagram', active: true, clicks: 3410 },
       { id: 'l2', title: 'Link.me Oficial 🔗', url: 'https://link.me/angelina69', icon: 'Globe', active: true, clicks: 1850 },
-      { id: 'l3', title: 'Telegram VIP Gratis 💬', url: 'https://t.me/example_channel', icon: 'Telegram', active: true, clicks: 1240 },
+      { id: 'l3', title: 'Telegram VIP 💬', url: 'https://t.me/example_channel', icon: 'Telegram', active: true, clicks: 1240 },
       { id: 'l4', title: 'TikTok Oficial 🎵', url: 'https://tiktok.com', icon: 'TikTok', active: true, clicks: 2150 },
     ],
     paymentSettings: {

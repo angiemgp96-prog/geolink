@@ -103,7 +103,7 @@ export default function App() {
         const savedGateContact = (localStorage.getItem('geolink_visitor_contact') || '').trim();
         const gateContactLine = savedGateContact ? `\n👤 Mi contacto: ${savedGateContact}` : '';
         const gateMsg = encodeURIComponent(
-          `¡Hola Angelina! 💋 Acabo de realizar el pago de $5.00 USD por Stripe para recibir mi Acceso Gratis a tu nuevo OnlyFans "Angie Ly" + Chat Exclusivo y entrar a tu web 💙🔥.${gateContactLine}\n\nAquí te adjunto mi comprobante de pago 📎`
+          `¡Hola Angelina! 💋 Acabo de realizar el pago de $5.00 USD por Stripe para recibir mi Acceso a tu nuevo OnlyFans "Angie Ly" + Chat Exclusivo y entrar a tu web 💙🔥.${gateContactLine}\n\nAquí te adjunto mi comprobante de pago 📎`
         );
         window.location.href = `https://t.me/Angelinaguzman69?text=${gateMsg}`;
         return;
@@ -178,6 +178,13 @@ export default function App() {
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
 
   const [isColombiaPageUnlocked, setIsColombiaPageUnlocked] = useState<boolean>(false);
+  const [isUsaStoreUnlocked, setIsUsaStoreUnlocked] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('geolink_usa_store_unlocked') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [internationalGateEnabled, setInternationalGateEnabled] = useState<boolean>(true);
 
   useEffect(() => {
@@ -359,6 +366,10 @@ export default function App() {
           const isValidCode = await api.checkColombiaCustomCode(accessCode);
           if (isValidCode) {
             setIsColombiaPageUnlocked(true);
+            setIsUsaStoreUnlocked(true);
+            try {
+              localStorage.setItem('geolink_usa_store_unlocked', 'true');
+            } catch {}
             try {
               window.history.replaceState({}, document.title, window.location.pathname);
             } catch {}
@@ -379,6 +390,10 @@ export default function App() {
               if (verifyRes.purchase.mediaId === 'acceso_pagina_colombia') {
                 await api.autoApproveMercadoPagoColombiaAccess();
                 setIsColombiaPageUnlocked(true);
+            setIsUsaStoreUnlocked(true);
+            try {
+              localStorage.setItem('geolink_usa_store_unlocked', 'true');
+            } catch {}
                 window.location.href = window.location.pathname;
                 return;
               } else {
@@ -534,10 +549,16 @@ export default function App() {
                 onOpenAdminLogin={() => setIsAdminLoginModalOpen(true)}
               />
             ) : (
-              (((simulatedCountry || visitorLocation.countryCode || '').toUpperCase() === 'US') && !isCleanHomeMode) ? (
+              (((simulatedCountry || visitorLocation.countryCode || '').toUpperCase() === 'US') && !isCleanHomeMode && !isUsaStoreUnlocked) ? (
                 <UsaOnlyFansView
                   creator={currentCreator}
                   onOpenAdminLogin={() => setIsAdminLoginModalOpen(true)}
+                  onUnlockStore={() => {
+                    setIsUsaStoreUnlocked(true);
+                    try {
+                      localStorage.setItem('geolink_usa_store_unlocked', 'true');
+                    } catch {}
+                  }}
                 />
               ) : (internationalGateEnabled && !isColombiaPageUnlocked && !isCleanHomeMode && !isAdminLoggedIn && !isBypassedWith0777) ? (
                 <InternationalAccessGate
@@ -629,7 +650,7 @@ export default function App() {
       )}
 
       {/* Footer with Discreet Model Access Button (Oculto cuando el Gate de Colombia está activo) */}
-      {!((visitorLocation.countryCode === 'CO' || simulatedCountry === 'CO') && !isColombiaPageUnlocked && !isAdminLoggedIn && !isBypassedWith0777) && !(((simulatedCountry || visitorLocation.countryCode || '').toUpperCase() === 'US') && !isCleanHomeMode && !isAdminLoggedIn) && !(internationalGateEnabled && !isColombiaPageUnlocked && !isCleanHomeMode && !isAdminLoggedIn && !isBypassedWith0777) && (
+      {!((visitorLocation.countryCode === 'CO' || simulatedCountry === 'CO') && !isColombiaPageUnlocked && !isAdminLoggedIn && !isBypassedWith0777) && !(((simulatedCountry || visitorLocation.countryCode || '').toUpperCase() === 'US') && !isCleanHomeMode && !isAdminLoggedIn && !isUsaStoreUnlocked) && !(internationalGateEnabled && !isColombiaPageUnlocked && !isCleanHomeMode && !isAdminLoggedIn && !isBypassedWith0777) && (
         <footer className="relative z-10 py-6 px-8 bg-black/60 border-t border-white/5 text-[11px] text-zinc-500 uppercase tracking-widest flex flex-col sm:flex-row justify-between items-center gap-4">
           <div>Link.me VIP • {currentCreator.name}</div>
           

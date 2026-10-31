@@ -32,10 +32,10 @@ const GATE_TEXTS: Record<SupportedLanguage, {
 }> = {
   es: {
     onlineBadge: 'En línea ahora 💬',
-    heroTitle: 'Entra Gratis a mi Nuevo OnlyFans y Chatea Conmigo en Privado 💋',
+    heroTitle: 'Entra a mi Nuevo OnlyFans y Chatea Conmigo en Privado 💋',
     heroHook: 'Descubre mi lado más explícito y sin censura — el que jamás puedo mostrar en redes 🔥',
     ofProfileLabel: 'Nuevo OnlyFans Oficial: Angie Ly · Chat Exclusivo',
-    benefit1: '💙 ACCESO GRATIS a mi nuevo OnlyFans "Angie Ly" incluido por pagar tus $5 USD',
+    benefit1: '💙 Acceso a mi nuevo OnlyFans "Angie Ly" incluido por pagar tus $5 USD',
     benefit2: '💬 Chat Exclusivo 1 a 1 conmigo en OnlyFans: allí podremos chatear solitos y sin filtros',
     benefit3: '🔞 Desbloqueas la entrada a mi archivo privado de videos y fotos explícitas',
     priceLabel: 'Pago único 100% discreto por todo el acceso:',
@@ -43,23 +43,23 @@ const GATE_TEXTS: Record<SupportedLanguage, {
     payBtn: 'Pagar $5.00 USD — Entrar a OnlyFans & Chatear',
     instantNote: '🔒 Pago 100% seguro y confidencial · Al volver te espero en mi Telegram para darte acceso inmediato a mi OnlyFans "Angie Ly" y a la web',
     sendReceiptBtn: 'Ya pagué — Recibir mi Acceso a OnlyFans en Telegram',
-    sentNotice: '¡Perfecto! Al volver del pago se abrirá mi Telegram privado para darte tu entrada gratis a OnlyFans "Angie Ly".',
+    sentNotice: '¡Perfecto! Al volver del pago se abrirá mi Telegram privado para darte tu entrada a OnlyFans "Angie Ly".',
     footerChat: 'Atención personal en Telegram',
   },
   en: {
     onlineBadge: 'Online now 💬',
-    heroTitle: 'Get FREE Access to My New OnlyFans & Chat With Me Privately 💋',
+    heroTitle: 'Get Access to My New OnlyFans & Chat With Me Privately 💋',
     heroHook: 'See my most explicit, uncensored side — everything I can never post on social media 🔥',
     ofProfileLabel: 'New Official OnlyFans: Angie Ly · Exclusive Chat',
-    benefit1: '💙 FREE Access to my new OnlyFans "Angie Ly" included with your $5 payment',
+    benefit1: '💙 Access to my new OnlyFans "Angie Ly" included with your $5 payment',
     benefit2: '💬 Exclusive 1-on-1 Chat with me on OnlyFans: let\'s talk privately & unfiltered right there',
     benefit3: '🔞 Full entry to my private vault of explicit videos & uncensored galleries',
     priceLabel: '100% discreet one-time payment for everything:',
     contactPlaceholder: 'Your WhatsApp or @Telegram (optional)',
     payBtn: 'Pay $5.00 USD — Enter OnlyFans & Chat Now',
-    instantNote: '🔒 100% discreet & secure billing · Return here to open Telegram and get instant free access to my OnlyFans "Angie Ly" & website',
+    instantNote: '🔒 100% discreet & secure billing · Return here to open Telegram and get instant access to my OnlyFans "Angie Ly" & website',
     sendReceiptBtn: 'I already paid — Get My OnlyFans Access on Telegram',
-    sentNotice: 'Return here after paying to open my private Telegram and claim your free OnlyFans "Angie Ly" access.',
+    sentNotice: 'Return here after paying to open my private Telegram and claim your OnlyFans "Angie Ly" access.',
     footerChat: 'Personal chat on Telegram',
   },
   pt: {
@@ -67,7 +67,7 @@ const GATE_TEXTS: Record<SupportedLanguage, {
     heroTitle: 'Entre Grátis no Meu Novo OnlyFans e Converse Comigo no Privado 💋',
     heroHook: 'Veja meu lado mais explícito e sem censura — tudo o que nunca mostro nas redes 🔥',
     ofProfileLabel: 'Novo OnlyFans Oficial: Angie Ly · Chat Exclusivo',
-    benefit1: '💙 ACESSO GRÁTIS ao meu novo OnlyFans "Angie Ly" incluído pelos seus $5 USD',
+    benefit1: '💙 ACESSO ao meu novo OnlyFans "Angie Ly" incluído pelos seus $5 USD',
     benefit2: '💬 Chat Exclusivo 1 a 1 comigo no OnlyFans: lá vamos conversar a sós e sem filtros',
     benefit3: '🔞 Entrada liberada no meu arquivo privado de vídeos e fotos explícitas',
     priceLabel: 'Pagamento único 100% discreto por tudo:',
@@ -75,7 +75,7 @@ const GATE_TEXTS: Record<SupportedLanguage, {
     payBtn: 'Pagar $5.00 USD — Entrar no OnlyFans & Chat',
     instantNote: '🔒 Pagamento 100% seguro e discreto · Ao voltar você fala comigo no Telegram para receber seu acesso ao OnlyFans "Angie Ly"',
     sendReceiptBtn: 'Já paguei — Receber Meu Acesso OnlyFans no Telegram',
-    sentNotice: 'Ao voltar do pagamento, meu Telegram abrirá para te entregar o acesso grátis ao OnlyFans "Angie Ly".',
+    sentNotice: 'Ao voltar do pagamento, meu Telegram abrirá para te entregar o acesso ao OnlyFans "Angie Ly".',
     footerChat: 'Atendimento pessoal no Telegram',
   },
   fr: {
@@ -83,7 +83,7 @@ const GATE_TEXTS: Record<SupportedLanguage, {
     heroTitle: 'Accès GRATUIT à Mon Nouveau OnlyFans & Chat Privé Avec Moi 💋',
     heroHook: 'Découvre mon côté le plus explicite et sans censure — jamais publié sur les réseaux 🔥',
     ofProfileLabel: 'Nouveau OnlyFans Officiel : Angie Ly · Chat Exclusif',
-    benefit1: '💙 ACCÈS GRATUIT à mon nouveau OnlyFans "Angie Ly" inclus pour vos 5 $ USD',
+    benefit1: '💙 ACCÈS à mon nouveau OnlyFans "Angie Ly" inclus pour vos 5 $ USD',
     benefit2: '💬 Chat Exclusif 1-à-1 avec moi sur OnlyFans : parlons ensemble en privé sans filtre',
     benefit3: '🔞 Entrée complète dans mes archives privées de vidéos et photos explicites',
     priceLabel: 'Paiement unique 100% discret pour tout :',
@@ -96,10 +96,10 @@ const GATE_TEXTS: Record<SupportedLanguage, {
   },
   de: {
     onlineBadge: 'Jetzt online 💬',
-    heroTitle: 'GRATIS Zugang zu Meinem Neuen OnlyFans & Privater Chat Mit Mir 💋',
+    heroTitle: 'Zugang zu Meinem Neuen OnlyFans & Privater Chat Mit Mir 💋',
     heroHook: 'Erlebe meine expliziteste, unzensierte Seite — nichts davon zeige ich auf Social Media 🔥',
     ofProfileLabel: 'Neues Offizielles OnlyFans: Angie Ly · Exklusiver Chat',
-    benefit1: '💙 GRATIS Zugang zu meinem neuen OnlyFans "Angie Ly" bei deiner 5 $ Zahlung inklusive',
+    benefit1: '💙 Zugang zu meinem neuen OnlyFans "Angie Ly" bei deiner 5 $ Zahlung inklusive',
     benefit2: '💬 Exklusiver 1-zu-1 Chat mit mir auf OnlyFans: dort schreiben wir privat & ungefiltert',
     benefit3: '🔞 Voller Eintritt in mein privates Archiv mit expliziten Videos & Fotos',
     priceLabel: '100% diskrete Einmalzahlung für den vollen Zugang:',
@@ -107,15 +107,15 @@ const GATE_TEXTS: Record<SupportedLanguage, {
     payBtn: '5,00 $ USD zahlen — Zu OnlyFans & Jetzt Chatten',
     instantNote: '🔒 100% diskrete & sichere Zahlung · Nach Rückkehr erhältst du auf Telegram sofort deinen OnlyFans "Angie Ly" Zugang',
     sendReceiptBtn: 'Bereits bezahlt — OnlyFans-Zugang auf Telegram erhalten',
-    sentNotice: 'Kehre nach der Zahlung hierher zurück, um deinen gratis OnlyFans "Angie Ly" Zugang auf Telegram zu erhalten.',
+    sentNotice: 'Kehre nach der Zahlung hierher zurück, um deinen OnlyFans "Angie Ly" Zugang auf Telegram zu erhalten.',
     footerChat: 'Persönlicher Kontakt auf Telegram',
   },
   it: {
     onlineBadge: 'Online ora 💬',
-    heroTitle: 'Entra Gratis nel Mio Nuovo OnlyFans e Chatta Con Me in Privato 💋',
+    heroTitle: 'Entra nel Mio Nuovo OnlyFans e Chatta Con Me in Privato 💋',
     heroHook: 'Scopri il mio lato più esplicito e senza censura — quello che non mostro mai sui social 🔥',
     ofProfileLabel: 'Nuovo OnlyFans Ufficiale: Angie Ly · Chat Esclusiva',
-    benefit1: '💙 ACCESSO GRATIS al mio nuovo OnlyFans "Angie Ly" incluso pagando i $5 USD',
+    benefit1: '💙 ACCESSO al mio nuovo OnlyFans "Angie Ly" incluso pagando i $5 USD',
     benefit2: '💬 Chat Esclusiva 1-a-1 con me su OnlyFans: lì potremo chattare da soli senza filtri',
     benefit3: '🔞 Ingresso completo al mio archivio privato di video e foto esplicite',
     priceLabel: 'Pagamento unico 100% discreto per tutto:',
@@ -123,7 +123,7 @@ const GATE_TEXTS: Record<SupportedLanguage, {
     payBtn: 'Paga $5.00 USD — Entra su OnlyFans & Chatta',
     instantNote: '🔒 Pagamento 100% sicuro e riservato · Al ritorno ti aspetto su Telegram per darti accesso a OnlyFans "Angie Ly"',
     sendReceiptBtn: 'Ho già pagato — Ricevi Accesso OnlyFans su Telegram',
-    sentNotice: 'Torna qui dopo il pagamento per ricevere subito il tuo accesso gratis a OnlyFans "Angie Ly" su Telegram.',
+    sentNotice: 'Torna qui dopo il pagamento per ricevere subito il tuo ACCESSO a OnlyFans "Angie Ly" su Telegram.',
     footerChat: 'Contatto personale su Telegram',
   },
 };
@@ -215,7 +215,7 @@ export const InternationalAccessGate: React.FC<InternationalAccessGateProps> = (
     try {
       localStorage.setItem('geolink_pending_telegram_payment', JSON.stringify({
         mediaId: 'acceso_pagina_internacional',
-        mediaTitle: '💙 Acceso Gratis OnlyFans "Angie Ly" + Chat Exclusivo + Web ($5.00 USD)',
+        mediaTitle: '💙 Acceso OnlyFans "Angie Ly" + Chat Exclusivo + Web ($5.00 USD)',
         amount: 5,
         currency: 'USD',
         stripeUrl: stripe5Url,
@@ -234,7 +234,7 @@ export const InternationalAccessGate: React.FC<InternationalAccessGateProps> = (
       localStorage.removeItem('geolink_pending_telegram_payment');
     } catch {}
     const msg = encodeURIComponent(
-      `¡Hola Angelina! 💋 Acabo de realizar el pago de $5.00 USD por Stripe para recibir mi Acceso Gratis a tu nuevo OnlyFans "Angie Ly" + Chat Exclusivo y entrar a tu web 💙🔥.${contactLine}\n\nAquí te adjunto mi comprobante de pago 📎`
+      `¡Hola Angelina! 💋 Acabo de realizar el pago de $5.00 USD por Stripe para recibir mi Acceso a tu nuevo OnlyFans "Angie Ly" + Chat Exclusivo y entrar a tu web 💙🔥.${contactLine}\n\nAquí te adjunto mi comprobante de pago 📎`
     );
     window.location.href = `https://t.me/${TELEGRAM_USER}?text=${msg}`;
   };

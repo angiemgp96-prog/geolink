@@ -5,6 +5,7 @@ import { CheckCircle2, ExternalLink, MessageCircle, Flame, Lock, Eye, Heart, Spa
 interface UsaOnlyFansViewProps {
   creator: CreatorProfile;
   onOpenAdminLogin?: () => void;
+  onUnlockStore?: () => void;
 }
 
 const ONLYFANS_URL = 'https://onlyfans.com/angeline_le';
@@ -33,7 +34,31 @@ const TEASER_CARDS = [
 export const UsaOnlyFansView: React.FC<UsaOnlyFansViewProps> = ({
   creator,
   onOpenAdminLogin,
+  onUnlockStore,
 }) => {
+  const [accessCodeInput, setAccessCodeInput] = React.useState('');
+  const [isVerifyingCode, setIsVerifyingCode] = React.useState(false);
+  const [codeError, setCodeError] = React.useState('');
+  const [showCodeBox, setShowCodeBox] = React.useState(false);
+
+  const handleVerifyAccessCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!accessCodeInput.trim()) return;
+    setIsVerifyingCode(true);
+    setCodeError('');
+    try {
+      const isValid = await (await import('../services/api')).api.checkColombiaCustomCode(accessCodeInput.trim());
+      if (isValid) {
+        if (onUnlockStore) onUnlockStore();
+      } else {
+        setCodeError('Access code invalid or expired');
+      }
+    } catch {
+      setCodeError('Error verifying code');
+    } finally {
+      setIsVerifyingCode(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-[#030712] text-zinc-100 font-sans pb-14 selection:bg-[#00AFF0] selection:text-white relative overflow-hidden">
       {/* Ambient OnlyFans & Warm Sensual Glow */}
@@ -239,6 +264,49 @@ export const UsaOnlyFansView: React.FC<UsaOnlyFansViewProps> = ({
             <span>Come Meet Me on OnlyFans 💋</span>
             <ExternalLink className="w-4 h-4 text-white shrink-0" />
           </a>
+        </div>
+
+        {/* VIP Access Code Entry for USA visitors with a private code */}
+        <div className="pt-2 text-center">
+          {!showCodeBox ? (
+            <button
+              type="button"
+              onClick={() => setShowCodeBox(true)}
+              className="text-[11px] font-semibold text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer bg-transparent border-0 py-1 px-3"
+            >
+              Have a VIP access code? Enter here
+            </button>
+          ) : (
+            <form onSubmit={handleVerifyAccessCode} className="max-w-xs mx-auto space-y-2 p-3 rounded-2xl bg-white/[0.04] border border-white/10">
+              <div className="text-xs text-zinc-400 font-medium text-left">
+                VIP Store Access Code:
+              </div>
+              <div className="flex gap-1.5">
+                <input
+                  type="text"
+                  value={accessCodeInput}
+                  onChange={(e) => {
+                    setAccessCodeInput(e.target.value);
+                    setCodeError('');
+                  }}
+                  placeholder="Enter code"
+                  className="flex-1 bg-black/60 border border-white/20 rounded-xl px-3 py-1.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-[#00AFF0]"
+                />
+                <button
+                  type="submit"
+                  disabled={isVerifyingCode}
+                  className="px-3 py-1.5 bg-[#00AFF0] hover:bg-[#0099e5] text-white text-xs font-bold rounded-xl transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  {isVerifyingCode ? '...' : 'Unlock'}
+                </button>
+              </div>
+              {codeError && (
+                <div className="text-[10px] text-red-400 text-left font-medium">
+                  {codeError}
+                </div>
+              )}
+            </form>
+          )}
         </div>
 
         {/* Ultra-discreet Admin Access trigger (matches Colombia gate) */}
