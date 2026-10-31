@@ -433,57 +433,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             {creator.bio}
           </p>
 
-          {/* 1A. PROTAGONISTA PRINCIPAL: NUEVO ONLYFANS OFICIAL "ANGIE LY" + CHAT EXCLUSIVO (SOLO FUERA DE COLOMBIA) */}
+          {/* 1. BOTÓN SEXY & SUGESTIVO #1 DE COMPRA: CHATEA CONMIGO / CHAT CALIENTE CONÓCEME ($10 USD) - SOLO FUERA DE COLOMBIA */}
           {isOutsideColombia && (
             <div className="pt-2 max-w-lg mx-auto w-full space-y-3">
-              <a
-                id="onlyfans-angie-ly-hero-button"
-                href="https://onlyfans.com/angeline_le"
-                target="_blank"
-                rel="noreferrer"
-                className="w-full block p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#00AFF0]/25 via-[#06182c] to-[#00AFF0]/15 hover:from-[#00AFF0]/35 hover:to-[#00AFF0]/25 border-2 border-[#00AFF0] shadow-[0_0_35px_rgba(0,175,240,0.35)] hover:shadow-[0_0_45px_rgba(0,175,240,0.55)] transition-all hover:scale-[1.02] cursor-pointer text-center space-y-2 relative overflow-hidden group"
-              >
-                <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 text-[10px] sm:text-[11px] font-black uppercase tracking-wide">
-                  <span>{t.onlyfansBadge}</span>
-                </div>
-
-                {/* Logo Oficial OnlyFans + Angie Ly */}
-                <div className="flex items-center justify-center gap-2.5 pt-0.5">
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-[#00AFF0] shadow-lg shadow-[#00AFF0]/40 border border-white/30">
-                    <svg viewBox="0 0 36 36" className="w-6 h-6 sm:w-7 sm:h-7 shrink-0" fill="none" aria-hidden="true">
-                      <circle cx="18" cy="18" r="16.5" fill="white" />
-                      <path
-                        d="M18 9.5C13.86 9.5 10.5 12.86 10.5 17C10.5 21.14 13.86 24.5 18 24.5C22.14 24.5 25.5 21.14 25.5 17C25.5 12.86 22.14 9.5 18 9.5ZM18 14.2C19.55 14.2 20.8 15.45 20.8 17C20.8 18.2 20.04 19.22 18.97 19.62L19.7 22.3H16.3L17.03 19.62C15.96 19.22 15.2 18.2 15.2 17C15.2 15.45 16.45 14.2 18 14.2Z"
-                        fill="#00AFF0"
-                      />
-                    </svg>
-                    <span className="text-white font-black text-base sm:text-lg tracking-tight">
-                      OnlyFans
-                    </span>
-                  </div>
-                  <span className="text-white font-black text-sm sm:text-base bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl">
-                    @angeline_le 💙
-                  </span>
-                </div>
-
-                <div className="font-black text-sm sm:text-lg text-white leading-snug">
-                  {t.onlyfansTitle}
-                </div>
-
-                <p className="text-[11px] sm:text-xs text-sky-100/95 font-medium leading-relaxed max-w-md mx-auto">
-                  {t.onlyfansSub}
-                </p>
-
-                <div className="pt-1">
-                  <span className="w-full py-2.5 sm:py-3 px-4 rounded-xl bg-gradient-to-r from-[#00AFF0] via-sky-400 to-[#0088cc] text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-[#00AFF0]/40 inline-flex items-center justify-center gap-2 group-hover:brightness-110 transition-all">
-                    <MessageCircle className="w-4 h-4 text-white fill-white/20 shrink-0" />
-                    <span>{t.onlyfansCta}</span>
-                    <ExternalLink className="w-4 h-4 text-white shrink-0" />
-                  </span>
-                </div>
-              </a>
-
-              {/* 1B. BOTÓN SEXY & SUGESTIVO #1 DE COMPRA: CHATEA CONMIGO / CHAT CALIENTE CONÓCEME ($10 USD) */}
               <a
                 id="hot-chat-10usd-button"
                 href={getStripePaymentUrl(10)}
