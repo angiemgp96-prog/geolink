@@ -27,7 +27,7 @@ const TEASER_CARDS = [
     id: 't3',
     localSrc: '/previews/media_1788438475594.webp',
     fallbackSrc: 'https://i.postimg.cc/JzPmPmbk/Captura-de-pantalla-2026-09-13-201710.png',
-    tag: '1-on-1 Private DMs 💋',
+    tag: 'Let’s Talk Naughty 💋',
   },
 ];
 
@@ -168,7 +168,7 @@ export const UsaOnlyFansView: React.FC<UsaOnlyFansViewProps> = ({
                   <ExternalLink className="w-4 h-4 text-white shrink-0 group-hover:translate-x-0.5 transition-transform" />
                 </div>
                 <div className="text-[11px] font-bold text-sky-100 normal-case">
-                  Chat 1-on-1 with me & unlock my naughty side 👀💋
+                  Let’s talk naughty & get to know each other 👀💋
                 </div>
               </div>
             </a>
@@ -247,7 +247,7 @@ export const UsaOnlyFansView: React.FC<UsaOnlyFansViewProps> = ({
           <ul className="space-y-2 text-xs sm:text-[13px] text-zinc-300 font-medium">
             <li className="flex items-start gap-2">
               <Sparkles className="w-4 h-4 text-[#00AFF0] shrink-0 mt-0.5" />
-              <span><strong className="text-white">Real 1-on-1 connection:</strong> Tell me about your day or your wildest fantasies — let's chat in private.</span>
+              <span><strong className="text-white">Let’s talk naughty & connect:</strong> Tell me about your day or your wildest fantasies — let's chat in private.</span>
             </li>
             <li className="flex items-start gap-2">
               <Sparkles className="w-4 h-4 text-pink-400 shrink-0 mt-0.5" />

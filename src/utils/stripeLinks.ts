@@ -11,7 +11,7 @@ export const STRIPE_LIBRE_LINK = 'https://buy.stripe.com/4gM5kD6037Qg2O2d6KeQM01
 /**
  * Retorna el nuevo precio corrido de promoción internacional para Stripe.
  * Escala exacta requerida:
- *  - 50 USD -> 30 USD
+ *  - 50 USD -> 30 USDe
  *  - 30 USD -> 20 USD
  *  - 20 USD -> 10 USD
  *  - 10 USD -> 5 USD
