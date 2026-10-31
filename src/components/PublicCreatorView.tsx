@@ -607,20 +607,18 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             </div>
           </div>
 
-          {/* GUÍA CLARA Y PERSUASIVA DE COMPRA + CHAT PRIVADO (SOLO FUERA DE COLOMBIA) */}
-          {isOutsideColombia && (
-            <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-950/50 via-slate-900/90 to-indigo-950/50 border border-pink-500/40 shadow-lg space-y-1.5 text-left">
-              <div className="text-xs sm:text-sm font-black text-amber-300">
-                {t.howToBuyTitle}
-              </div>
-              <div className="text-[11px] sm:text-xs text-zinc-200 font-semibold leading-snug">
-                {t.howToBuyStep1}
-              </div>
-              <div className="text-[11px] sm:text-xs text-pink-200 font-bold leading-snug">
-                {t.howToBuyStep2}
-              </div>
+          {/* GUÍA CLARA Y PERSUASIVA DE COMPRA */}
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-950/50 via-slate-900/90 to-indigo-950/50 border border-pink-500/40 shadow-lg space-y-1.5 text-left">
+            <div className="text-xs sm:text-sm font-black text-amber-300">
+              {t.howToBuyTitle}
             </div>
-          )}
+            <div className="text-[11px] sm:text-xs text-zinc-200 font-semibold leading-snug">
+              {t.howToBuyStep1}
+            </div>
+            <div className="text-[11px] sm:text-xs text-pink-200 font-bold leading-snug">
+              {t.howToBuyStep2}
+            </div>
+          </div>
 
           {/* GRID DE PRODUCTOS DE LA TIENDA (2 POR LÍNEA EN CELULARES Y PC) */}
           <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
@@ -685,7 +683,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                         }
                       }}
                       className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-                        !isUnlocked ? (isOutsideColombia ? 'blur-[12px] scale-110 opacity-70' : 'blur-[3px] scale-105 opacity-80') : 'opacity-100 blur-none'
+                        !isUnlocked ? 'blur-[12px] scale-110 opacity-70' : 'opacity-100 blur-none'
                       }`}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
@@ -729,11 +727,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                     {!isUnlocked && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center p-2 sm:p-4 text-center pointer-events-none z-10">
                         <div className="flex flex-col items-center group-hover:scale-105 transition-all duration-300">
-                          {isOutsideColombia && (
-                            <span className="mb-1.5 px-2 py-0.5 rounded-full bg-rose-600/90 border border-rose-300/40 text-white text-[8px] sm:text-[10px] font-black uppercase tracking-wider shadow-lg">
-                              {t.uncensoredTag}
-                            </span>
-                          )}
+                          <span className="mb-1.5 px-2 py-0.5 rounded-full bg-rose-600/90 border border-rose-300/40 text-white text-[8px] sm:text-[10px] font-black uppercase tracking-wider shadow-lg">
+                            {t.uncensoredTag}
+                          </span>
                           <div className={`relative w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-600/40 border border-indigo-400/60 flex items-center justify-center backdrop-blur-md shadow-lg shadow-indigo-600/30 group-hover:bg-gradient-to-br group-hover:from-amber-500/40 group-hover:to-indigo-600/60 group-hover:border-amber-400/80 group-hover:shadow-amber-500/40 transition-all duration-300 ${
                             isMobileFocused ? 'mobile-active-box' : ''
                           }`}>
@@ -752,12 +748,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                           <span className={`mt-1 sm:mt-2 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-out bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 text-[9px] sm:text-[11px] font-black uppercase px-2 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-lg shadow-amber-400/40 tracking-wider border border-amber-200/80 flex items-center gap-1 ${
                             isMobileFocused ? 'mobile-active-badge' : ''
                           }`}>
-                            {isOutsideColombia ? (
-                              <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5]" />
-                            ) : (
-                              <Unlock className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5]" />
-                            )}
-                            <span>{isOutsideColombia ? t.buyBtn : 'Unlock'}</span>
+                            <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5]" />
+                            <span>{t.buyBtn}</span>
                           </span>
                         </div>
                       </div>
@@ -779,7 +771,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                       )}
                     </div>
 
-                    {isOutsideColombia && !isUnlocked && (
+                    {!isUnlocked && (
                       <div className="px-2 py-1.5 rounded-xl bg-gradient-to-r from-rose-500/15 via-pink-500/10 to-indigo-500/15 border border-pink-400/30 text-[9px] sm:text-[11px] font-bold text-pink-200 leading-snug text-left">
                         {t.cardPrivateChatNote}
                       </div>
@@ -820,9 +812,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                         className={`w-full sm:w-auto justify-center py-1.5 sm:py-2.5 px-2.5 sm:px-4 rounded-lg sm:rounded-xl font-black text-[10px] sm:text-xs flex items-center gap-1 sm:gap-1.5 transition-all shadow-lg cursor-pointer ${
                           isUnlocked
                             ? 'bg-gradient-to-r from-sky-500 via-sky-400 to-emerald-400 text-slate-950 shadow-sky-500/30 hover:scale-105'
-                            : isOutsideColombia
-                              ? 'bg-gradient-to-r from-rose-600 via-pink-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white shadow-rose-600/35 hover:scale-105 border border-pink-400/30'
-                              : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-600/30 hover:scale-105'
+                            : 'bg-gradient-to-r from-rose-600 via-pink-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white shadow-rose-600/35 hover:scale-105 border border-pink-400/30'
                         }`}
                       >
                         {isUnlocked ? (
@@ -832,13 +822,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                           </>
                         ) : (
                           <>
-                            {isOutsideColombia ? (
                               <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4 text-amber-200 shrink-0" />
-                            ) : (
-                              <Lock className="w-3 h-3 sm:w-4 sm:h-4 group-hover:hidden transition-all duration-300" />
-                            )}
-                            {!isOutsideColombia && <Unlock className="w-3 h-3 sm:w-4 sm:h-4 text-amber-300 hidden group-hover:inline transition-all duration-300" />}
-                            <span>{isOutsideColombia ? t.buyBtn : t.unlockBtn}</span>
+
+                            <span>{t.buyBtn}</span>
                           </>
                         )}
                       </button>

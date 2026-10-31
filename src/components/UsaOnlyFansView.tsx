@@ -70,7 +70,7 @@ export const UsaOnlyFansView: React.FC<UsaOnlyFansViewProps> = ({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400" />
             </span>
-            <span>Online right now · Replying to DMs personally 💬</span>
+            <span>Online right now · Send me a DM 💬</span>
           </a>
         </div>
       </div>
@@ -150,7 +150,7 @@ export const UsaOnlyFansView: React.FC<UsaOnlyFansViewProps> = ({
 
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-zinc-400 font-semibold">
               <span className="flex items-center gap-1 text-sky-300">
-                <MessageCircle className="w-3.5 h-3.5 text-[#00AFF0]" /> No agency · It’s really me
+                <MessageCircle className="w-3.5 h-3.5 text-[#00AFF0]" /> Direct DMs & private chat
               </span>
               <span>•</span>
               <span className="flex items-center gap-1 text-pink-300">
@@ -222,7 +222,7 @@ export const UsaOnlyFansView: React.FC<UsaOnlyFansViewProps> = ({
           <ul className="space-y-2 text-xs sm:text-[13px] text-zinc-300 font-medium">
             <li className="flex items-start gap-2">
               <Sparkles className="w-4 h-4 text-[#00AFF0] shrink-0 mt-0.5" />
-              <span><strong className="text-white">Real 1-on-1 connection:</strong> Tell me about your day or your wildest fantasies — I reply to every message myself.</span>
+              <span><strong className="text-white">Real 1-on-1 connection:</strong> Tell me about your day or your wildest fantasies — let's chat in private.</span>
             </li>
             <li className="flex items-start gap-2">
               <Sparkles className="w-4 h-4 text-pink-400 shrink-0 mt-0.5" />

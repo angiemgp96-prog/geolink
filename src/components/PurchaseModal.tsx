@@ -445,7 +445,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                     e.currentTarget.src = FALLBACK_POSTIMG_MAP[item.id];
                   }
                 }}
-                className={`w-full h-full object-cover ${detectedRegion !== 'CO' ? 'blur-lg opacity-40 scale-110' : 'blur-sm opacity-50 scale-105'}`}
+                className="w-full h-full object-cover blur-lg opacity-40 scale-110"
               />
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
                 <div className="w-10 h-10 rounded-full bg-indigo-600/30 border border-indigo-400/60 flex items-center justify-center backdrop-blur-md">
@@ -547,7 +547,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
                         1️⃣ Al elegir tu método irás a <strong className="text-white">Pago Seguro y 100% confidencial</strong>.
                       </p>
                       <p className="text-[11px] text-pink-200 leading-snug font-bold">
-                        2️⃣ Una vez realizado el pago, <strong className="text-white">hablamos tú y yo por chat privado en Telegram (@{TELEGRAM_USER})</strong>: allí te pasaré personalmente el contenido sin censura y podremos chatear en privado para conocernos 💋🔥
+                        2️⃣ Una vez realizado el pago, <strong className="text-white">hablamos por chat en Telegram (@{TELEGRAM_USER})</strong>: allí recibes tu contenido sin censura y podemos chatear en privado 💋🔥
                       </p>
                     </div>
                     <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider mb-1">ELIGE TU PAGO SEGURO:</p>

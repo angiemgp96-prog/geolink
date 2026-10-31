@@ -31,7 +31,7 @@ const GATE_TEXTS: Record<SupportedLanguage, {
   footerChat: string;
 }> = {
   es: {
-    onlineBadge: 'En línea ahora · Respondo yo misma',
+    onlineBadge: 'En línea ahora 💬',
     heroTitle: 'Entra Gratis a mi Nuevo OnlyFans y Chatea Conmigo en Privado 💋',
     heroHook: 'Descubre mi lado más explícito y sin censura — el que jamás puedo mostrar en redes 🔥',
     ofProfileLabel: 'Nuevo OnlyFans Oficial: Angie Ly · Chat Exclusivo',
@@ -47,7 +47,7 @@ const GATE_TEXTS: Record<SupportedLanguage, {
     footerChat: 'Atención personal en Telegram',
   },
   en: {
-    onlineBadge: 'Online now · Replying personally',
+    onlineBadge: 'Online now 💬',
     heroTitle: 'Get FREE Access to My New OnlyFans & Chat With Me Privately 💋',
     heroHook: 'See my most explicit, uncensored side — everything I can never post on social media 🔥',
     ofProfileLabel: 'New Official OnlyFans: Angie Ly · Exclusive Chat',
@@ -63,7 +63,7 @@ const GATE_TEXTS: Record<SupportedLanguage, {
     footerChat: 'Personal chat on Telegram',
   },
   pt: {
-    onlineBadge: 'Online agora · Eu mesma respondo',
+    onlineBadge: 'Online agora 💬',
     heroTitle: 'Entre Grátis no Meu Novo OnlyFans e Converse Comigo no Privado 💋',
     heroHook: 'Veja meu lado mais explícito e sem censura — tudo o que nunca mostro nas redes 🔥',
     ofProfileLabel: 'Novo OnlyFans Oficial: Angie Ly · Chat Exclusivo',
@@ -79,7 +79,7 @@ const GATE_TEXTS: Record<SupportedLanguage, {
     footerChat: 'Atendimento pessoal no Telegram',
   },
   fr: {
-    onlineBadge: 'En ligne · Je réponds moi-même',
+    onlineBadge: 'En ligne 💬',
     heroTitle: 'Accès GRATUIT à Mon Nouveau OnlyFans & Chat Privé Avec Moi 💋',
     heroHook: 'Découvre mon côté le plus explicite et sans censure — jamais publié sur les réseaux 🔥',
     ofProfileLabel: 'Nouveau OnlyFans Officiel : Angie Ly · Chat Exclusif',
@@ -95,7 +95,7 @@ const GATE_TEXTS: Record<SupportedLanguage, {
     footerChat: 'Contact personnel sur Telegram',
   },
   de: {
-    onlineBadge: 'Jetzt online · Ich antworte persönlich',
+    onlineBadge: 'Jetzt online 💬',
     heroTitle: 'GRATIS Zugang zu Meinem Neuen OnlyFans & Privater Chat Mit Mir 💋',
     heroHook: 'Erlebe meine expliziteste, unzensierte Seite — nichts davon zeige ich auf Social Media 🔥',
     ofProfileLabel: 'Neues Offizielles OnlyFans: Angie Ly · Exklusiver Chat',
@@ -111,7 +111,7 @@ const GATE_TEXTS: Record<SupportedLanguage, {
     footerChat: 'Persönlicher Kontakt auf Telegram',
   },
   it: {
-    onlineBadge: 'Online ora · Rispondo io in persona',
+    onlineBadge: 'Online ora 💬',
     heroTitle: 'Entra Gratis nel Mio Nuovo OnlyFans e Chatta Con Me in Privato 💋',
     heroHook: 'Scopri il mio lato più esplicito e senza censura — quello che non mostro mai sui social 🔥',
     ofProfileLabel: 'Nuovo OnlyFans Ufficiale: Angie Ly · Chat Esclusiva',
