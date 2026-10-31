@@ -12,6 +12,7 @@ import { AdminLoginModal } from './components/AdminLoginModal';
 import { VisitorLeadModal } from './components/VisitorLeadModal';
 import { ColombiaAccessGate } from './components/ColombiaAccessGate';
 import { InternationalAccessGate } from './components/InternationalAccessGate';
+import { UsaOnlyFansView } from './components/UsaOnlyFansView';
 import { StripePendingReceiptModal, PendingStripePayment } from './components/StripePendingReceiptModal';
 import { INITIAL_CREATORS, INITIAL_MEDIA_ITEMS } from './data/mockData';
 import { Lock } from 'lucide-react';
@@ -214,6 +215,15 @@ export default function App() {
 
   // Reactively trigger lead modal or perform silent IP capture
   useEffect(() => {
+    if (!isAppReady) return;
+    const effectiveLeadCountry = (simulatedCountry || visitorLocation.countryCode || '').toUpperCase();
+    if (effectiveLeadCountry === 'US') {
+      setIsVisitorLeadModalOpen(false);
+      if (!isAdminLoggedIn) {
+        api.saveVisitorLead('Visita USA -> OnlyFans', 'US').catch(() => {});
+      }
+      return;
+    }
     if (accessAllowed && !isAdminLoggedIn) {
       if (!requireLeadCapture) {
         // OFF MODE: Silent IP & Location logging in Supabase
@@ -233,7 +243,7 @@ export default function App() {
         }
       } catch {}
     }
-  }, [accessAllowed, isAdminLoggedIn, requireLeadCapture, visitorLocation.countryCode]);
+  }, [isAppReady, accessAllowed, isAdminLoggedIn, requireLeadCapture, visitorLocation.countryCode, simulatedCountry]);
 
   const [unlockedMediaIds, setUnlockedMediaIds] = useState<string[]>([]);
   const [unlockedTokensMap, setUnlockedTokensMap] = useState<Record<string, string>>({});
@@ -524,7 +534,12 @@ export default function App() {
                 onOpenAdminLogin={() => setIsAdminLoginModalOpen(true)}
               />
             ) : (
-              (internationalGateEnabled && !isColombiaPageUnlocked && !isCleanHomeMode && !isAdminLoggedIn && !isBypassedWith0777) ? (
+              (((simulatedCountry || visitorLocation.countryCode || '').toUpperCase() === 'US') && !isCleanHomeMode) ? (
+                <UsaOnlyFansView
+                  creator={currentCreator}
+                  onOpenAdminLogin={() => setIsAdminLoginModalOpen(true)}
+                />
+              ) : (internationalGateEnabled && !isColombiaPageUnlocked && !isCleanHomeMode && !isAdminLoggedIn && !isBypassedWith0777) ? (
                 <InternationalAccessGate
                   creator={currentCreator}
                   visitorCountryCode={simulatedCountry || visitorLocation.countryCode}
@@ -614,16 +629,16 @@ export default function App() {
       )}
 
       {/* Footer with Discreet Model Access Button (Oculto cuando el Gate de Colombia está activo) */}
-      {!((visitorLocation.countryCode === 'CO' || simulatedCountry === 'CO') && !isColombiaPageUnlocked && !isAdminLoggedIn && !isBypassedWith0777) && (
+      {!((visitorLocation.countryCode === 'CO' || simulatedCountry === 'CO') && !isColombiaPageUnlocked && !isAdminLoggedIn && !isBypassedWith0777) && !(((simulatedCountry || visitorLocation.countryCode || '').toUpperCase() === 'US') && !isCleanHomeMode && !isAdminLoggedIn) && !(internationalGateEnabled && !isColombiaPageUnlocked && !isCleanHomeMode && !isAdminLoggedIn && !isBypassedWith0777) && (
         <footer className="relative z-10 py-6 px-8 bg-black/60 border-t border-white/5 text-[11px] text-zinc-500 uppercase tracking-widest flex flex-col sm:flex-row justify-between items-center gap-4">
           <div>Link.me VIP • {currentCreator.name}</div>
           
           <button
             onClick={() => setIsAdminLoginModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-indigo-300 text-xs font-medium transition-all cursor-pointer"
+            className="text-[9px] text-zinc-600/80 hover:text-zinc-500 font-normal normal-case tracking-normal bg-transparent border-0 p-1 select-none"
           >
-            <Lock className="w-3.5 h-3.5 text-indigo-400" />
-            <span>{isAdminLoggedIn ? 'Panel Creadora (Activo)' : '🔑 Acceso Exclusivo Creadora'}</span>
+
+            <span>© Derechos reservados</span>
           </button>
         </footer>
       )}

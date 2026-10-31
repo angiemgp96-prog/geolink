@@ -438,7 +438,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             <div className="pt-2 max-w-lg mx-auto w-full space-y-3">
               <a
                 id="onlyfans-angie-ly-hero-button"
-                href="https://onlyfans.com/u601821461"
+                href="https://onlyfans.com/angeline_le"
                 target="_blank"
                 rel="noreferrer"
                 className="w-full block p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#00AFF0]/25 via-[#06182c] to-[#00AFF0]/15 hover:from-[#00AFF0]/35 hover:to-[#00AFF0]/25 border-2 border-[#00AFF0] shadow-[0_0_35px_rgba(0,175,240,0.35)] hover:shadow-[0_0_45px_rgba(0,175,240,0.55)] transition-all hover:scale-[1.02] cursor-pointer text-center space-y-2 relative overflow-hidden group"
@@ -462,7 +462,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                     </span>
                   </div>
                   <span className="text-white font-black text-sm sm:text-base bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl">
-                    Angie Ly 💙
+                    @angeline_le 💙
                   </span>
                 </div>
 

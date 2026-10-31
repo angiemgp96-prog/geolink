@@ -54,12 +54,11 @@ export const GeoBlockingBanner: React.FC<GeoBlockingBannerProps> = ({
         {/* Hidden bypass link for 0777 or creator entry */}
         <div className="pt-2">
           <button
+            type="button"
             onClick={onBypassSimulation}
-            className="flex items-center gap-1.5 mx-auto text-[11px] text-zinc-700 hover:text-zinc-500 transition-colors cursor-pointer"
-            title="Código de acceso"
+            className="mx-auto text-[9px] text-zinc-700 hover:text-zinc-600 bg-transparent border-0 p-1 select-none"
           >
-            <Lock className="w-3 h-3 opacity-40" />
-            <span className="opacity-60">¿Eres la creadora? Código de acceso</span>
+            © Derechos reservados
           </button>
         </div>
       </div>
