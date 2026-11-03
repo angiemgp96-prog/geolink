@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CreatorProfile } from '../types';
 import { api } from '../services/api';
-import { Lock, ShieldCheck, CheckCircle, Send, Loader2, AlertCircle, CreditCard, Smartphone } from 'lucide-react';
+import { ShieldCheck, CheckCircle, Send, Loader2, AlertCircle, CreditCard, Smartphone, Sparkles, Gift } from 'lucide-react';
 
 interface ColombiaAccessGateProps {
   creator: CreatorProfile;
@@ -85,7 +85,7 @@ export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator,
 
     const contactText = cleanContact ? `\n\nMi contacto: ${cleanContact}` : '';
     const msg = encodeURIComponent(
-      `¡Hola! Ya realicé el pago de $35.000 COP por Nequi Llave Bre-B (@NEQUIANG05606) para solicitar el Acceso a la página web.${contactText}\n\nAquí te adjunto mi comprobante 📎`
+      `¡Hola Angelina! 💋 Ya realicé el pago de $35.000 COP por Nequi (@NEQUIANG05606) para mi Acceso Web. Incluye mi Video de Bienvenida y mi opción de elegir 1 video de $35.000 COP del catálogo.${contactText}\n\nAquí te adjunto mi comprobante de pago 📎`
     );
 
     window.open(`https://t.me/${TELEGRAM_USER}?text=${msg}`, '_blank');
@@ -109,16 +109,26 @@ export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator,
             </div>
           )}
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-400/30 text-purple-300 text-[10px] font-black uppercase">
-            <span>🇨🇴</span> Acceso a la Página Web
+            <span>🇨🇴</span> Acceso Web + Video Bienvenida
           </div>
           
           <div className="text-xl font-black text-amber-300">
             $35.000 COP <span className="text-xs font-bold text-slate-400">($10 USD)</span>
           </div>
 
-          <p className="text-[11px] text-zinc-300 leading-snug font-medium px-2">
-            Entrada para explorar la web de <strong className="text-white">@{creator.handle}</strong>. <br />
-            <span className="text-amber-400/90 text-[10px]">⚠️ No desbloquea contenidos del catálogo.</span>
+          <div className="p-2.5 rounded-2xl bg-black/45 border border-purple-400/35 text-left space-y-1.5 my-1">
+            <div className="flex items-start gap-1.5 text-[11px] text-zinc-200 leading-snug font-medium">
+              <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0 mt-0.5" />
+              <span><strong className="text-white">Tu pago incluye:</strong> Video sensual de bienvenida exclusivo 💋</span>
+            </div>
+            <div className="flex items-start gap-1.5 text-[11px] text-pink-200 leading-snug font-bold">
+              <Gift className="w-3.5 h-3.5 text-pink-400 shrink-0 mt-0.5" />
+              <span><strong className="text-amber-300">Elige 1 video del catálogo:</strong> Al ingresar podrás elegir cualquier video disponible de $35.000 COP incluido con tu entrada para recibirlo en Telegram.</span>
+            </div>
+          </div>
+
+          <p className="text-[10px] text-zinc-400 leading-tight">
+            Acceso al perfil exclusivo y catálogo de <strong className="text-zinc-200">@{creator.handle}</strong>.
           </p>
         </div>
 

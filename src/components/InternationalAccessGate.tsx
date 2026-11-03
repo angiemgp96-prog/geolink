@@ -3,7 +3,7 @@ import { CreatorProfile } from '../types';
 import { api } from '../services/api';
 import { getStripePaymentUrl } from '../utils/stripeLinks';
 import { detectLanguage, SupportedLanguage } from '../data/translations';
-import { Lock, CreditCard, Send, CheckCircle, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Lock, CreditCard, Send, CheckCircle, ExternalLink, ShieldCheck, Flame, Gift } from 'lucide-react';
 
 interface InternationalAccessGateProps {
   creator: CreatorProfile;
@@ -17,7 +17,8 @@ const TELEGRAM_USER = 'Angelinaguzman69';
 const GATE_TEXTS: Record<SupportedLanguage, {
   badge: string;
   subtitle: string;
-  note: string;
+  benefit1: string;
+  benefit2: string;
   contactPlaceholder: string;
   payBtn: string;
   instantNote: string;
@@ -26,70 +27,76 @@ const GATE_TEXTS: Record<SupportedLanguage, {
   footerChat: string;
 }> = {
   es: {
-    badge: 'Acceso a la Página Web',
-    subtitle: 'Entrada única para explorar el perfil exclusivo y catálogo de',
-    note: '⚠️ Pase de entrada a la web · No desbloquea contenidos individuales.',
+    badge: 'Acceso a la Web + Chat Hot + Video Bienvenida',
+    subtitle: 'Entrada para explorar el perfil exclusivo y catálogo de',
+    benefit1: '💋 Video sensual de bienvenida exclusivo + Chat Hot privado conmigo',
+    benefit2: '🎁 ¡Elige 1 video del catálogo! Puedes elegir cualquier video de $10 USD o menos para recibirlo en Telegram',
     contactPlaceholder: 'Tu WhatsApp o @Telegram (opcional)',
-    payBtn: 'Pagar $5.00 USD para Ingresar',
-    instantNote: '🔒 Pago seguro con Stripe · Al volver te llevará a Telegram para activar tu entrada',
+    payBtn: 'Pagar $10.00 USD para Ingresar',
+    instantNote: '🔒 Pago seguro con Stripe · Al volver te llevará a Telegram con la descripción para activar tu acceso',
     sendReceiptBtn: 'Ya pagué — Enviar Comprobante a Telegram',
     sentNotice: 'Redirigiendo a Telegram al volver del pago. En breve se activará tu acceso.',
     footerChat: 'Soporte directo en Telegram',
   },
   en: {
-    badge: 'Website Entry Pass',
+    badge: 'Website Entry Pass + Hot Chat + Welcome Video',
     subtitle: 'Entry pass to explore the exclusive profile & store of',
-    note: '⚠️ Website entry pass · Does not unlock individual store items.',
+    benefit1: '💋 Exclusive hot welcome video + 1-on-1 private hot chat with me',
+    benefit2: '🎁 Pick 1 video from the store! You can choose any video of $10 USD or less included to receive on Telegram',
     contactPlaceholder: 'Your WhatsApp or @Telegram (optional)',
-    payBtn: 'Pay $5.00 USD to Enter',
+    payBtn: 'Pay $10.00 USD to Enter',
     instantNote: '🔒 Secure payment via Stripe · Returning here redirects you to Telegram to activate access',
     sendReceiptBtn: 'I already paid — Send Receipt on Telegram',
     sentNotice: 'Return here after paying to open Telegram and activate your access.',
     footerChat: 'Direct support on Telegram',
   },
   pt: {
-    badge: 'Acesso ao Site Exclusivo',
+    badge: 'Acesso ao Site + Chat Hot + Vídeo de Boas-Vindas',
     subtitle: 'Entrada para explorar o perfil exclusivo e catálogo de',
-    note: '⚠️ Passe de entrada no site · Não desbloqueia conteúdos individuais.',
+    benefit1: '💋 Vídeo de boas-vindas exclusivo + Chat Hot privado comigo',
+    benefit2: '🎁 Escolha 1 vídeo do catálogo de $10 USD ou menos para receber no Telegram',
     contactPlaceholder: 'Seu WhatsApp ou @Telegram (opcional)',
-    payBtn: 'Pagar $5.00 USD para Entrar',
+    payBtn: 'Pagar $10.00 USD para Entrar',
     instantNote: '🔒 Pagamento seguro via Stripe · Ao voltar você será levado ao Telegram para ativar o acesso',
     sendReceiptBtn: 'Já paguei — Enviar Comprovante no Telegram',
     sentNotice: 'Ao concluir o pagamento e voltar, seu acesso será ativado via Telegram.',
     footerChat: 'Suporte direto no Telegram',
   },
   fr: {
-    badge: 'Accès au Site Exclusif',
+    badge: 'Accès au Site + Chat Chaud + Vidéo de Bienvenue',
     subtitle: 'Accès pour explorer le profil exclusif et la boutique de',
-    note: '⚠️ Pass d\'entrée au site · Ne débloque pas les contenus individuels.',
+    benefit1: '💋 Vidéo de bienvenue exclusive + Chat privé intime avec moi',
+    benefit2: '🎁 Choisissez 1 vidéo du catalogue de 10 $ USD ou moins à recevoir sur Telegram',
     contactPlaceholder: 'Votre WhatsApp ou @Telegram (optionnel)',
-    payBtn: 'Payer 5,00 $ USD pour Entrer',
+    payBtn: 'Payer 10,00 $ USD pour Entrer',
     instantNote: '🔒 Paiement sécurisé Stripe · Au retour, redirection vers Telegram pour activer l\'accès',
     sendReceiptBtn: 'J\'ai payé — Envoyer le reçu sur Telegram',
     sentNotice: 'Revenez ici après le paiement pour activer votre accès sur Telegram.',
     footerChat: 'Support direct sur Telegram',
   },
   de: {
-    badge: 'Zugang zur Exklusiven Webseite',
+    badge: 'Webseiten-Zugang + Hot Chat + Willkommensvideo',
     subtitle: 'Zugangspass zum exklusiven Profil und Shop von',
-    note: '⚠️ Webseiten-Eintrittspass · Schaltet keine Einzelinhalte frei.',
+    benefit1: '💋 Exklusives Willkommensvideo + privater Hot Chat mit mir',
+    benefit2: '🎁 Wähle 1 Video aus dem Katalog für 10 $ USD oder weniger, um es auf Telegram zu erhalten',
     contactPlaceholder: 'Dein WhatsApp oder @Telegram (optional)',
-    payBtn: '5,00 $ USD zahlen & Eintreten',
+    payBtn: '10,00 $ USD zahlen & Eintreten',
     instantNote: '🔒 Sichere Zahlung über Stripe · Nach Rückkehr Weiterleitung zu Telegram zur Aktivierung',
     sendReceiptBtn: 'Bereits bezahlt — Beleg auf Telegram senden',
     sentNotice: 'Kehre nach der Zahlung hierher zurück, um deinen Zugang über Telegram zu aktivieren.',
     footerChat: 'Direkter Support auf Telegram',
   },
   it: {
-    badge: 'Accesso al Sito Esclusivo',
+    badge: 'Accesso al Sito + Chat Hot + Video di Benvenuto',
     subtitle: 'Ingresso per esplorare il profilo esclusivo e il catalogo di',
-    note: '⚠️ Pass d\'ingresso al sito · Non sblocca i singoli contenuti.',
+    benefit1: '💋 Esclusivo video di benvenuto + Chat Hot privata con me',
+    benefit2: '🎁 Scegli 1 video dal catalogo da $10 USD o meno da ricevere su Telegram',
     contactPlaceholder: 'Il tuo WhatsApp o @Telegram (opzionale)',
-    payBtn: 'Paga $5.00 USD per Entrare',
+    payBtn: 'Paga $10.00 USD per Entrare',
     instantNote: '🔒 Pagamento sicuro con Stripe · Al ritorno verrai reindirizzato su Telegram per l\'accesso',
     sendReceiptBtn: 'Ho già pagato — Invia ricevuta su Telegram',
     sentNotice: 'Torna qui dopo il pagamento per attivare subito il tuo accesso su Telegram.',
-    footerChat: 'Supporto diretto su Telegram',
+    footerChat: 'Supporto directo su Telegram',
   },
 };
 
@@ -99,7 +106,7 @@ export const InternationalAccessGate: React.FC<InternationalAccessGateProps> = (
   onUnlocked,
   onOpenAdminLogin,
 }) => {
-  const [lang, setLang] = useState<SupportedLanguage>(() => detectLanguage(visitorCountryCode));
+  const [lang, setLang] = useState<SupportedLanguage>('es');
   const [contactInfo, setContactInfo] = useState(() => {
     try {
       return localStorage.getItem('geolink_visitor_contact') || '';
@@ -110,26 +117,14 @@ export const InternationalAccessGate: React.FC<InternationalAccessGateProps> = (
   const [hasClickedPay, setHasClickedPay] = useState(false);
 
   useEffect(() => {
-    if (visitorCountryCode) {
-      setLang(detectLanguage(visitorCountryCode));
+    try {
+      const detected = detectLanguage(visitorCountryCode);
+      setLang(detected);
+    } catch {
+      setLang('es');
     }
   }, [visitorCountryCode]);
 
-  // Sync contact if VisitorLeadModal just saved it
-  useEffect(() => {
-    const syncSavedContact = () => {
-      try {
-        const saved = localStorage.getItem('geolink_visitor_contact') || '';
-        if (saved && !contactInfo) {
-          setContactInfo(saved);
-        }
-      } catch {}
-    };
-    const id = setInterval(syncSavedContact, 1500);
-    return () => clearInterval(id);
-  }, [contactInfo]);
-
-  // Real-time polling so screen unlocks automatically as soon as admin approves device
   useEffect(() => {
     let isMounted = true;
     const pollCheck = async () => {
@@ -150,11 +145,16 @@ export const InternationalAccessGate: React.FC<InternationalAccessGateProps> = (
   }, [onUnlocked]);
 
   const tx = GATE_TEXTS[lang] || GATE_TEXTS.es;
-  const stripe5Url = getStripePaymentUrl(5);
+  const stripe10Url = getStripePaymentUrl(10);
 
   const getEffectiveContact = () => {
-    const typed = contactInfo.trim();
-    if (typed) return typed;
+    const direct = contactInfo.trim();
+    if (direct) {
+      try {
+        localStorage.setItem('geolink_visitor_contact', direct);
+      } catch {}
+      return direct;
+    }
     try {
       return (localStorage.getItem('geolink_visitor_contact') || '').trim();
     } catch {
@@ -162,28 +162,15 @@ export const InternationalAccessGate: React.FC<InternationalAccessGateProps> = (
     }
   };
 
-  const handlePay5UsdClick = () => {
-    const cleanContact = getEffectiveContact();
-    if (cleanContact) {
-      try {
-        localStorage.setItem('geolink_visitor_contact', cleanContact);
-      } catch {}
-    }
-
-    // Registrar solicitud en Solicitudes de Acceso del Dashboard con huella de dispositivo e IP
-    api.saveColombiaAccessRequest(
-      cleanContact || `Visitante ${visitorCountryCode || 'INT'} ($5 USD)`,
-      'stripe_5usd'
-    ).catch(() => {});
-
-    // Guardar estado pendiente para redirigir automáticamente a Telegram cuando regrese de Stripe
+  const handlePay10UsdClick = () => {
+    getEffectiveContact();
     try {
       localStorage.setItem('geolink_pending_telegram_payment', JSON.stringify({
-        mediaId: 'acceso_pagina_internacional',
-        mediaTitle: '🌍 Acceso Página Web Internacional ($5.00 USD)',
-        amount: 5,
+        mediaId: 'acceso_pagina_internacional_10usd',
+        mediaTitle: '🌍 Acceso Web Internacional + Chat Hot + Video Bienvenida ($10.00 USD)',
+        amount: 10,
         currency: 'USD',
-        stripeUrl: stripe5Url,
+        stripeUrl: stripe10Url,
         isInternationalPageGate: true,
         timestamp: Date.now(),
       }));
@@ -199,7 +186,7 @@ export const InternationalAccessGate: React.FC<InternationalAccessGateProps> = (
       localStorage.removeItem('geolink_pending_telegram_payment');
     } catch {}
     const msg = encodeURIComponent(
-      `¡Hola Angelina! Acabo de realizar el pago de $5.00 USD por Stripe para ingresar a tu Página Web 🌍.${contactLine}\n\nAquí te adjunto mi comprobante de pago para activar mi acceso 📎`
+      `¡Hola Angelina! Acabo de realizar el pago de $10.00 USD por Stripe para ingresar a tu Página Web. Incluye mi Video de Bienvenida, mi Chat Hot y mi opción de elegir 1 video de $10 USD o menos del catálogo 🌍💋.${contactLine}\n\nAquí te adjunto mi comprobante de pago para activar mi acceso 📎`
     );
     window.location.href = `https://t.me/${TELEGRAM_USER}?text=${msg}`;
   };
@@ -233,16 +220,27 @@ export const InternationalAccessGate: React.FC<InternationalAccessGateProps> = (
           </div>
 
           <div className="text-2xl font-black text-amber-300 pt-0.5">
-            $5.00 USD
+            $10.00 USD
           </div>
 
-          <p className="text-[11px] text-zinc-300 leading-snug font-medium px-2">
-            {tx.subtitle} <strong className="text-white">@{creator.handle}</strong>. <br />
-            <span className="text-amber-400/90 text-[10px]">{tx.note}</span>
+          {/* Beneficios claros explicados */}
+          <div className="p-2.5 rounded-2xl bg-black/45 border border-indigo-400/35 text-left space-y-1.5 my-1">
+            <div className="flex items-start gap-1.5 text-[11px] text-zinc-200 leading-snug font-medium">
+              <Flame className="w-3.5 h-3.5 text-pink-400 shrink-0 mt-0.5" />
+              <span>{tx.benefit1}</span>
+            </div>
+            <div className="flex items-start gap-1.5 text-[11px] text-pink-200 leading-snug font-bold">
+              <Gift className="w-3.5 h-3.5 text-amber-300 shrink-0 mt-0.5" />
+              <span>{tx.benefit2}</span>
+            </div>
+          </div>
+
+          <p className="text-[10px] text-zinc-400 leading-tight">
+            {tx.subtitle} <strong className="text-white">@{creator.handle}</strong>.
           </p>
         </div>
 
-        {/* Cuerpo de Pago Directo $5 USD */}
+        {/* Cuerpo de Pago Directo $10 USD */}
         <div className="p-4 space-y-3 text-left">
           <div>
             <input
@@ -255,11 +253,11 @@ export const InternationalAccessGate: React.FC<InternationalAccessGateProps> = (
           </div>
 
           <a
-            id="pay-5usd-entry-button"
-            href={stripe5Url}
+            id="pay-10usd-entry-button"
+            href={stripe10Url}
             target="_blank"
             rel="noreferrer"
-            onClick={handlePay5UsdClick}
+            onClick={handlePay10UsdClick}
             className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-extrabold text-xs uppercase tracking-wider shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer border border-indigo-400/40 hover:scale-[1.01]"
           >
             <CreditCard className="w-4 h-4 text-white shrink-0" />

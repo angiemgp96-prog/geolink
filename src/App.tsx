@@ -103,7 +103,7 @@ export default function App() {
         const savedGateContact = (localStorage.getItem('geolink_visitor_contact') || '').trim();
         const gateContactLine = savedGateContact ? `\n👤 Mi contacto: ${savedGateContact}` : '';
         const gateMsg = encodeURIComponent(
-          `¡Hola Angelina! 💋 Acabo de realizar el pago de $5.00 USD por Stripe para recibir mi Acceso a tu nuevo OnlyFans "Angie Ly" + Chat Exclusivo y entrar a tu web 💙🔥.${gateContactLine}\n\nAquí te adjunto mi comprobante de pago 📎`
+          `¡Hola Angelina! 💋 Acabo de realizar el pago de $10.00 USD por Stripe para ingresar a tu Página Web. Incluye mi Video de Bienvenida, mi Chat Hot y mi opción de elegir 1 video de $10 USD o menos del catálogo 🌍🔥.${gateContactLine}\n\nAquí te adjunto mi comprobante de pago 📎`
         );
         window.location.href = `https://t.me/Angelinaguzman69?text=${gateMsg}`;
         return;

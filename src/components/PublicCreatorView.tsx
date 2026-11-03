@@ -559,17 +559,18 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             </div>
           </div>
 
-          {/* GUÍA CLARA Y PERSUASIVA DE COMPRA */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-950/50 via-slate-900/90 to-indigo-950/50 border border-pink-500/40 shadow-lg space-y-1.5 text-left">
-            <div className="text-xs sm:text-sm font-black text-amber-300">
-              {t.howToBuyTitle}
+          {/* GUÍA CLARA Y PERSUASIVA DE COMPRA Y VIDEO INCLUIDO */}
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-950/60 via-slate-900/95 to-indigo-950/60 border border-pink-500/45 shadow-lg space-y-2 text-left">
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm font-black text-amber-300">
+              <Gift className="w-4 h-4 text-amber-300 shrink-0" />
+              <span>🎁 {isColombia ? '¡Elige 1 video de $35.000 COP incluido con tu entrada!' : '¡Elige 1 video de $10 USD o menos incluido con tu entrada!'}</span>
             </div>
-            <div className="text-[11px] sm:text-xs text-zinc-200 font-semibold leading-snug">
-              {t.howToBuyStep1}
-            </div>
-            <div className="text-[11px] sm:text-xs text-pink-200 font-bold leading-snug">
-              {t.howToBuyStep2}
-            </div>
+            <p className="text-[11px] sm:text-xs text-zinc-200 leading-snug font-medium">
+              ✨ Al entrar tienes derecho a elegir cualquier video del catálogo marcado con <strong className="text-amber-300">"Ver"</strong> ({isColombia ? 'videos disponibles de $35.000 COP' : 'videos de $10 USD o menos'}).
+            </p>
+            <p className="text-[11px] sm:text-xs text-pink-200 leading-snug font-bold">
+              📱 Toca <strong className="text-white">"Ver"</strong> en el video que más te guste y te llevará directamente a mi chat en Telegram con la descripción para enviártelo y chatear 💋
+            </p>
           </div>
 
           {/* GRID DE PRODUCTOS DE LA TIENDA (2 POR LÍNEA EN CELULARES Y PC) */}
@@ -580,11 +581,23 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               const prices = getCalculatedPrices(item.price, item.id);
               const isLatest = latest2VideoIds.includes(item.id);
 
+              const isEligibleIncluded = isColombia 
+                ? (prices.originalFormatted.includes('35.000') || item.price <= 10)
+                : (item.price <= 10);
+
               const handleCardClick = () => {
                 if (isColombia && isUnlocked) {
                   // SÍ Y SOLO SÍ en Colombia y verificado por Mercado Pago API se redirige al grupo
                   const targetUrl = item.downloadUrl || 'https://t.me/+vREXeP2U7Kw3ZTJh';
                   window.open(targetUrl, '_blank');
+                } else if (isEligibleIncluded) {
+                  // Video disponible e incluido con el pago de entrada (35k COP en Colombia o 10 USD fuera)
+                  const savedContact = (localStorage.getItem('geolink_visitor_contact') || '').trim();
+                  const contactLine = savedContact ? `\n👤 Mi contacto: ${savedContact}` : '';
+                  const claimMsg = isColombia
+                    ? encodeURIComponent(`¡Hola Angelina! 💋 Ya pagué mi entrada de $35.000 COP a la web y elegí este video que viene incluido con mi acceso:\n\n🎥 "${item.title}"${contactLine}\n\nAquí te adjunto mi comprobante para que me lo envíes por Telegram 📎💬`)
+                    : encodeURIComponent(`¡Hola Angelina! 💋 Ya pagué mi entrada de $10.00 USD a la web y elegí este video que viene incluido con mi acceso:\n\n🎥 "${item.title}"${contactLine}\n\nAquí te adjunto mi comprobante para que me lo envíes por Telegram y empecemos nuestro chat hot 📎💬`);
+                  window.open(`https://t.me/Angelinaguzman69?text=${claimMsg}`, '_blank');
                 } else if (isColombia) {
                   // Para visitantes en Colombia: modal exclusivo con Mercado Pago y Nequi Llave Bre-B
                   onOpenPurchaseModal(item);
@@ -700,8 +713,17 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                           <span className={`mt-1 sm:mt-2 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-out bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 text-[9px] sm:text-[11px] font-black uppercase px-2 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-lg shadow-amber-400/40 tracking-wider border border-amber-200/80 flex items-center gap-1 ${
                             isMobileFocused ? 'mobile-active-badge' : ''
                           }`}>
-                            <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5]" />
-                            <span>{t.buyBtn}</span>
+                            {isEligibleIncluded ? (
+                              <>
+                                <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5]" />
+                                <span>Ver</span>
+                              </>
+                            ) : (
+                              <>
+                                <ShoppingBag className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5]" />
+                                <span>{t.buyBtn}</span>
+                              </>
+                            )}
                           </span>
                         </div>
                       </div>
@@ -774,9 +796,17 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                           </>
                         ) : (
                           <>
-                              <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4 text-amber-200 shrink-0" />
-
-                            <span>{t.buyBtn}</span>
+                              {isEligibleIncluded ? (
+                              <>
+                                <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
+                                <span>Ver</span>
+                              </>
+                            ) : (
+                              <>
+                                <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4 text-amber-200 shrink-0" />
+                                <span>{t.buyBtn}</span>
+                              </>
+                            )}
                           </>
                         )}
                       </button>
