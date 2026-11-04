@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Lock, Unlock, CheckCircle2, Instagram, Youtube, Video, Dumbbell, MessageCircle, ExternalLink, Sparkles, Image as ImageIcon, Film, Layers, ShoppingBag, Send, Download, Globe, Flame, Link as LinkIcon } from 'lucide-react';
+import { Play, Lock, Unlock, CheckCircle2, Instagram, Youtube, Video, Dumbbell, MessageCircle, ExternalLink, Sparkles, Image as ImageIcon, Film, Layers, ShoppingBag, Send, Download, Globe, Flame, Link as LinkIcon, Gift, Eye } from 'lucide-react';
 import { CreatorProfile, MediaItem, CustomLink } from '../types';
 import { detectLanguage, TRANSLATIONS, SupportedLanguage } from '../data/translations';
 import { api } from '../services/api';
