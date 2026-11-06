@@ -46,7 +46,7 @@ const TEXTS: Record<SupportedLanguage, {
     badgeTag: '🇨🇴 Colombian Girl',
     storyP1: 'Colombian girl with a sweet smile and a wild, mischievous side 🔥',
     storyP2: 'Follow my new Instagram to chat and get all my updates 💬. Want us to talk dirty and see my uncensored side? Step into my OnlyFans 💋',
-    igBadge1: '🔥 NEW · FOLLOW ME',
+    igBadge1: '🔥 NEW EXCLUSIVE INSTAGRAM',
     igBadge2: 'CHAT & MORE INFO 💬',
     igSubtitle: 'Chat with me in private DMs & stay updated with my stories',
     igFollowBtn: 'FOLLOW',
@@ -73,7 +73,7 @@ const TEXTS: Record<SupportedLanguage, {
     badgeTag: '🇨🇴 Chica Colombiana',
     storyP1: 'Chica colombiana con una sonrisa dulce y un lado salvaje y travieso 🔥',
     storyP2: 'Sigue mi nuevo Instagram para chatear y tener más info 💬. ¿Quieres que hablemos rico y veas mi lado sin censura? Entra a mi OnlyFans 💋',
-    igBadge1: '🔥 NUEVO · SÍGUEME',
+    igBadge1: '🔥 NUEVO INSTAGRAM EXCLUSIVO',
     igBadge2: 'CHAT Y MÁS INFO 💬',
     igSubtitle: 'Chatea conmigo en privado por DM y entérate de mis historias',
     igFollowBtn: 'SEGUIR',
@@ -100,7 +100,7 @@ const TEXTS: Record<SupportedLanguage, {
     badgeTag: '🇨🇴 Fille Colombienne',
     storyP1: 'Fille colombienne au sourire doux avec un côté sauvage et coquin 🔥',
     storyP2: 'Suis mon nouvel Instagram pour chatter et avoir plus d\'infos 💬. Envie qu\'on parle chaudement et de voir mon côté non censuré ? Rejoins mon OnlyFans 💋',
-    igBadge1: '🔥 NOUVEAU · SUIS-MOI',
+    igBadge1: '🔥 NOUVEL INSTAGRAM EXCLUSIF',
     igBadge2: 'CHAT & INFOS 💬',
     igSubtitle: 'Chatte avec moi en privé par DM et suis mes stories',
     igFollowBtn: 'SUIVRE',
@@ -127,7 +127,7 @@ const TEXTS: Record<SupportedLanguage, {
     badgeTag: '🇨🇴 Kolumbianisches Girl',
     storyP1: 'Kolumbianisches Girl mit süßem Lächeln und einer heißen, frechen Seite 🔥',
     storyP2: 'Folge meinem neuen Instagram, um zu chatten und mehr Infos zu bekommen 💬. Willst du dirty talken und meine unzensierte Seite sehen? Komm auf mein OnlyFans 💋',
-    igBadge1: '🔥 NEU · FOLGE MIR',
+    igBadge1: '🔥 NEUES EXKLUSIVES INSTAGRAM',
     igBadge2: 'CHAT & INFOS 💬',
     igSubtitle: 'Chatte mit mir privat per DM und sieh meine Stories',
     igFollowBtn: 'FOLGEN',
@@ -154,7 +154,7 @@ const TEXTS: Record<SupportedLanguage, {
     badgeTag: '🇨🇴 Ragazza Colombiana',
     storyP1: 'Ragazza colombiana con un dolce sorriso e un lato selvaggio e malizioso 🔥',
     storyP2: 'Segui il mio nuovo Instagram per chattare e avere più info 💬. Vuoi parlare piccante e vedere il mio lato senza censura? Entra nel mio OnlyFans 💋',
-    igBadge1: '🔥 NUOVO · SEGUIMI',
+    igBadge1: '🔥 NUOVO INSTAGRAM ESCLUSIVO',
     igBadge2: 'CHAT & PIÙ INFO 💬',
     igSubtitle: 'Chatta con me in privato tramite DM e segui le mie storie',
     igFollowBtn: 'SEGUI',
@@ -181,7 +181,7 @@ const TEXTS: Record<SupportedLanguage, {
     badgeTag: '🇨🇴 Garota Colombiana',
     storyP1: 'Garota colombiana com sorriso doce e um lado selvagem e travesso 🔥',
     storyP2: 'Siga meu novo Instagram para conversar e ter mais novidades 💬. Quer conversar picante e ver meu lado sem censura? Entre no meu OnlyFans 💋',
-    igBadge1: '🔥 NOVO · ME SIGA',
+    igBadge1: '🔥 NUEVO INSTAGRAM EXCLUSIVO',
     igBadge2: 'CHAT & MAIS INFOS 💬',
     igSubtitle: 'Converse comigo no privado por DM e acompanhe meus stories',
     igFollowBtn: 'SEGUIR',
@@ -275,7 +275,7 @@ export const UsaOnlyFansView: React.FC<UsaOnlyFansViewProps> = ({
       {/* Cover Banner (Ajustado para no perder espacio arriba) */}
       <div className="relative h-36 sm:h-52 w-full overflow-hidden bg-slate-900">
         <img
-          src={creator.banner || '/previews/banner.webp'}
+          src={creator.banner || 'https://i.ibb.co/p6ZJW8Wk/live3d-c570916489c4d38dcd714bf281e9e460.jpg'}
           alt="Angeline"
           fetchPriority="high"
           loading="eager"
@@ -283,7 +283,7 @@ export const UsaOnlyFansView: React.FC<UsaOnlyFansViewProps> = ({
           onError={(e) => {
             if (e.currentTarget.src !== 'https://i.postimg.cc/xC9NFRvT/Captura-de-pantalla-2026-09-06-050057-(1).jpg') {
               e.currentTarget.onerror = null;
-              e.currentTarget.src = 'https://i.postimg.cc/xC9NFRvT/Captura-de-pantalla-2026-09-06-050057-(1).jpg';
+              e.currentTarget.src = 'https://i.ibb.co/p6ZJW8Wk/live3d-c570916489c4d38dcd714bf281e9e460.jpg';
             }
           }}
           className="w-full h-full object-cover opacity-75"
@@ -316,7 +316,7 @@ export const UsaOnlyFansView: React.FC<UsaOnlyFansViewProps> = ({
           {/* Avatar superpuesto */}
           <div className="relative mx-auto w-20 h-20 sm:w-24 sm:h-24 rounded-full p-1 bg-gradient-to-tr from-[#00AFF0] via-sky-400 to-pink-500 shadow-xl shadow-[#00AFF0]/25 -mt-12 sm:-mt-14 select-none">
             <img
-              src={creator.avatar || '/previews/avatar.webp'}
+              src={creator.avatar || 'https://i.ibb.co/KS16WTg/live3d-73fe0d151f1a2cdd658d4e9e2245f583-1.jpg'}
               alt="Angeline"
               draggable="false"
               fetchPriority="high"
@@ -324,7 +324,7 @@ export const UsaOnlyFansView: React.FC<UsaOnlyFansViewProps> = ({
               onError={(e) => {
                 if (e.currentTarget.src !== 'https://i.postimg.cc/ZYGVK9h0/magnific-quita-el-tatuaje-dela-esp-Pi72JNz42C.png') {
                   e.currentTarget.onerror = null;
-                  e.currentTarget.src = 'https://i.postimg.cc/ZYGVK9h0/magnific-quita-el-tatuaje-dela-esp-Pi72JNz42C.png';
+                  e.currentTarget.src = 'https://i.ibb.co/KS16WTg/live3d-73fe0d151f1a2cdd658d4e9e2245f583-1.jpg';
                 }
               }}
               onContextMenu={(e) => e.preventDefault()}

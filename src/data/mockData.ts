@@ -7,8 +7,8 @@ export const INITIAL_CREATORS: CreatorProfile[] = [
     name: 'Angelina69 🔥',
     title: 'Model & Digital Creator',
     bio: 'Bienvenido a mi espacio exclusivo 💋 Contenido diario, fotos HD y producciones 4K exclusivas.',
-    avatar: 'https://i.postimg.cc/mkX06xcN/imgi-59-rs-fit-57s5-8192.jpg',
-    banner: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
+    avatar: 'https://i.ibb.co/KS16WTg/live3d-73fe0d151f1a2cdd658d4e9e2245f583-1.jpg',
+    banner: 'https://i.ibb.co/p6ZJW8Wk/live3d-c570916489c4d38dcd714bf281e9e460.jpg',
     themeColor: 'from-pink-600 via-purple-600 to-indigo-700',
     badge: 'TOP 0.1% CREATOR',
     blockedCountries: ['ES'], // Blocks Spain by default for demonstration

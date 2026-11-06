@@ -321,7 +321,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
       {/* HEADER BANNER TOP */}
       <div className="relative h-44 sm:h-72 w-full overflow-hidden bg-slate-900">
         <img
-          src={creator.banner || '/previews/banner.webp'}
+          src={creator.banner || 'https://i.ibb.co/p6ZJW8Wk/live3d-c570916489c4d38dcd714bf281e9e460.jpg'}
           alt={creator.name}
           fetchPriority="high"
           loading="eager"
@@ -329,7 +329,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
           onError={(e) => {
             if (e.currentTarget.src !== 'https://i.postimg.cc/xC9NFRvT/Captura-de-pantalla-2026-09-06-050057-(1).jpg') {
               e.currentTarget.onerror = null;
-              e.currentTarget.src = 'https://i.postimg.cc/xC9NFRvT/Captura-de-pantalla-2026-09-06-050057-(1).jpg';
+              e.currentTarget.src = 'https://i.ibb.co/p6ZJW8Wk/live3d-c570916489c4d38dcd714bf281e9e460.jpg';
             }
           }}
           className="w-full h-full object-cover opacity-60 scale-105 transition-transform duration-1000 hover:scale-100"
@@ -399,7 +399,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             onContextMenu={(e) => e.preventDefault()}
           >
             <img
-              src={creator.avatar || '/previews/avatar.webp'}
+              src={creator.avatar || 'https://i.ibb.co/KS16WTg/live3d-73fe0d151f1a2cdd658d4e9e2245f583-1.jpg'}
               alt={creator.name}
               draggable="false"
               fetchPriority="high"
@@ -408,7 +408,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               onError={(e) => {
                 if (e.currentTarget.src !== 'https://i.postimg.cc/ZYGVK9h0/magnific-quita-el-tatuaje-dela-esp-Pi72JNz42C.png') {
                   e.currentTarget.onerror = null;
-                  e.currentTarget.src = 'https://i.postimg.cc/ZYGVK9h0/magnific-quita-el-tatuaje-dela-esp-Pi72JNz42C.png';
+                  e.currentTarget.src = 'https://i.ibb.co/KS16WTg/live3d-73fe0d151f1a2cdd658d4e9e2245f583-1.jpg';
                 }
               }}
               onContextMenu={(e) => e.preventDefault()}
