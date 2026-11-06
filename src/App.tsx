@@ -18,7 +18,8 @@ import { INITIAL_CREATORS, INITIAL_MEDIA_ITEMS } from './data/mockData';
 import { Lock } from 'lucide-react';
 
 // Lista de códigos de países de Europa
-const EUROPE_COUNTRY_CODES = new Set([
+const EUROPE_AND_NORTH_AMERICA_CODES = new Set([
+  'CA',
   'ES', 'FR', 'DE', 'IT', 'GB', 'PT', 'NL', 'BE', 'CH', 'AT', 'SE', 'NO', 'DK', 'FI',
   'IE', 'PL', 'CZ', 'RO', 'GR', 'HU', 'UA', 'RU', 'TR', 'BG', 'HR', 'SK', 'RS', 'SI',
   'LT', 'LV', 'EE', 'LU', 'IS', 'CY', 'MT', 'AL', 'BA', 'ME', 'MK', 'MD', 'BY', 'AD',
@@ -111,7 +112,7 @@ export default function App() {
         const savedGateContact = (localStorage.getItem('geolink_visitor_contact') || '').trim();
         const gateContactLine = savedGateContact ? `\n👤 Mi contacto: ${savedGateContact}` : '';
         const gateMsg = encodeURIComponent(
-          `¡Hola Angelina! 💋 Acabo de realizar el pago de $10.00 USD por Stripe para ingresar a tu Página Web. Incluye mi Video de Bienvenida, mi Chat Hot y mi opción de elegir 1 video de $10 USD o menos del catálogo 🌍🔥.${gateContactLine}\n\nAquí te adjunto mi comprobante de pago 📎`
+          `¡Hola Angelina! 💋 Acabo de realizar el pago por Stripe para ingresar a tu Tienda Web.${gateContactLine}\n\nAquí te adjunto mi comprobante para que por favor me des el link de acceso 📎`
         );
         window.location.href = `https://t.me/Angelinaguzman69?text=${gateMsg}`;
         return;
@@ -557,7 +558,7 @@ export default function App() {
                 onOpenAdminLogin={() => setIsAdminLoginModalOpen(true)}
               />
             ) : (
-              ((['US', ...EUROPE_COUNTRY_CODES].includes((simulatedCountry || visitorLocation.countryCode || '').toUpperCase())) && !isCleanHomeMode && !isUsaStoreUnlocked) ? (
+              ((['US', ...EUROPE_AND_NORTH_AMERICA_CODES].includes((simulatedCountry || visitorLocation.countryCode || '').toUpperCase())) && !isCleanHomeMode && !isUsaStoreUnlocked) ? (
                 <UsaOnlyFansView
                   creator={currentCreator}
                   visitorCountryCode={simulatedCountry || visitorLocation.countryCode}

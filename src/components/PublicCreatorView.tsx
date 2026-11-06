@@ -122,6 +122,13 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   }, []);
 
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
+  const [hasClaimedFreeItem, setHasClaimedFreeItem] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('geolink_claimed_free_entry_item') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const visibleCardsRef = React.useRef<Set<string>>(new Set());
 
   React.useEffect(() => {
@@ -559,19 +566,29 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             </div>
           </div>
 
-          {/* GUÍA CLARA Y PERSUASIVA DE COMPRA Y VIDEO INCLUIDO */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-950/60 via-slate-900/95 to-indigo-950/60 border border-pink-500/45 shadow-lg space-y-2 text-left">
-            <div className="flex items-center gap-1.5 text-xs sm:text-sm font-black text-amber-300">
-              <Gift className="w-4 h-4 text-amber-300 shrink-0" />
-              <span>🎁 {isColombia ? '¡Elige 1 video de $35.000 COP incluido con tu entrada!' : '¡Elige 1 video de $10 USD o menos incluido con tu entrada!'}</span>
+          {/* GUÍA CLARA DE COMPRA Y CONTENIDO GRATIS */}
+          {!hasClaimedFreeItem ? (
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-950/60 via-slate-900/95 to-indigo-950/60 border border-pink-500/45 shadow-lg space-y-1.5 text-left">
+              <div className="flex items-center gap-1.5 text-xs sm:text-sm font-black text-amber-300">
+                <Gift className="w-4 h-4 text-amber-300 shrink-0" />
+                <span>🎁 {isColombia ? '¡Elige 1 contenido gratis incluido con tu entrada!' : 'Pick 1 free item included with your entry!'}</span>
+              </div>
+              <p className="text-[11px] sm:text-xs text-zinc-200 leading-snug font-medium">
+                {isColombia 
+                  ? '✨ Tienes derecho a elegir 1 contenido del catálogo con el botón "Gratis".' 
+                  : '✨ You can choose 1 free media item with the "Free" button.'}
+              </p>
+              <p className="text-[11px] sm:text-xs text-pink-200 leading-snug font-bold">
+                {isColombia 
+                  ? '📱 Toca "Gratis" en el que más te guste para recibirlo en Telegram sin pagar nada extra (válido 1 sola vez).' 
+                  : '📱 Tap "Free" on your favorite item to claim it on Telegram with no extra cost (valid once).'}
+              </p>
             </div>
-            <p className="text-[11px] sm:text-xs text-zinc-200 leading-snug font-medium">
-              ✨ Al entrar tienes derecho a elegir cualquier video del catálogo marcado con <strong className="text-amber-300">"Ver"</strong> ({isColombia ? 'videos disponibles de $35.000 COP' : 'videos de $10 USD o menos'}).
-            </p>
-            <p className="text-[11px] sm:text-xs text-pink-200 leading-snug font-bold">
-              📱 Toca <strong className="text-white">"Ver"</strong> en el video que más te guste y te llevará directamente a mi chat en Telegram con la descripción para enviártelo y chatear 💋
-            </p>
-          </div>
+          ) : (
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-950/70 border border-white/10 text-left text-xs text-zinc-300">
+              <span className="font-bold text-amber-300">✓ Ya reclamaste tu contenido gratis de entrada.</span> Puedes adquirir cualquier otro contenido individual tocando "Comprar".
+            </div>
+          )}
 
           {/* GRID DE PRODUCTOS DE LA TIENDA (2 POR LÍNEA EN CELULARES Y PC) */}
           <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
@@ -581,9 +598,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               const prices = getCalculatedPrices(item.price, item.id);
               const isLatest = latest2VideoIds.includes(item.id);
 
-              const isEligibleIncluded = isColombia 
+              const isEligibleIncluded = !hasClaimedFreeItem && (isColombia 
                 ? (prices.originalFormatted.includes('35.000') || item.price <= 10)
-                : (item.price <= 10);
+                : (item.price <= 10));
 
               const handleCardClick = () => {
                 if (isColombia && isUnlocked) {
@@ -591,12 +608,14 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                   const targetUrl = item.downloadUrl || 'https://t.me/+vREXeP2U7Kw3ZTJh';
                   window.open(targetUrl, '_blank');
                 } else if (isEligibleIncluded) {
-                  // Video disponible e incluido con el pago de entrada (35k COP en Colombia o 10 USD fuera)
+                  // Reclamar 1 solo contenido gratis incluido con el acceso (sin comprobante)
+                  try {
+                    localStorage.setItem('geolink_claimed_free_entry_item', 'true');
+                    setHasClaimedFreeItem(true);
+                  } catch {}
                   const savedContact = (localStorage.getItem('geolink_visitor_contact') || '').trim();
                   const contactLine = savedContact ? `\n👤 Mi contacto: ${savedContact}` : '';
-                  const claimMsg = isColombia
-                    ? encodeURIComponent(`¡Hola Angelina! 💋 Ya pagué mi entrada de $35.000 COP a la web y elegí este video que viene incluido con mi acceso:\n\n🎥 "${item.title}"${contactLine}\n\nAquí te adjunto mi comprobante para que me lo envíes por Telegram 📎💬`)
-                    : encodeURIComponent(`¡Hola Angelina! 💋 Ya pagué mi entrada de $10.00 USD a la web y elegí este video que viene incluido con mi acceso:\n\n🎥 "${item.title}"${contactLine}\n\nAquí te adjunto mi comprobante para que me lo envíes por Telegram y empecemos nuestro chat hot 📎💬`);
+                  const claimMsg = encodeURIComponent(`¡Hola Angelina! 💋 Ya tengo mi acceso a la tienda y elegí este contenido gratis incluido con mi entrada:\n\n🎥 "${item.title}"${contactLine}`);
                   window.open(`https://t.me/Angelinaguzman69?text=${claimMsg}`, '_blank');
                 } else if (isColombia) {
                   // Para visitantes en Colombia: modal exclusivo con Mercado Pago y Nequi Llave Bre-B
@@ -715,8 +734,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                           }`}>
                             {isEligibleIncluded ? (
                               <>
-                                <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5]" />
-                                <span>Ver</span>
+                                <Gift className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5] text-amber-300" />
+                                <span>{isOutsideColombia ? 'Free' : 'Gratis'}</span>
                               </>
                             ) : (
                               <>
@@ -798,8 +817,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                           <>
                               {isEligibleIncluded ? (
                               <>
-                                <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
-                                <span>Ver</span>
+                                <Gift className="w-3 h-3 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
+                                <span>{isOutsideColombia ? 'Free' : 'Gratis'}</span>
                               </>
                             ) : (
                               <>

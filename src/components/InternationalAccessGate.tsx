@@ -27,19 +27,19 @@ const GATE_TEXTS: Record<SupportedLanguage, {
   footerChat: string;
 }> = {
   es: {
-    badge: 'Acceso a la Web + Chat Hot + Video Bienvenida',
+    badge: 'Acceso a la Tienda Web',
     subtitle: 'Entrada para explorar el perfil exclusivo y catálogo de',
-    benefit1: '💋 Video sensual de bienvenida exclusivo + Chat Hot privado conmigo',
-    benefit2: '🎁 ¡Elige 1 video del catálogo! Puedes elegir cualquier video de $10 USD o menos para recibirlo en Telegram',
+    benefit1: '✨ Pase de entrada para explorar el catálogo y la tienda exclusiva',
+    benefit2: '🎁 ¡Incluye 1 contenido gratis a tu elección al ingresar!',
     contactPlaceholder: 'Tu WhatsApp o @Telegram (opcional)',
     payBtn: 'Pagar $10.00 USD para Ingresar',
-    instantNote: '🔒 Pago seguro con Stripe · Al volver te llevará a Telegram con la descripción para activar tu acceso',
+    instantNote: '🔒 Pago seguro con Stripe · Al volver te llevará a Telegram para solicitar tu link de acceso',
     sendReceiptBtn: 'Ya pagué — Enviar Comprobante a Telegram',
     sentNotice: 'Redirigiendo a Telegram al volver del pago. En breve se activará tu acceso.',
     footerChat: 'Soporte directo en Telegram',
   },
   en: {
-    badge: 'Website Entry Pass + Hot Chat + Welcome Video',
+    badge: 'Website Store Entry Pass',
     subtitle: 'Entry pass to explore the exclusive profile & store of',
     benefit1: '💋 Exclusive hot welcome video + 1-on-1 private hot chat with me',
     benefit2: '🎁 Pick 1 video from the store! You can choose any video of $10 USD or less included to receive on Telegram',
@@ -51,7 +51,7 @@ const GATE_TEXTS: Record<SupportedLanguage, {
     footerChat: 'Direct support on Telegram',
   },
   pt: {
-    badge: 'Acesso ao Site + Chat Hot + Vídeo de Boas-Vindas',
+    badge: 'Acesso à Loja do Site',
     subtitle: 'Entrada para explorar o perfil exclusivo e catálogo de',
     benefit1: '💋 Vídeo de boas-vindas exclusivo + Chat Hot privado comigo',
     benefit2: '🎁 Escolha 1 vídeo do catálogo de $10 USD ou menos para receber no Telegram',
@@ -63,7 +63,7 @@ const GATE_TEXTS: Record<SupportedLanguage, {
     footerChat: 'Suporte direto no Telegram',
   },
   fr: {
-    badge: 'Accès au Site + Chat Chaud + Vidéo de Bienvenue',
+    badge: 'Accès à la Boutique du Site',
     subtitle: 'Accès pour explorer le profil exclusif et la boutique de',
     benefit1: '💋 Vidéo de bienvenue exclusive + Chat privé intime avec moi',
     benefit2: '🎁 Choisissez 1 vidéo du catalogue de 10 $ USD ou moins à recevoir sur Telegram',
@@ -75,7 +75,7 @@ const GATE_TEXTS: Record<SupportedLanguage, {
     footerChat: 'Support direct sur Telegram',
   },
   de: {
-    badge: 'Webseiten-Zugang + Hot Chat + Willkommensvideo',
+    badge: 'Zugang zum Webseiten-Shop',
     subtitle: 'Zugangspass zum exklusiven Profil und Shop von',
     benefit1: '💋 Exklusives Willkommensvideo + privater Hot Chat mit mir',
     benefit2: '🎁 Wähle 1 Video aus dem Katalog für 10 $ USD oder weniger, um es auf Telegram zu erhalten',
@@ -87,7 +87,7 @@ const GATE_TEXTS: Record<SupportedLanguage, {
     footerChat: 'Direkter Support auf Telegram',
   },
   it: {
-    badge: 'Accesso al Sito + Chat Hot + Video di Benvenuto',
+    badge: 'Accesso al Negozio del Sito',
     subtitle: 'Ingresso per esplorare il profilo esclusivo e il catalogo di',
     benefit1: '💋 Esclusivo video di benvenuto + Chat Hot privata con me',
     benefit2: '🎁 Scegli 1 video dal catalogo da $10 USD o meno da ricevere su Telegram',
@@ -186,7 +186,7 @@ export const InternationalAccessGate: React.FC<InternationalAccessGateProps> = (
       localStorage.removeItem('geolink_pending_telegram_payment');
     } catch {}
     const msg = encodeURIComponent(
-      `¡Hola Angelina! Acabo de realizar el pago de $10.00 USD por Stripe para ingresar a tu Página Web. Incluye mi Video de Bienvenida, mi Chat Hot y mi opción de elegir 1 video de $10 USD o menos del catálogo 🌍💋.${contactLine}\n\nAquí te adjunto mi comprobante de pago para activar mi acceso 📎`
+      `¡Hola Angelina! 💋 Acabo de realizar el pago por Stripe para ingresar a tu Tienda Web.${contactLine}\n\nAquí te adjunto mi comprobante para que por favor me des el link de acceso 📎`
     );
     window.location.href = `https://t.me/${TELEGRAM_USER}?text=${msg}`;
   };
