@@ -52,7 +52,7 @@ const TEXTS: Record<SupportedLanguage, {
     igFollowBtn: 'FOLLOW',
     ofBadge1: '🔞 100% UNCENSORED',
     ofBadge2: 'DIRTY TALK & NAUGHTY CHAT 💋',
-    ofTitle: 'ENTER MY EXCLUSIVE ONLYFANS 💙',
+    ofTitle: 'OnlyFans · Official 💙',
     ofSub: 'Let’s talk dirty, share wild fantasies & see everything 👀🔥',
     ofEnterBtn: 'ENTER NOW',
     featuresDMs: 'Direct DMs & private chat',
@@ -79,7 +79,7 @@ const TEXTS: Record<SupportedLanguage, {
     igFollowBtn: 'SEGUIR',
     ofBadge1: '🔞 100% SIN CENSURA',
     ofBadge2: 'HABLEMOS RICO & CHAT CALIENTE 💋',
-    ofTitle: 'ENTRA A MI ONLYFANS EXCLUSIVO 💙',
+    ofTitle: 'OnlyFans Oficial 💙',
     ofSub: 'Hablemos rico, compartamos fantasías ardientes y mira todo 👀🔥',
     ofEnterBtn: 'ENTRAR AHORA',
     featuresDMs: 'DMs directos & chat privado',
@@ -106,7 +106,7 @@ const TEXTS: Record<SupportedLanguage, {
     igFollowBtn: 'SUIVRE',
     ofBadge1: '🔞 100% NON CENSURÉ',
     ofBadge2: 'PARLONS CHAUD & CHAT COQUIN 💋',
-    ofTitle: 'REJOINS MON ONLYFANS EXCLUSIF 💙',
+    ofTitle: 'OnlyFans Officiel 💙',
     ofSub: 'Parlons chaudement, partageons nos fantasmes et découvre tout 👀🔥',
     ofEnterBtn: 'ENTRER',
     featuresDMs: 'DMs directs & chat privé',
@@ -133,7 +133,7 @@ const TEXTS: Record<SupportedLanguage, {
     igFollowBtn: 'FOLGEN',
     ofBadge1: '🔞 100% UNZENSIERT',
     ofBadge2: 'DIRTY TALK & HEISSER CHAT 💋',
-    ofTitle: 'MEIN EXKLUSIVES ONLYFANS 💙',
+    ofTitle: 'OnlyFans Offiziell 💙',
     ofSub: 'Lass uns dirty talken, Fantasien teilen und alles sehen 👀🔥',
     ofEnterBtn: 'BEITRETEN',
     featuresDMs: 'Direkte DMs & privater Chat',
@@ -160,7 +160,7 @@ const TEXTS: Record<SupportedLanguage, {
     igFollowBtn: 'SEGUI',
     ofBadge1: '🔞 100% SENZA CENSURA',
     ofBadge2: 'PARLIAMO PICCANTE & CHAT CALDA 💋',
-    ofTitle: 'ENTRA NEL MIO ONLYFANS ESCLUSIVO 💙',
+    ofTitle: 'OnlyFans Ufficiale 💙',
     ofSub: 'Parliamo piccante, condividiamo fantasie e guarda tutto 👀🔥',
     ofEnterBtn: 'ENTRA ORA',
     featuresDMs: 'DM diretti & chat privata',
@@ -187,7 +187,7 @@ const TEXTS: Record<SupportedLanguage, {
     igFollowBtn: 'SEGUIR',
     ofBadge1: '🔞 100% SEM CENSURA',
     ofBadge2: 'CONVERSA QUENTE & CHAT PICANTE 💋',
-    ofTitle: 'ENTRE NO MEU ONLYFANS EXCLUSIVO 💙',
+    ofTitle: 'OnlyFans Oficial 💙',
     ofSub: 'Vamos conversar picante, compartilhar fantasias e ver tudo 👀🔥',
     ofEnterBtn: 'ENTRAR AGORA',
     featuresDMs: 'DMs diretas & chat privado',
@@ -388,10 +388,10 @@ export const UsaOnlyFansView: React.FC<UsaOnlyFansViewProps> = ({
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-black text-sm sm:text-base text-white truncate">@angelinecutet</span>
+                  <span className="font-black text-sm sm:text-base text-white">@angelinecutet</span>
                   <Instagram className="w-4 h-4 text-pink-400 shrink-0" />
                 </div>
-                <p className="text-[11px] sm:text-xs text-pink-100 font-medium leading-tight line-clamp-1 mt-0.5">
+                <p className="text-[10px] sm:text-[11px] text-pink-100/90 font-medium leading-tight mt-0.5">
                   {t.igSubtitle}
                 </p>
               </div>
@@ -440,9 +440,9 @@ export const UsaOnlyFansView: React.FC<UsaOnlyFansViewProps> = ({
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-black text-sm sm:text-base text-white truncate">{t.ofTitle}</span>
+                  <span className="font-black text-sm sm:text-base text-white">{t.ofTitle}</span>
                 </div>
-                <p className="text-[11px] sm:text-xs text-sky-100 font-medium leading-tight line-clamp-1 mt-0.5">
+                <p className="text-[10px] sm:text-[11px] text-sky-100/90 font-medium leading-tight mt-0.5">
                   {t.ofSub}
                 </p>
               </div>
