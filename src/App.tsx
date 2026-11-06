@@ -17,6 +17,14 @@ import { StripePendingReceiptModal, PendingStripePayment } from './components/St
 import { INITIAL_CREATORS, INITIAL_MEDIA_ITEMS } from './data/mockData';
 import { Lock } from 'lucide-react';
 
+// Lista de códigos de países de Europa
+const EUROPE_COUNTRY_CODES = new Set([
+  'ES', 'FR', 'DE', 'IT', 'GB', 'PT', 'NL', 'BE', 'CH', 'AT', 'SE', 'NO', 'DK', 'FI',
+  'IE', 'PL', 'CZ', 'RO', 'GR', 'HU', 'UA', 'RU', 'TR', 'BG', 'HR', 'SK', 'RS', 'SI',
+  'LT', 'LV', 'EE', 'LU', 'IS', 'CY', 'MT', 'AL', 'BA', 'ME', 'MK', 'MD', 'BY', 'AD',
+  'LI', 'MC', 'SM', 'VA'
+]);
+
 export default function App() {
   const [isAppReady, setIsAppReady] = useState<boolean>(false);
 
@@ -549,7 +557,7 @@ export default function App() {
                 onOpenAdminLogin={() => setIsAdminLoginModalOpen(true)}
               />
             ) : (
-              (((simulatedCountry || visitorLocation.countryCode || '').toUpperCase() === 'US') && !isCleanHomeMode && !isUsaStoreUnlocked) ? (
+              ((['US', ...EUROPE_COUNTRY_CODES].includes((simulatedCountry || visitorLocation.countryCode || '').toUpperCase())) && !isCleanHomeMode && !isUsaStoreUnlocked) ? (
                 <UsaOnlyFansView
                   creator={currentCreator}
                   onOpenAdminLogin={() => setIsAdminLoginModalOpen(true)}
