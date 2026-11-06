@@ -560,6 +560,7 @@ export default function App() {
               ((['US', ...EUROPE_COUNTRY_CODES].includes((simulatedCountry || visitorLocation.countryCode || '').toUpperCase())) && !isCleanHomeMode && !isUsaStoreUnlocked) ? (
                 <UsaOnlyFansView
                   creator={currentCreator}
+                  visitorCountryCode={simulatedCountry || visitorLocation.countryCode}
                   onOpenAdminLogin={() => setIsAdminLoginModalOpen(true)}
                   onUnlockStore={() => {
                     setIsUsaStoreUnlocked(true);
