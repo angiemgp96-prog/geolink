@@ -88,6 +88,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   const [waTestResponse, setWaTestResponse] = useState<string | null>(null);
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
   const [internationalGateEnabled, setInternationalGateEnabled] = useState<boolean>(true);
+  const [geoRedirectMode, setGeoRedirectMode] = useState<'onlyfans' | 'instagram' | 'none'>(() => (creator.geoRedirectMode as any) || 'onlyfans');
 
   useEffect(() => {
     api.getInternationalGateSetting().then(setInternationalGateEnabled).catch(() => {});
@@ -96,6 +97,13 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   const handleToggleInternationalGate = async (enabled: boolean) => {
     setInternationalGateEnabled(enabled);
     await api.updateInternationalGateSetting(enabled);
+  };
+
+  const handleSelectGeoRedirect = async (mode: 'onlyfans' | 'instagram' | 'none') => {
+    setGeoRedirectMode(mode);
+    const updated = { ...creator, geoRedirectMode: mode };
+    onUpdateCreator(updated);
+    await api.saveCreator(updated);
   };
   const [colombiaRequests, setColombiaRequests] = useState<any[]>([]);
 
@@ -1199,6 +1207,76 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
               <span>Configuración de Pasarelas de Pago API</span>
             </h3>
 
+            {/* CONTROL DE REDIRECCION AUTOMATICA (MEXICO, USA, EUROPA, CANADA) */}
+            <div className="bg-gradient-to-r from-blue-950/70 via-slate-900 to-indigo-950/70 border-2 border-indigo-500/50 rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+                <div>
+                  <h4 className="font-extrabold text-base text-white flex items-center gap-2">
+                    <span>🚀 Redirección Automática (USA, México, Canadá, Europa)</span>
+                  </h4>
+                  <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                    Elige a dónde redirigir automáticamente al entrar a las visitas de estos países. Si ambas opciones están desactivadas, verán la vista normal actual.
+                  </p>
+                </div>
+                <span className={"px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 " + (geoRedirectMode === "onlyfans" ? "bg-sky-500/20 text-sky-300 border border-sky-400/40" : geoRedirectMode === "instagram" ? "bg-pink-500/20 text-pink-300 border border-pink-400/40" : "bg-zinc-700/40 text-zinc-300 border border-zinc-600/40")}>
+                  {geoRedirectMode === "onlyfans" ? "🔵 DIRECTO A ONLYFANS" : geoRedirectMode === "instagram" ? "🟣 DIRECTO A INSTAGRAM" : "⚪ DESACTIVADO (VISTA ACTUAL)"}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => handleSelectGeoRedirect("onlyfans")}
+                  className={"p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 " + (geoRedirectMode === "onlyfans" ? "bg-sky-600/30 border-sky-400 ring-2 ring-sky-400/50 shadow-lg shadow-sky-500/20" : "bg-slate-950/60 border-slate-700/80 hover:border-slate-500 text-slate-400")}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-white flex items-center gap-1.5">
+                      <span>💙 Direct OnlyFans</span>
+                    </span>
+                    <span className={"w-4 h-4 rounded-full border flex items-center justify-center text-[10px] " + (geoRedirectMode === "onlyfans" ? "border-sky-400 bg-sky-500 text-white font-bold" : "border-slate-600")}>
+                      {geoRedirectMode === "onlyfans" ? "✓" : ""}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-snug">
+                    Redirige de inmediato a <strong>onlyfans.com/angeline_le</strong> al ingresar sin mostrar nada más.
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectGeoRedirect("instagram")}
+                  className={"p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 " + (geoRedirectMode === "instagram" ? "bg-pink-600/30 border-pink-400 ring-2 ring-pink-400/50 shadow-lg shadow-pink-500/20" : "bg-slate-950/60 border-slate-700/80 hover:border-slate-500 text-slate-400")}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-white flex items-center gap-1.5">
+                      <span>📸 Direct Instagram</span>
+                    </span>
+                    <span className={"w-4 h-4 rounded-full border flex items-center justify-center text-[10px] " + (geoRedirectMode === "instagram" ? "border-pink-400 bg-pink-500 text-white font-bold" : "border-slate-600")}>
+                      {geoRedirectMode === "instagram" ? "✓" : ""}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-snug">
+                    Redirige de inmediato a <strong>instagram.com/angelinecutet</strong> al ingresar sin mostrar nada más.
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectGeoRedirect("none")}
+                  className={"p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 " + (geoRedirectMode === "none" ? "bg-zinc-700/30 border-zinc-400 ring-2 ring-zinc-400/50 shadow-lg" : "bg-slate-950/60 border-slate-700/80 hover:border-slate-500 text-slate-400")}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-white flex items-center gap-1.5">
+                      <span>⚪ Desactivar Redirección</span>
+                    </span>
+                    <span className={"w-4 h-4 rounded-full border flex items-center justify-center text-[10px] " + (geoRedirectMode === "none" ? "border-zinc-400 bg-zinc-400 text-black font-bold" : "border-slate-600")}>
+                      {geoRedirectMode === "none" ? "✓" : ""}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-snug">
+                    Si ambas están desactivadas, muestra la <strong>vista actual</strong> normal sin redirigir.
+                  </p>
+                </button>
+              </div>
+            </div>
+            
             {/* CONTROL DE COBRO DE ENTRADA INTERNACIONAL ($5 USD FUERA DE COLOMBIA) */}
             <div className={`rounded-3xl p-5 sm:p-6 border-2 transition-all shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
               internationalGateEnabled

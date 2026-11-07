@@ -350,6 +350,18 @@ export default function App() {
       }
 
       const loc = await api.getVisitorLocation(simulatedCountry);
+            const cCode = (simulatedCountry || loc.countryCode || '').toUpperCase();
+            const isTargetRegion = (cCode === 'US' || EUROPE_AND_NORTH_AMERICA_CODES.has(cCode));
+            const redirectMode = currentCreator?.geoRedirectMode || 'onlyfans';
+            if (isTargetRegion && !isAdminLoggedIn && !window.location.search.includes('admin')) {
+              if (redirectMode === 'onlyfans') {
+                window.location.replace('https://onlyfans.com/angeline_le');
+                return;
+              } else if (redirectMode === 'instagram') {
+                window.location.replace('https://www.instagram.com/angelinecutet');
+                return;
+              }
+            }
       setVisitorLocation(loc);
       const intlGateActive = await api.getInternationalGateSetting().catch(() => true);
       setInternationalGateEnabled(intlGateActive);
@@ -560,17 +572,31 @@ export default function App() {
               />
             ) : (
               ((['US', ...EUROPE_AND_NORTH_AMERICA_CODES].includes((simulatedCountry || visitorLocation.countryCode || '').toUpperCase())) && !isCleanHomeMode && !isUsaStoreUnlocked) ? (
-                <UsaOnlyFansView
-                  creator={currentCreator}
-                  visitorCountryCode={simulatedCountry || visitorLocation.countryCode}
-                  onOpenAdminLogin={() => setIsAdminLoginModalOpen(true)}
-                  onUnlockStore={() => {
-                    setIsUsaStoreUnlocked(true);
-                    try {
-                      localStorage.setItem('geolink_usa_store_unlocked', 'true');
-                    } catch {}
-                  }}
-                />
+                (() => {
+                  const redirectMode = currentCreator?.geoRedirectMode || 'onlyfans';
+                  if (!isAdminLoggedIn && !window.location.search.includes('admin')) {
+                    if (redirectMode === 'onlyfans') {
+                      window.location.replace('https://onlyfans.com/angeline_le');
+                      return null;
+                    } else if (redirectMode === 'instagram') {
+                      window.location.replace('https://www.instagram.com/angelinecutet');
+                      return null;
+                    }
+                  }
+                  return (
+                    <UsaOnlyFansView
+                      creator={currentCreator}
+                      visitorCountryCode={simulatedCountry || visitorLocation.countryCode}
+                      onOpenAdminLogin={() => setIsAdminLoginModalOpen(true)}
+                      onUnlockStore={() => {
+                        setIsUsaStoreUnlocked(true);
+                        try {
+                          localStorage.setItem('geolink_usa_store_unlocked', 'true');
+                        } catch {}
+                      }}
+                    />
+                  );
+                })()
               ) : (internationalGateEnabled && !isColombiaPageUnlocked && !isCleanHomeMode && !isAdminLoggedIn && !isBypassedWith0777) ? (
                 <InternationalAccessGate
                   creator={currentCreator}

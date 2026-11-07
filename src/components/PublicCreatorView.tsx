@@ -124,7 +124,20 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
   const [hasClaimedFreeItem, setHasClaimedFreeItem] = useState<boolean>(() => {
     try {
-      return localStorage.getItem('geolink_claimed_free_entry_item') === 'true';
+      // 1. Si ya reclamó su contenido gratis, bloquear
+      if (localStorage.getItem('geolink_claimed_free_entry_item') === 'true') {
+        return true;
+      }
+      // 2. Si es un usuario antiguo de Mercado Pago que pagó antes de la fecha de inicio de esta función, NO califica
+      const unlockedAtStr = localStorage.getItem('geolink_colombia_unlocked_at');
+      if (unlockedAtStr) {
+        const unlockedTime = new Date(unlockedAtStr).getTime();
+        // Si el pago ocurrió antes de la implementación de la promo, se considera usuario antiguo
+        if (unlockedTime > 0 && unlockedTime < 1793664000000) {
+          return true; // Bloqueado para antiguos
+        }
+      }
+      return false;
     } catch {
       return false;
     }

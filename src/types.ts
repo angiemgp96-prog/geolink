@@ -49,6 +49,7 @@ export interface CreatorProfile {
   paymentSettings: PaymentSettings;
   blockedIps?: string[];
   storeMode?: 'subscription' | 'store' | 'hybrid';
+  geoRedirectMode?: 'onlyfans' | 'instagram' | 'none';
   createdAt: string;
 }
 

@@ -214,6 +214,7 @@ export const api = {
           if (row.title) creatorData.creator.title = row.title;
           if (row.name) creatorData.creator.name = row.name;
           if (row.badge) creatorData.creator.badge = row.badge;
+          if (row.data && row.data.geoRedirectMode) creatorData.creator.geoRedirectMode = row.data.geoRedirectMode;
         }
       } catch (err) {
         console.warn('Supabase getCreator override warning:', err);

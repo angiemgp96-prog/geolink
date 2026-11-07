@@ -15,6 +15,7 @@ export const INITIAL_CREATORS: CreatorProfile[] = [
     blockedMessage: '⛔ Contenido no disponible en tu ubicación geográfica por privacidad de la creadora.',
     whatsappNumber: '+5491155443322',
     createdAt: new Date().toISOString(),
+    geoRedirectMode: 'onlyfans',
     links: [
       { id: 'l0', title: 'Nuevo OnlyFans Oficial 💙 @angeline_le — Chat Exclusivo', url: 'https://onlyfans.com/angeline_le', icon: 'OnlyFans', active: true, clicks: 4920 },
       { id: 'l1', title: 'Instagram Oficial 📸 (@angiemgp69)', url: 'https://instagram.com/angiemgp69', icon: 'Instagram', active: true, clicks: 3410 },
