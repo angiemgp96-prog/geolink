@@ -20,6 +20,7 @@ import { Lock } from 'lucide-react';
 // Lista de códigos de países de Europa
 const EUROPE_AND_NORTH_AMERICA_CODES = new Set([
   'CA',
+  'MX',
   'ES', 'FR', 'DE', 'IT', 'GB', 'PT', 'NL', 'BE', 'CH', 'AT', 'SE', 'NO', 'DK', 'FI',
   'IE', 'PL', 'CZ', 'RO', 'GR', 'HU', 'UA', 'RU', 'TR', 'BG', 'HR', 'SK', 'RS', 'SI',
   'LT', 'LV', 'EE', 'LU', 'IS', 'CY', 'MT', 'AL', 'BA', 'ME', 'MK', 'MD', 'BY', 'AD',
