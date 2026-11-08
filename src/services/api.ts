@@ -214,7 +214,15 @@ export const api = {
           if (row.title) creatorData.creator.title = row.title;
           if (row.name) creatorData.creator.name = row.name;
           if (row.badge) creatorData.creator.badge = row.badge;
-          if (row.data && row.data.geoRedirectMode) creatorData.creator.geoRedirectMode = row.data.geoRedirectMode;
+          if (row.data && row.data.geoRedirectMode) {
+            creatorData.creator.geoRedirectMode = row.data.geoRedirectMode;
+          }
+          try {
+            const cachedMode = localStorage.getItem('geolink_geo_redirect_mode');
+            if (cachedMode && ['onlyfans', 'instagram', 'none'].includes(cachedMode)) {
+              creatorData.creator.geoRedirectMode = cachedMode as any;
+            }
+          } catch {}
         }
       } catch (err) {
         console.warn('Supabase getCreator override warning:', err);
