@@ -353,7 +353,22 @@ export default function App() {
             const cCode = (simulatedCountry || loc.countryCode || '').toUpperCase();
             const isTargetRegion = (cCode === 'US' || EUROPE_AND_NORTH_AMERICA_CODES.has(cCode));
             const redirectMode = currentCreator?.geoRedirectMode || 'onlyfans';
+            
+            // Si el visitante entra desde un país objetivo (USA, México, Canadá, Europa)
             if (isTargetRegion && !isAdminLoggedIn && !window.location.search.includes('admin')) {
+              const urlParams = new URLSearchParams(window.location.search);
+              const toParam = (urlParams.get('to') || '').toLowerCase();
+
+              // Si viene por link con parámetro directo ?to=...
+              if (toParam === 'onlyfans' || toParam === 'of' || toParam === 'only') {
+                window.location.replace('https://onlyfans.com/angeline_le');
+                return;
+              } else if (toParam === 'instagram' || toParam === 'ig' || toParam === 'insta') {
+                window.location.replace('https://www.instagram.com/angelinecutet');
+                return;
+              }
+
+              // Si no viene con parámetro ?to=, respeta la selección del Dashboard
               if (redirectMode === 'onlyfans') {
                 window.location.replace('https://onlyfans.com/angeline_le');
                 return;
@@ -575,6 +590,15 @@ export default function App() {
                 (() => {
                   const redirectMode = currentCreator?.geoRedirectMode || 'onlyfans';
                   if (!isAdminLoggedIn && !window.location.search.includes('admin')) {
+                    const toParam = (new URLSearchParams(window.location.search).get('to') || '').toLowerCase();
+                    if (toParam === 'onlyfans' || toParam === 'of' || toParam === 'only') {
+                      window.location.replace('https://onlyfans.com/angeline_le');
+                      return null;
+                    } else if (toParam === 'instagram' || toParam === 'ig' || toParam === 'insta') {
+                      window.location.replace('https://www.instagram.com/angelinecutet');
+                      return null;
+                    }
+
                     if (redirectMode === 'onlyfans') {
                       window.location.replace('https://onlyfans.com/angeline_le');
                       return null;
