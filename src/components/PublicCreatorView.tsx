@@ -629,7 +629,18 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                   const savedContact = (localStorage.getItem('geolink_visitor_contact') || '').trim();
                   const contactLine = savedContact ? `\n👤 Mi contacto: ${savedContact}` : '';
                   const claimMsg = encodeURIComponent(`¡Hola Angelina! 💋 Ya tengo mi acceso a la tienda y elegí este contenido gratis incluido con mi entrada:\n\n🎥 "${item.title}"${contactLine}`);
-                  window.open(`https://t.me/Angelinaguzman69?text=${claimMsg}`, '_blank');
+                  // 1. Intentar abrir la aplicacion nativa de Telegram directamente sin pasar por navegador
+                                    const appTgUrl = `tg://resolve?domain=Angelinaguzman69&text=${claimMsg}`;
+                                    // 2. Fallback web usando telegram.me / t.me
+                                    const webTgUrl = `https://telegram.me/Angelinaguzman69?text=${claimMsg}`;
+                                    try {
+                                      window.location.href = appTgUrl;
+                                      setTimeout(() => {
+                                        window.open(webTgUrl, '_blank');
+                                      }, 600);
+                                    } catch {
+                                      window.open(webTgUrl, '_blank');
+                                    }
                 } else if (isColombia) {
                   // Para visitantes en Colombia: modal exclusivo con Mercado Pago y Nequi Llave Bre-B
                   onOpenPurchaseModal(item);
