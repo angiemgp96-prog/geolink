@@ -580,7 +580,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
           </div>
 
           {/* GUÍA CLARA DE COMPRA Y CONTENIDO GRATIS */}
-          {!hasClaimedFreeItem ? (
+          {(Boolean(localStorage.getItem('geolink_active_access_code') || (isColombia && localStorage.getItem('geolink_colombia_page_unlocked') === 'true')) && !hasClaimedFreeItem) ? (
             <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-950/60 via-slate-900/95 to-indigo-950/60 border border-pink-500/45 shadow-lg space-y-1.5 text-left">
               <div className="flex items-center gap-1.5 text-xs sm:text-sm font-black text-amber-300">
                 <Gift className="w-4 h-4 text-amber-300 shrink-0" />
@@ -611,7 +611,13 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               const prices = getCalculatedPrices(item.price, item.id);
               const isLatest = latest2VideoIds.includes(item.id);
 
-              const isEligibleIncluded = !hasClaimedFreeItem && (isColombia 
+              // SOLO tienen derecho a 1 item gratis los que hayan pagado entrada (MercadoPago aprobado en Colombia o link de acceso VIP).
+              // Si están fuera de Colombia y el cobro de entrada está desactivado, NUNCA es gratis.
+              const hasPaidEntry = isColombia 
+                ? (localStorage.getItem('geolink_colombia_page_unlocked') === 'true')
+                : (Boolean(localStorage.getItem('geolink_active_access_code')));
+
+              const isEligibleIncluded = hasPaidEntry && !hasClaimedFreeItem && (isColombia 
                 ? (prices.originalFormatted.includes('35.000') || item.price <= 10)
                 : (item.price <= 10));
 
