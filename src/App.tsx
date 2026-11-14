@@ -355,8 +355,15 @@ export default function App() {
             const redirectMode = currentCreator?.geoRedirectMode || 'onlyfans';
             
             // Si el visitante entra desde un país objetivo (USA, México, Canadá, Europa)
-            if (isTargetRegion && !isAdminLoggedIn && !window.location.search.includes('admin')) {
-              const urlParams = new URLSearchParams(window.location.search);
+            const urlParams = new URLSearchParams(window.location.search);
+            const hasAccessCode = urlParams.has('access') || urlParams.has('code') || urlParams.has('pass') || urlParams.has('token') || urlParams.has('unlock');
+            let hasVerifiedStoreAccess = false;
+            try {
+              hasVerifiedStoreAccess = localStorage.getItem('geolink_usa_store_unlocked') === 'true' || localStorage.getItem('geolink_colombia_page_unlocked') === 'true';
+            } catch {}
+
+            // SI TIENE LINK DE ACCESO O YA TIENE ACCESO APROBADO: NUNCA SE LE REDIRIGE A ONLYFANS NI INSTAGRAM
+            if (isTargetRegion && !isAdminLoggedIn && !window.location.search.includes('admin') && !hasAccessCode && !hasVerifiedStoreAccess) {
               const toParam = (urlParams.get('to') || '').toLowerCase();
 
               // Si viene por link con parámetro directo ?to=...
@@ -368,7 +375,7 @@ export default function App() {
                 return;
               }
 
-              // Si no viene con parámetro ?to=, respeta la selección del Dashboard
+              // Si no viene con parámetro ?to=, respeta la selección del Dashboard (si está desactivada 'none', entra directo sin redirigir)
               if (redirectMode === 'onlyfans') {
                 window.location.replace('https://onlyfans.com/angeline_le');
                 return;
@@ -589,8 +596,15 @@ export default function App() {
               ((['US', ...EUROPE_AND_NORTH_AMERICA_CODES].includes((simulatedCountry || visitorLocation.countryCode || '').toUpperCase())) && !isCleanHomeMode && !isUsaStoreUnlocked) ? (
                 (() => {
                   const redirectMode = currentCreator?.geoRedirectMode || 'onlyfans';
-                  if (!isAdminLoggedIn && !window.location.search.includes('admin')) {
-                    const toParam = (new URLSearchParams(window.location.search).get('to') || '').toLowerCase();
+                  const currentParams = new URLSearchParams(window.location.search);
+                  const hasAccessLink = currentParams.has('access') || currentParams.has('code') || currentParams.has('pass') || currentParams.has('token') || currentParams.has('unlock');
+                  let isStoreAlreadyUnlocked = false;
+                  try {
+                    isStoreAlreadyUnlocked = localStorage.getItem('geolink_usa_store_unlocked') === 'true' || localStorage.getItem('geolink_colombia_page_unlocked') === 'true';
+                  } catch {}
+
+                  if (!isAdminLoggedIn && !window.location.search.includes('admin') && !hasAccessLink && !isStoreAlreadyUnlocked) {
+                    const toParam = (currentParams.get('to') || '').toLowerCase();
                     if (toParam === 'onlyfans' || toParam === 'of' || toParam === 'only') {
                       window.location.replace('https://onlyfans.com/angeline_le');
                       return null;

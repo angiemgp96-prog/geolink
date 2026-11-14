@@ -1514,6 +1514,65 @@ export const api = {
   },
 
 
+
+  async getGeoRedirectMode(): Promise<'onlyfans' | 'instagram' | 'none'> {
+    let mode: 'onlyfans' | 'instagram' | 'none' = 'onlyfans';
+    try {
+      const cached = localStorage.getItem('geolink_geo_redirect_mode');
+      if (cached && ['onlyfans', 'instagram', 'none'].includes(cached)) {
+        mode = cached as any;
+      }
+    } catch {}
+
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('lead_capture_settings')
+          .select('id, require_lead_capture')
+          .eq('id', 'geo_redirect_mode')
+          .limit(1);
+        if (!error && data && data.length > 0) {
+          // Si require_lead_capture es true -> 'onlyfans', si es false -> 'none', o por custom
+          // Usaremos el id específico:
+        }
+        // Leer de creators
+        const { data: cData } = await supabase.from('creators').select('data').eq('handle', 'angelina69').limit(1);
+        if (cData && cData.length > 0 && cData[0].data && cData[0].data.geoRedirectMode) {
+          mode = cData[0].data.geoRedirectMode;
+          try {
+            localStorage.setItem('geolink_geo_redirect_mode', mode);
+          } catch {}
+        }
+      } catch (e) {
+        console.warn('Supabase getGeoRedirectMode error:', e);
+      }
+    }
+    return mode;
+  },
+
+  async updateGeoRedirectMode(mode: 'onlyfans' | 'instagram' | 'none'): Promise<boolean> {
+    try {
+      localStorage.setItem('geolink_geo_redirect_mode', mode);
+    } catch {}
+
+    if (isSupabaseConfigured()) {
+      try {
+        // Actualizar todos los rows de angelina69 en Supabase
+        const { data: rows } = await supabase.from('creators').select('id, data').eq('handle', 'angelina69');
+        if (rows && rows.length > 0) {
+          for (const r of rows) {
+            const updated = { ...(r.data || {}), geoRedirectMode: mode };
+            await supabase.from('creators').update({ data: updated }).eq('id', r.id);
+          }
+        }
+        await supabase.from('creators').update({ data: { geoRedirectMode: mode } }).eq('handle', 'angelina69');
+      } catch (e) {
+        console.warn('Supabase updateGeoRedirectMode error:', e);
+      }
+    }
+    return true;
+  },
+
   async getBigoLiveSettings(): Promise<{ isLive: boolean; streamUrl: string }> {
     const defaultSettings = {
       isLive: false,

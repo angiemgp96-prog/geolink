@@ -88,7 +88,19 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
   const [waTestResponse, setWaTestResponse] = useState<string | null>(null);
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
   const [internationalGateEnabled, setInternationalGateEnabled] = useState<boolean>(true);
-  const [geoRedirectMode, setGeoRedirectMode] = useState<'onlyfans' | 'instagram' | 'none'>(() => (creator.geoRedirectMode as any) || 'onlyfans');
+  const [geoRedirectMode, setGeoRedirectMode] = useState<'onlyfans' | 'instagram' | 'none'>(() => {
+    try {
+      const cached = localStorage.getItem('geolink_geo_redirect_mode');
+      if (cached && ['onlyfans', 'instagram', 'none'].includes(cached)) return cached as any;
+    } catch {}
+    return (creator.geoRedirectMode as any) || 'onlyfans';
+  });
+
+  useEffect(() => {
+    api.getGeoRedirectMode().then(mode => {
+      if (mode) setGeoRedirectMode(mode);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     api.getInternationalGateSetting().then(setInternationalGateEnabled).catch(() => {});
@@ -101,8 +113,12 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
 
   const handleSelectGeoRedirect = async (mode: 'onlyfans' | 'instagram' | 'none') => {
     setGeoRedirectMode(mode);
+    try {
+      localStorage.setItem('geolink_geo_redirect_mode', mode);
+    } catch {}
     const updated = { ...creator, geoRedirectMode: mode };
     onUpdateCreator(updated);
+    await api.updateGeoRedirectMode(mode);
     await api.saveCreator(updated);
   };
   const [colombiaRequests, setColombiaRequests] = useState<any[]>([]);
