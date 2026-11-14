@@ -187,9 +187,19 @@ export default function App() {
   const [isNewCreatorModalOpen, setIsNewCreatorModalOpen] = useState<boolean>(false);
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
 
-  const [isColombiaPageUnlocked, setIsColombiaPageUnlocked] = useState<boolean>(false);
+  const [isColombiaPageUnlocked, setIsColombiaPageUnlocked] = useState<boolean>(() => {
+    try {
+      const p = new URLSearchParams(window.location.search);
+      if (p.has('access') || p.has('code') || p.has('pass') || p.has('unlock') || p.has('token')) return true;
+      return localStorage.getItem('geolink_colombia_page_unlocked') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [isUsaStoreUnlocked, setIsUsaStoreUnlocked] = useState<boolean>(() => {
     try {
+      const p = new URLSearchParams(window.location.search);
+      if (p.has('access') || p.has('code') || p.has('pass') || p.has('unlock') || p.has('token')) return true;
       return localStorage.getItem('geolink_usa_store_unlocked') === 'true';
     } catch {
       return false;
@@ -354,34 +364,34 @@ export default function App() {
             const isTargetRegion = (cCode === 'US' || EUROPE_AND_NORTH_AMERICA_CODES.has(cCode));
             const redirectMode = currentCreator?.geoRedirectMode || 'onlyfans';
             
-            // Si el visitante entra desde un país objetivo (USA, México, Canadá, Europa)
+            // Redirección explícita SOLO si el parámetro trae ?to=onlyfans o ?to=instagram
             const urlParams = new URLSearchParams(window.location.search);
+            const explicitTo = (urlParams.get('to') || '').toLowerCase();
             const hasAccessCode = urlParams.has('access') || urlParams.has('code') || urlParams.has('pass') || urlParams.has('token') || urlParams.has('unlock');
             let hasVerifiedStoreAccess = false;
             try {
               hasVerifiedStoreAccess = localStorage.getItem('geolink_usa_store_unlocked') === 'true' || localStorage.getItem('geolink_colombia_page_unlocked') === 'true';
             } catch {}
 
-            // SI TIENE LINK DE ACCESO O YA TIENE ACCESO APROBADO: NUNCA SE LE REDIRIGE A ONLYFANS NI INSTAGRAM
-            if (isTargetRegion && !isAdminLoggedIn && !window.location.search.includes('admin') && !hasAccessCode && !hasVerifiedStoreAccess) {
-              const toParam = (urlParams.get('to') || '').toLowerCase();
-
-              // Si viene por link con parámetro directo ?to=...
-              if (toParam === 'onlyfans' || toParam === 'of' || toParam === 'only') {
+            if (isTargetRegion && !isAdminLoggedIn && !window.location.search.includes('admin')) {
+              // Si explícitamente se solicita ?to=onlyfans o ?to=instagram
+              if (explicitTo === 'onlyfans' || explicitTo === 'of' || explicitTo === 'only') {
                 window.location.replace('https://onlyfans.com/angeline_le');
                 return;
-              } else if (toParam === 'instagram' || toParam === 'ig' || toParam === 'insta') {
+              } else if (explicitTo === 'instagram' || explicitTo === 'ig' || explicitTo === 'insta') {
                 window.location.replace('https://www.instagram.com/angelinecutet');
                 return;
               }
 
-              // Si no viene con parámetro ?to=, respeta la selección del Dashboard (si está desactivada 'none', entra directo sin redirigir)
-              if (redirectMode === 'onlyfans') {
-                window.location.replace('https://onlyfans.com/angeline_le');
-                return;
-              } else if (redirectMode === 'instagram') {
-                window.location.replace('https://www.instagram.com/angelinecutet');
-                return;
+              // Si NO trae código de acceso ni acceso previo desbloqueado, respeta la opción del Dashboard
+              if (!hasAccessCode && !hasVerifiedStoreAccess && !isUsaStoreUnlocked && !isColombiaPageUnlocked) {
+                if (redirectMode === 'onlyfans') {
+                  window.location.replace('https://onlyfans.com/angeline_le');
+                  return;
+                } else if (redirectMode === 'instagram') {
+                  window.location.replace('https://www.instagram.com/angelinecutet');
+                  return;
+                }
               }
             }
       setVisitorLocation(loc);
@@ -593,7 +603,7 @@ export default function App() {
                 onOpenAdminLogin={() => setIsAdminLoginModalOpen(true)}
               />
             ) : (
-              ((['US', ...EUROPE_AND_NORTH_AMERICA_CODES].includes((simulatedCountry || visitorLocation.countryCode || '').toUpperCase())) && !isCleanHomeMode && !isUsaStoreUnlocked) ? (
+              ((['US', ...EUROPE_AND_NORTH_AMERICA_CODES].includes((simulatedCountry || visitorLocation.countryCode || '').toUpperCase())) && !isCleanHomeMode && !isUsaStoreUnlocked && !isColombiaPageUnlocked && !Boolean(new URLSearchParams(window.location.search).get('access') || new URLSearchParams(window.location.search).get('code') || new URLSearchParams(window.location.search).get('pass'))) ? (
                 (() => {
                   const redirectMode = currentCreator?.geoRedirectMode || 'onlyfans';
                   const currentParams = new URLSearchParams(window.location.search);
@@ -603,7 +613,7 @@ export default function App() {
                     isStoreAlreadyUnlocked = localStorage.getItem('geolink_usa_store_unlocked') === 'true' || localStorage.getItem('geolink_colombia_page_unlocked') === 'true';
                   } catch {}
 
-                  if (!isAdminLoggedIn && !window.location.search.includes('admin') && !hasAccessLink && !isStoreAlreadyUnlocked) {
+                  if (!isAdminLoggedIn && !window.location.search.includes('admin') && !hasAccessLink && !isStoreAlreadyUnlocked && !isUsaStoreUnlocked && !isColombiaPageUnlocked) {
                     const toParam = (currentParams.get('to') || '').toLowerCase();
                     if (toParam === 'onlyfans' || toParam === 'of' || toParam === 'only') {
                       window.location.replace('https://onlyfans.com/angeline_le');
@@ -628,8 +638,10 @@ export default function App() {
                       onOpenAdminLogin={() => setIsAdminLoginModalOpen(true)}
                       onUnlockStore={() => {
                         setIsUsaStoreUnlocked(true);
+                        setIsColombiaPageUnlocked(true);
                         try {
                           localStorage.setItem('geolink_usa_store_unlocked', 'true');
+                          localStorage.setItem('geolink_colombia_page_unlocked', 'true');
                         } catch {}
                       }}
                     />
