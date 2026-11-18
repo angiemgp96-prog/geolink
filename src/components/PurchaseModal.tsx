@@ -1288,7 +1288,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
               </div>
             </div>
             <a id="download-media-button"
-              href={completedPurchase.downloadUrl || item.downloadUrl || (countryCode === 'CO' ? 'https://t.me/+vREXeP2U7Kw3ZTJh' : 'https://t.me/+BzLMicXEu3cxNDFh')}
+              href={countryCode === 'CO' ? 'https://t.me/Angieguz69' : (completedPurchase.downloadUrl || item.downloadUrl || 'https://t.me/+BzLMicXEu3cxNDFh')}
               target="_blank" rel="noreferrer"
               className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-base shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all">
               <Send className="w-5 h-5 fill-slate-950" />

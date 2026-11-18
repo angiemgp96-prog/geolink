@@ -374,12 +374,15 @@ export default function App() {
             } catch {}
 
             if (isTargetRegion && !isAdminLoggedIn && !window.location.search.includes('admin')) {
-              // Si explícitamente se solicita ?to=onlyfans o ?to=instagram
+              // Si explícitamente se solicita ?to=onlyfans, ?to=instagram o ?to=telegram
               if (explicitTo === 'onlyfans' || explicitTo === 'of' || explicitTo === 'only') {
                 window.location.replace('https://onlyfans.com/angeline_le');
                 return;
               } else if (explicitTo === 'instagram' || explicitTo === 'ig' || explicitTo === 'insta') {
                 window.location.replace('https://www.instagram.com/angelinecutet');
+                return;
+              } else if (explicitTo === 'telegram' || explicitTo === 'tg' || explicitTo === 'vip') {
+                window.location.replace('https://t.me/+BzLMicXEu3cxNDFh');
                 return;
               }
 
@@ -620,6 +623,9 @@ export default function App() {
                       return null;
                     } else if (toParam === 'instagram' || toParam === 'ig' || toParam === 'insta') {
                       window.location.replace('https://www.instagram.com/angelinecutet');
+                      return null;
+                    } else if (toParam === 'telegram' || toParam === 'tg' || toParam === 'vip') {
+                      window.location.replace('https://t.me/+BzLMicXEu3cxNDFh');
                       return null;
                     }
 
