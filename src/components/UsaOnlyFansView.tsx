@@ -1,6 +1,6 @@
 import React from 'react';
 import { CreatorProfile } from '../types';
-import { CheckCircle2, ExternalLink, MessageCircle, Flame, Lock, Eye, Heart, Sparkles, Instagram } from 'lucide-react';
+import { CheckCircle2, Send, ExternalLink, MessageCircle, Flame, Lock, Eye, Heart, Sparkles, Instagram } from 'lucide-react';
 import { detectLanguage, SupportedLanguage } from '../data/translations';
 
 interface UsaOnlyFansViewProps {
@@ -401,6 +401,54 @@ export const UsaOnlyFansView: React.FC<UsaOnlyFansViewProps> = ({
                 <span className="inline-flex items-center gap-1 px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-600 group-hover:from-pink-400 group-hover:to-rose-500 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-pink-500/30">
                   <span>{t.igFollowBtn}</span>
                   <ExternalLink className="w-3.5 h-3.5 text-white" />
+                </span>
+              </div>
+            </div>
+          </a>
+
+          
+          {/* ✈️ BOTÓN DESTACADO: TELEGRAM VIP & CHAT PRIVADO (@Angieguz69) */}
+          <a
+            id="telegram-chat-exclusive-hero"
+            href="https://t.me/Angieguz69"
+            target="_blank"
+            rel="noreferrer"
+            className="w-full block p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-sky-950/70 via-blue-950/70 to-indigo-950/70 hover:from-sky-900/80 hover:via-blue-900/80 hover:to-indigo-900/80 border-2 border-sky-400/80 shadow-[0_0_30px_rgba(14,165,233,0.35)] hover:shadow-[0_0_40px_rgba(14,165,233,0.55)] transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer text-left relative overflow-hidden group"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-wider shadow">
+                <Send className="w-3 h-3 text-white fill-white" />
+                <span>🔥 NUEVO TELEGRAM OFICIAL</span>
+              </span>
+              <span className="text-[9px] sm:text-[10px] font-black text-amber-300 uppercase tracking-wide bg-amber-500/20 border border-amber-400/40 px-2 py-0.5 rounded-full">
+                💬 CHAT PRIVADO DIRECTO
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="relative shrink-0">
+                <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-full p-[2px] bg-gradient-to-tr from-sky-400 via-blue-500 to-indigo-600 shadow-md flex items-center justify-center bg-slate-900">
+                  <div className="w-full h-full rounded-full bg-sky-500 flex items-center justify-center">
+                    <Send className="w-6 h-6 text-white fill-white ml-0.5" />
+                  </div>
+                </div>
+                <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-black rounded-full" />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-black text-sm sm:text-base text-white">@Angieguz69</span>
+                  <span className="px-1.5 py-0.5 rounded bg-sky-500/30 text-sky-300 text-[10px] font-black uppercase">Official</span>
+                </div>
+                <p className="text-[10px] sm:text-[11px] text-sky-100/90 font-medium leading-tight mt-0.5">
+                  Escríbeme en privado 1 a 1 para chatear y pedir contenido exclusivo 💋
+                </p>
+              </div>
+
+              <div className="shrink-0 pl-1">
+                <span className="inline-flex items-center gap-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white text-[10px] sm:text-xs font-black uppercase tracking-wider shadow-lg shadow-sky-500/40 group-hover:scale-105 transition-transform">
+                  <span>CHAT</span>
+                  <ExternalLink className="w-3 h-3 stroke-[3]" />
                 </span>
               </div>
             </div>

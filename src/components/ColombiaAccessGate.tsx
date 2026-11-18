@@ -9,7 +9,7 @@ interface ColombiaAccessGateProps {
   onOpenAdminLogin?: () => void;
 }
 
-const TELEGRAM_USER = 'Angelinaguzman69';
+const TELEGRAM_USER = 'Angieguz69';
 
 export const ColombiaAccessGate: React.FC<ColombiaAccessGateProps> = ({ creator, onUnlocked, onOpenAdminLogin }) => {
   const [activePaymentTab, setActivePaymentTab] = useState<'mercadopago' | 'nequi'>('mercadopago');

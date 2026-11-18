@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Send, CreditCard, X, CheckCircle2, ShieldCheck, AlertCircle, Clock } from 'lucide-react';
 
-const TELEGRAM_USER = 'Angelinaguzman69';
+const TELEGRAM_USER = 'Angieguz69';
 
 export interface PendingStripePayment {
   id: string;

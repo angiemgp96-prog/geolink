@@ -12,7 +12,7 @@ interface InternationalAccessGateProps {
   onOpenAdminLogin?: () => void;
 }
 
-const TELEGRAM_USER = 'Angelinaguzman69';
+const TELEGRAM_USER = 'Angieguz69';
 
 const GATE_TEXTS: Record<SupportedLanguage, {
   badge: string;

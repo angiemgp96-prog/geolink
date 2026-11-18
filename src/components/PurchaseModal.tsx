@@ -11,7 +11,7 @@ import { getShiftedPromoPrice } from '../utils/stripeLinks';
 // ─── Configuración de enlaces estáticos ──────────────────────────────
 const PAYPAL_LINK    = 'https://www.paypal.com/paypalme/angieG473';
 const NEQUI_USA_LINK = 'https://giros.nequi.com.co/l/Cc1Sv9Bz';
-const TELEGRAM_USER  = 'Angelinaguzman69'; // sin @
+const TELEGRAM_USER  = 'Angieguz69'; // sin @
 // ─────────────────────────────────────────────────────────────────────
 
 const LOCAL_PREVIEW_MAP: Record<string, string> = {
@@ -361,7 +361,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
     handleDirectTelegramRedirect('PAYPAL', link);
   };
 
-  // ── Pagar con Telegram: construye enlace directo y abre chat @Angelinaguzman69
+  // ── Pagar con Telegram: construye enlace directo y abre chat @Angieguz69
         const buildPayPalTelegramLink = () => {
     const formattedPrice = getFormattedModalPrice();
     const msg = encodeURIComponent(
@@ -1288,7 +1288,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, onP
               </div>
             </div>
             <a id="download-media-button"
-              href={completedPurchase.downloadUrl || item.downloadUrl || 'https://t.me/+vREXeP2U7Kw3ZTJh'}
+              href={completedPurchase.downloadUrl || item.downloadUrl || 'https://t.me/+BzLMicXEu3cxNDFh'}
               target="_blank" rel="noreferrer"
               className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-base shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all">
               <Send className="w-5 h-5 fill-slate-950" />

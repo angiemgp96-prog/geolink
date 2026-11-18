@@ -495,7 +495,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
           <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
             <a
               id="telegram-vip-hot-button"
-              href="https://t.me/angelinaguz69"
+              href="https://t.me/Angieguz69"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-xl shadow-sky-500/30 hover:scale-105 cursor-pointer border border-sky-300/40"
@@ -624,7 +624,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               const handleCardClick = () => {
                 if (isColombia && isUnlocked) {
                   // SÍ Y SOLO SÍ en Colombia y verificado por Mercado Pago API se redirige al grupo
-                  const targetUrl = item.downloadUrl || 'https://t.me/+vREXeP2U7Kw3ZTJh';
+                  const targetUrl = item.downloadUrl || 'https://t.me/+BzLMicXEu3cxNDFh';
                   window.open(targetUrl, '_blank');
                 } else if (isEligibleIncluded) {
                   // Reclamar 1 solo contenido gratis incluido con el acceso (sin comprobante)
@@ -636,9 +636,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
                   const contactLine = savedContact ? `\n👤 Mi contacto: ${savedContact}` : '';
                   const claimMsg = encodeURIComponent(`¡Hola Angelina! 💋 Ya tengo mi acceso a la tienda y elegí este contenido gratis incluido con mi entrada:\n\n🎥 "${item.title}"${contactLine}`);
                   // 1. Intentar abrir la aplicacion nativa de Telegram directamente sin pasar por navegador
-                                    const appTgUrl = `tg://resolve?domain=Angelinaguzman69&text=${claimMsg}`;
+                                    const appTgUrl = `tg://resolve?domain=Angieguz69&text=${claimMsg}`;
                                     // 2. Fallback web usando telegram.me / t.me
-                                    const webTgUrl = `https://telegram.me/Angelinaguzman69?text=${claimMsg}`;
+                                    const webTgUrl = `https://telegram.me/Angieguz69?text=${claimMsg}`;
                                     try {
                                       window.location.href = appTgUrl;
                                       setTimeout(() => {

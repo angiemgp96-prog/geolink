@@ -2053,7 +2053,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                       }
 
                       // Target Telegram Group / Channel Link
-                      const targetTelegramGroup = p.downloadUrl || matchedMedia?.downloadUrl || 'https://t.me/+vREXeP2U7Kw3ZTJh';
+                      const targetTelegramGroup = p.downloadUrl || matchedMedia?.downloadUrl || 'https://t.me/+BzLMicXEu3cxNDFh';
                       
                       let cleanPhoneDigits = (p.buyerPhone || '').replace(/[^0-9]/g, '');
                       if (cleanPhoneDigits.startsWith('57') && cleanPhoneDigits.length > 10) {
@@ -2616,7 +2616,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                         <td className="p-3">
                           {(() => {
                             const cleanContact = (contactStr || '').trim();
-                            let telegramUrl = 'https://t.me/Angelinaguzman69';
+                            let telegramUrl = 'https://t.me/Angieguz69';
                             if (cleanContact.startsWith('@')) {
                               telegramUrl = `https://t.me/${cleanContact.replace('@', '')}`;
                             } else if (cleanContact) {

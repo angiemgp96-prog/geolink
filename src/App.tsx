@@ -115,7 +115,7 @@ export default function App() {
         const gateMsg = encodeURIComponent(
           `¡Hola Angelina! 💋 Acabo de realizar el pago por Stripe para ingresar a tu Tienda Web.${gateContactLine}\n\nAquí te adjunto mi comprobante para que por favor me des el link de acceso 📎`
         );
-        window.location.href = `https://t.me/Angelinaguzman69?text=${gateMsg}`;
+        window.location.href = `https://t.me/Angieguz69?text=${gateMsg}`;
         return;
       }
       const contactStr = localStorage.getItem('geolink_visitor_contact') || 'Cliente Stripe ➔ Telegram';
@@ -147,7 +147,7 @@ export default function App() {
             `¡Hola Angelina! Acabo de realizar el Pago Único de ${formattedAmount || '$50.00 USD'} por Stripe para ingresar al Grupo VIP Permanente 👑.${vipContactLine}\n\nAquí te adjunto mi comprobante de pago para mi ingreso al Grupo VIP 📎`
           )
         : msg;
-      const telegramUrl = `https://t.me/Angelinaguzman69?text=${finalEncodedMsg}`;
+      const telegramUrl = `https://t.me/Angieguz69?text=${finalEncodedMsg}`;
       window.location.href = telegramUrl;
     } catch (err) {
       console.warn('Error checking pending telegram redirect:', err);
@@ -455,7 +455,7 @@ export default function App() {
                 // Redirigir directamente al grupo de Telegram asociado a la compra
                 const targetTelegram = verifyRes.purchase.downloadUrl
                   || mediaItems.find(m => m.id === verifyRes.purchase?.mediaId)?.downloadUrl
-                  || 'https://t.me/+vREXeP2U7Kw3ZTJh';
+                  || 'https://t.me/+BzLMicXEu3cxNDFh';
                 window.location.href = targetTelegram;
                 return;
               }
