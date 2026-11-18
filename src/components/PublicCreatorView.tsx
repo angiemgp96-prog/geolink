@@ -492,19 +492,20 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
           )}
 
           {/* 2. BOTÓN DE TELEGRAM VIP HOT */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+          {/* 2. BOTÓN DE TELEGRAM VIP HOT — MISMO ANCHO Y DISEÑO GRANDE */}
+          <div className="pt-2 max-w-lg mx-auto w-full">
             <a
               id="telegram-vip-hot-button"
-              href="https://t.me/Angieguz69"
+              href="https://t.me/+BzLMicXEu3cxNDFh"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-xl shadow-sky-500/30 hover:scale-105 cursor-pointer border border-sky-300/40"
+              className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 sm:px-5 sm:py-4 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:via-blue-500 hover:to-indigo-500 text-white transition-all shadow-[0_0_30px_rgba(14,165,233,0.45)] hover:shadow-[0_0_40px_rgba(14,165,233,0.65)] hover:scale-[1.02] cursor-pointer border-2 border-sky-300/60 font-black text-xs sm:text-base uppercase tracking-wider"
             >
-              <Send className="w-4 h-4 text-white fill-white shrink-0" />
-              <span>🔥 Telegram VIP Hot</span>
+              <Send className="w-5 h-5 text-white fill-white shrink-0" />
+              <span>🔥 TELEGRAM VIP HOT — ENTRAR AL CANAL VIP</span>
+              <ExternalLink className="w-4 h-4 text-sky-200 shrink-0 stroke-[2.5]" />
             </a>
           </div>
-
           {/* BOTÓN PAGO ÚNICO $50 USD GRUPO VIP PERMANENTE (SOLO FUERA DE COLOMBIA) */}
           {Boolean(visitorCountry) && visitorCountry.toUpperCase() !== 'CO' && (
             <div className="pt-1.5 max-w-md mx-auto w-full">
