@@ -455,7 +455,7 @@ export default function App() {
                 // Redirigir directamente al grupo de Telegram asociado a la compra
                 const targetTelegram = verifyRes.purchase.downloadUrl
                   || mediaItems.find(m => m.id === verifyRes.purchase?.mediaId)?.downloadUrl
-                  || 'https://t.me/+BzLMicXEu3cxNDFh';
+                  || (isCo ? 'https://t.me/+vREXeP2U7Kw3ZTJh' : 'https://t.me/+BzLMicXEu3cxNDFh');
                 window.location.href = targetTelegram;
                 return;
               }

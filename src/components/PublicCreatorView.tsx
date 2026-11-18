@@ -624,7 +624,7 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               const handleCardClick = () => {
                 if (isColombia && isUnlocked) {
                   // SÍ Y SOLO SÍ en Colombia y verificado por Mercado Pago API se redirige al grupo
-                  const targetUrl = item.downloadUrl || 'https://t.me/+BzLMicXEu3cxNDFh';
+                  const targetUrl = item.downloadUrl || 'https://t.me/+vREXeP2U7Kw3ZTJh';
                   window.open(targetUrl, '_blank');
                 } else if (isEligibleIncluded) {
                   // Reclamar 1 solo contenido gratis incluido con el acceso (sin comprobante)
