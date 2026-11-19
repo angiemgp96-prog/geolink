@@ -491,18 +491,17 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
             </div>
           )}
 
-          {/* 2. BOTÓN DE TELEGRAM VIP HOT */}
-          {/* 2. BOTÓN DE TELEGRAM VIP HOT — MISMO ANCHO Y DISEÑO GRANDE */}
+          {/* 2. BOTÓN DE TELEGRAM VIP HOT — Colombia: chat personal | Resto: canal VIP nuevo */}
           <div className="pt-2 max-w-lg mx-auto w-full">
             <a
               id="telegram-vip-hot-button"
-              href="https://t.me/+BzLMicXEu3cxNDFh"
+              href={isColombia ? 'https://t.me/Angieguz69' : 'https://t.me/+DOyyB8MN-I04YWJh'}
               target="_blank"
               rel="noreferrer"
               className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 sm:px-5 sm:py-4 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:via-blue-500 hover:to-indigo-500 text-white transition-all shadow-[0_0_30px_rgba(14,165,233,0.45)] hover:shadow-[0_0_40px_rgba(14,165,233,0.65)] hover:scale-[1.02] cursor-pointer border-2 border-sky-300/60 font-black text-xs sm:text-base uppercase tracking-wider"
             >
               <Send className="w-5 h-5 text-white fill-white shrink-0" />
-              <span>🔥 TELEGRAM VIP HOT — ENTRAR AL CANAL VIP</span>
+              <span>{isColombia ? '💬 ESCRÍBEME EN TELEGRAM' : '🔥 TELEGRAM VIP HOT — ENTRAR AL CANAL VIP'}</span>
               <ExternalLink className="w-4 h-4 text-sky-200 shrink-0 stroke-[2.5]" />
             </a>
           </div>
@@ -581,7 +580,8 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
           </div>
 
           {/* GUÍA CLARA DE COMPRA Y CONTENIDO GRATIS */}
-          {(Boolean(localStorage.getItem('geolink_active_access_code') || (isColombia && localStorage.getItem('geolink_colombia_page_unlocked') === 'true')) && !hasClaimedFreeItem) ? (
+          {/* "Elige 1 gratis" SOLO para Colombia la primera vez. Otros países: nunca. */}
+          {(isColombia && !hasClaimedFreeItem) ? (
             <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-950/60 via-slate-900/95 to-indigo-950/60 border border-pink-500/45 shadow-lg space-y-1.5 text-left">
               <div className="flex items-center gap-1.5 text-xs sm:text-sm font-black text-amber-300">
                 <Gift className="w-4 h-4 text-amber-300 shrink-0" />
@@ -612,15 +612,9 @@ export const PublicCreatorView: React.FC<PublicCreatorViewProps> = ({
               const prices = getCalculatedPrices(item.price, item.id);
               const isLatest = latest2VideoIds.includes(item.id);
 
-              // SOLO tienen derecho a 1 item gratis los que hayan pagado entrada (MercadoPago aprobado en Colombia o link de acceso VIP).
-              // Si están fuera de Colombia y el cobro de entrada está desactivado, NUNCA es gratis.
-              const hasPaidEntry = isColombia 
-                ? (localStorage.getItem('geolink_colombia_page_unlocked') === 'true')
-                : (Boolean(localStorage.getItem('geolink_active_access_code')));
-
-              const isEligibleIncluded = hasPaidEntry && !hasClaimedFreeItem && (isColombia 
-                ? (prices.originalFormatted.includes('35.000') || item.price <= 10)
-                : (item.price <= 10));
+              // Solo Colombia tiene derecho a 1 item gratis la primera vez. Fuera de Colombia: NUNCA gratis.
+              const isEligibleIncluded = isColombia && !hasClaimedFreeItem &&
+                (prices.originalFormatted.includes('35.000') || item.price <= 10);
 
               const handleCardClick = () => {
                 if (isColombia && isUnlocked) {

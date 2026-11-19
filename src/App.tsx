@@ -199,6 +199,16 @@ export default function App() {
     }
   });
 
+  // Persistir acceso en localStorage para que PublicCreatorView lo pueda leer (el ?access= ya fue borrado por replaceState)
+  React.useEffect(() => {
+    if (hasManualAccessLink) {
+      try {
+        localStorage.setItem('geolink_colombia_page_unlocked', 'true');
+        localStorage.setItem('geolink_usa_store_unlocked', 'true');
+      } catch {}
+    }
+  }, [hasManualAccessLink]);
+
   const [isColombiaPageUnlocked, setIsColombiaPageUnlocked] = useState<boolean>(() => {
     try {
       const p = new URLSearchParams(window.location.search);
