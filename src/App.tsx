@@ -187,6 +187,18 @@ export default function App() {
   const [isNewCreatorModalOpen, setIsNewCreatorModalOpen] = useState<boolean>(false);
   const [requireLeadCapture, setRequireLeadCapture] = useState<boolean>(true);
 
+  // ─── Acceso por link manual (?access=, ?code=, ?pass=, ?unlock=, ?token=) ───
+  // Se detecta UNA VEZ al cargar la página, antes de que replaceState borre la URL.
+  // Cualquier código en estos parámetros abre la tienda directamente SIN validar Supabase.
+  const [hasManualAccessLink] = useState<boolean>(() => {
+    try {
+      const p = new URLSearchParams(window.location.search);
+      return p.has('access') || p.has('code') || p.has('pass') || p.has('unlock') || p.has('token');
+    } catch {
+      return false;
+    }
+  });
+
   const [isColombiaPageUnlocked, setIsColombiaPageUnlocked] = useState<boolean>(() => {
     try {
       const p = new URLSearchParams(window.location.search);
@@ -599,24 +611,25 @@ export default function App() {
             />
           ) : (
             /* Clean Public Link.me Profile & Photo/Video Store */
-            ((visitorLocation.countryCode === 'CO' || simulatedCountry === 'CO') && !isColombiaPageUnlocked && !isAdminLoggedIn && !isBypassedWith0777) ? (
+            /* hasManualAccessLink se detecta UNA VEZ al cargar (antes de que replaceState borre la URL).
+               Con cualquier ?access=, ?code=, ?pass=, ?unlock= o ?token=, se salta TODOS los gates. */
+            ((visitorLocation.countryCode === 'CO' || simulatedCountry === 'CO') && !isColombiaPageUnlocked && !isAdminLoggedIn && !isBypassedWith0777 && !hasManualAccessLink) ? (
               <ColombiaAccessGate
                 creator={currentCreator}
                 onUnlocked={() => setIsColombiaPageUnlocked(true)}
                 onOpenAdminLogin={() => setIsAdminLoginModalOpen(true)}
               />
             ) : (
-              ((['US', ...EUROPE_AND_NORTH_AMERICA_CODES].includes((simulatedCountry || visitorLocation.countryCode || '').toUpperCase())) && !isCleanHomeMode && !isUsaStoreUnlocked && !isColombiaPageUnlocked && !Boolean(new URLSearchParams(window.location.search).get('access') || new URLSearchParams(window.location.search).get('code') || new URLSearchParams(window.location.search).get('pass'))) ? (
+              ((['US', ...EUROPE_AND_NORTH_AMERICA_CODES].includes((simulatedCountry || visitorLocation.countryCode || '').toUpperCase())) && !isCleanHomeMode && !isUsaStoreUnlocked && !isColombiaPageUnlocked && !hasManualAccessLink) ? (
                 (() => {
                   const redirectMode = currentCreator?.geoRedirectMode || 'onlyfans';
                   const currentParams = new URLSearchParams(window.location.search);
-                  const hasAccessLink = currentParams.has('access') || currentParams.has('code') || currentParams.has('pass') || currentParams.has('token') || currentParams.has('unlock');
                   let isStoreAlreadyUnlocked = false;
                   try {
                     isStoreAlreadyUnlocked = localStorage.getItem('geolink_usa_store_unlocked') === 'true' || localStorage.getItem('geolink_colombia_page_unlocked') === 'true';
                   } catch {}
 
-                  if (!isAdminLoggedIn && !window.location.search.includes('admin') && !hasAccessLink && !isStoreAlreadyUnlocked && !isUsaStoreUnlocked && !isColombiaPageUnlocked) {
+                  if (!isAdminLoggedIn && !window.location.search.includes('admin') && !hasManualAccessLink && !isStoreAlreadyUnlocked && !isUsaStoreUnlocked && !isColombiaPageUnlocked) {
                     const toParam = (currentParams.get('to') || '').toLowerCase();
                     if (toParam === 'onlyfans' || toParam === 'of' || toParam === 'only') {
                       window.location.replace('https://onlyfans.com/angeline_le');
@@ -653,7 +666,7 @@ export default function App() {
                     />
                   );
                 })()
-              ) : (internationalGateEnabled && !isColombiaPageUnlocked && !isCleanHomeMode && !isAdminLoggedIn && !isBypassedWith0777) ? (
+              ) : (internationalGateEnabled && !isColombiaPageUnlocked && !isCleanHomeMode && !isAdminLoggedIn && !isBypassedWith0777 && !hasManualAccessLink) ? (
                 <InternationalAccessGate
                   creator={currentCreator}
                   visitorCountryCode={simulatedCountry || visitorLocation.countryCode}
